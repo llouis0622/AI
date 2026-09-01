@@ -1,0 +1,21 @@
+{
+  "name": "ai-master",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "AI 정리·학습 통합 페이지 — 개념 커리큘럼, 실무 핸드북, 로드맵, 복습 퀴즈",
+  "scripts": {
+    "dev": "vitepress dev docs",
+    "build": "vitepress build docs",
+    "preview": "vitepress preview docs",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
+  },
+  "devDependencies": {
+    "markdown-it-mathjax3": "^4.3.2",
+    "mermaid": "^11.4.1",
+    "vitepress": "^1.6.3",
+    "vitepress-plugin-mermaid": "^2.0.17"
+  }
+}
