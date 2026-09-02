@@ -1,30 +1,68 @@
 # All of AI
 
-처음 배우는 사람이 이 페이지 하나로 인공지능을 완주하도록 쓴 책. 직선 하나를 긋는 학습 기계에서 GPT·확산 모델·강화학습·에이전트·서빙까지, 한 사람의 목소리로 쓴 9부 28장에 코드랩 20편과 부별 복습 퀴즈를 더했다.
+처음 배우는 사람이 이 페이지 하나로 인공지능을 완주하도록 쓴 책. 직선 하나를 긋는 학습 기계에서 출발해 GPT·확산 모델·강화학습·에이전트까지, 모든 개념을 질문에서 시작해 원리로 끝낸다.
 
-배포 URL: `https://llouis0622.github.io/AI/`
+📖 https://llouis0622.github.io/AI/
 
-## 구성
+## 추천 독자
 
-| | 위치 | 내용 |
-| --- | --- | --- |
-| 책 | `docs/book/` | 여는 글 + 28장. 모든 장은 질문 → 직관 → 필요한 자리의 수식 → 핵심 요약 → 스스로 점검 → 다음 장 예고로 흐른다 |
-| 코드랩 | `docs/practice/` | 20편. NumPy 역전파, PyTorch 파이프라인, U-Net·탐지·ViT, BPE·Transformer·GPT, BERT/LoRA 파인튜닝, RAG, 에이전트, VAE/GAN, DDPM, DQN, PPO, CLIP, Whisper, 서빙 |
-| 복습 퀴즈 | `docs/review/` | 9세트(부별). 커스텀 Vue 퀴즈 컴포넌트로 정답 확인과 맞힘/복습 기록(localStorage) |
+- 인공지능을 처음부터 제대로 이해하고 싶은 사람
+- 개념은 들어 봤지만 딥러닝·LLM이 실제로 어떻게 돌아가는지 설명하지 못하는 사람
+- 이론을 코드로 직접 만들어 보며 익히고 싶은 사람
 
-## 로컬 실행
+## 목차
 
-```bash
-npm install
-npm run dev        # http://localhost:5173/AI/
-npm run build      # 정적 빌드 (데드링크 검사 포함)
-npm run preview
-```
+**1부. 기계가 배운다는 것**
+1. 인공지능이라는 문제
+2. 첫 번째 학습 기계
+3. 학습을 떠받치는 수학
+4. 외운 것과 배운 것
 
-## 배포
+**2부. 고전 머신러닝**
+5. 갈림길을 배우다 — 분류
+6. 질문의 나무 — 트리와 앙상블
+7. 정답 없이 배우기
+8. 성적표를 읽는 법
 
-`main`에 푸시하면 GitHub Actions가 VitePress를 빌드해 GitHub Pages로 배포한다(Settings → Pages → Source: GitHub Actions). `docs/.vitepress/config.mts`의 `base`는 저장소 이름과 일치하는 `/AI/`다.
+**3부. 신경망**
+9. 뉴런의 산수 — 신경망
+10. 오차의 강을 거슬러 — 역전파
+11. 깊이의 대가
+12. 병든 학습 고치기
 
-## 기술 스택
+**4부. 지각**
+13. 본다는 것 — CNN
+14. 비전의 과제들
+15. 듣는다는 것 — 오디오
 
-VitePress · markdown-it-mathjax3(수식) · Mermaid(다이어그램) · Vue 3 커스텀 컴포넌트(퀴즈) · GitHub Actions
+**5부. 언어**
+16. 말을 숫자로 — 토큰과 임베딩
+17. 문맥이라는 문제 — 어텐션
+18. Transformer — 현대 AI의 심장
+
+**6부. 생성**
+19. 만들어내는 기계 — VAE와 GAN
+20. 노이즈에서 그림으로 — 확산 모델
+
+**7부. 거대 언어 모델**
+21. 다음 단어의 기적 — 사전학습
+22. 야생마 길들이기 — 정렬
+23. LLM 활용의 기술
+24. 행동하는 언어 — 에이전트
+
+**8부. 행동**
+25. 당근과 채찍의 수학 — 강화학습
+26. 정책 경사와 PPO
+
+**9부. 현장**
+27. 연구실에서 세상으로
+28. 계속 공부하는 법
+
+**실전 코드랩 20편** — NumPy 역전파, PyTorch 파이프라인, 전이학습, U-Net, 객체 탐지, ViT, BPE, Transformer, GPT, BERT 파인튜닝, LoRA, RAG, 에이전트, VAE·GAN, DDPM, DQN, PPO, CLIP, Whisper, 모델 서빙
+
+**복습 퀴즈 9세트** — 부마다 능동 회상으로 점검
+
+## 집필
+
+기획·감수: [llouis0622](https://github.com/llouis0622)
+집필: Claude (Anthropic)와 함께
