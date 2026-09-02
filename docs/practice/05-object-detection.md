@@ -2,7 +2,7 @@
 
 **만드는 것**: 탐지의 핵심 연산(IoU, NMS)을 직접 구현해 원리를 확인한 뒤, torchvision Faster R-CNN을 커스텀 데이터에 파인튜닝하고, 실무 표준인 YOLO 사용법까지 잇는다.
 
-**선행 지식**: [IoU, NMS, 앵커, mAP](/handbook/07-computer-vision/07-object-detection-fundamentals), [탐지 아키텍처](/handbook/07-computer-vision/08-detection-architectures)
+**선행 지식**: [IoU, NMS, 앵커, mAP](/book/14-vision-tasks), [탐지 아키텍처](/book/14-vision-tasks)
 
 ## 1. 핵심 연산 밑바닥 구현
 
@@ -175,7 +175,7 @@ names:
 ## 확장 과제
 
 1. **mAP 계산기 구현** — 예측 박스·점수와 GT로 AP@0.5를 계산하는 함수를 직접 짜고 `torchmetrics.detection.MeanAveragePrecision`과 대조하라. precision-recall 곡선을 그려 보면 mAP의 의미가 잡힌다.
-2. **혼동 사례 분석** — 검출 실패(미검출/오검출)를 20장 모아 보라. 원인이 데이터(레이블 누락)인가 모델(작은 물체)인가? 이 습관이 [실패 분석](/handbook/14-practitioner-guide/04-training-debug-checklist)의 기본기다.
+2. **혼동 사례 분석** — 검출 실패(미검출/오검출)를 20장 모아 보라. 원인이 데이터(레이블 누락)인가 모델(작은 물체)인가? 이 습관이 [실패 분석](/book/12-debugging-training)의 기본기다.
 3. **Soft-NMS** — 겹치는 박스를 제거하는 대신 점수를 감쇠시키는 Soft-NMS를 구현해, 겹친 물체가 많은 장면에서 비교하라.
 
 ## 다음

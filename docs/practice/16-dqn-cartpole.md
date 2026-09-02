@@ -2,7 +2,7 @@
 
 **만드는 것**: DQN(Deep Q-Network)을 밑바닥부터 구현해 CartPole-v1(막대 세우기)을 만점(500점)으로 풀어낸다. 리플레이 버퍼와 타깃 네트워크 — 딥 강화학습을 실제로 돌아가게 만든 두 장치를 코드로 이해한다.
 
-**선행 지식**: [MDP와 Q-learning](/handbook/11-other-domains/05-rl-foundations), [강화학습의 기본 개념](/curriculum/ch08/lecture17)
+**선행 지식**: [MDP와 Q-learning](/book/25-reinforcement-learning), [강화학습의 기본 개념](/book/25-reinforcement-learning)
 
 ## 왜 그냥 Q-learning + 신경망은 실패하는가
 

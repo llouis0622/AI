@@ -2,7 +2,7 @@
 
 **만드는 것**: MNIST에서 VAE와 DCGAN을 각각 구현해 숫자 이미지를 생성한다. 생성 모델의 두 축 — "가능도 하한을 최대화"(VAE)와 "판별자를 속이기"(GAN) — 를 코드 수준에서 대비한다.
 
-**선행 지식**: [VAE: ELBO와 재파라미터화](/handbook/09-generative-models/02-vae), [GAN: 미니맥스](/handbook/09-generative-models/03-gan-fundamentals), [Lecture 12](/curriculum/ch05/lecture12)
+**선행 지식**: [VAE: ELBO와 재파라미터화](/book/19-generative-models), [GAN: 미니맥스](/book/19-generative-models), [0장]()
 
 ## 1. VAE
 
@@ -170,7 +170,7 @@ GAN 코드의 세 가지 급소:
 
 1. **`detach()`** — D 스텝에서 빼먹으면 D의 손실이 G까지 갱신해 학습이 꼬인다.
 2. **non-saturating G 손실** — 이론의 $\min \log(1-D(G(z)))$ 대신 $\max \log D(G(z))$를 쓴다. 초반에 D가 쉽게 이길 때 그래디언트가 살아있게 하는 표준 트릭이다.
-3. **D와 G의 균형** — D 손실이 0 근처로 붕괴하면 G가 배울 신호가 없다. lr·구조로 균형을 맞추는 것이 GAN 튜닝의 본질이고, 이 고통이 [WGAN](/handbook/09-generative-models/04-gan-failure-modes-and-wgan)과 확산 모델로 이어지는 동기다.
+3. **D와 G의 균형** — D 손실이 0 근처로 붕괴하면 G가 배울 신호가 없다. lr·구조로 균형을 맞추는 것이 GAN 튜닝의 본질이고, 이 고통이 [WGAN](/book/19-generative-models)과 확산 모델로 이어지는 동기다.
 
 ## 확장 과제
 

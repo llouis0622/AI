@@ -4,7 +4,7 @@
 
 **핵심 아이디어**: 이미지를 16×16(여기서는 4×4) 패치로 잘라 "단어"처럼 취급하면, 이미지 분류가 시퀀스 분류 문제가 된다. 합성곱의 귀납 편향(지역성, 평행이동 등변성)을 버리는 대신, 데이터가 충분하면 어텐션이 전역 관계를 직접 학습한다.
 
-**선행 지식**: [ViT와 Swin](/handbook/07-computer-vision/10-vision-transformer), [Multi-Head Attention](/handbook/08-sequence-nlp/07-multi-head-attention)
+**선행 지식**: [ViT와 Swin](/book/14-vision-tasks), [Multi-Head Attention](/book/17-rnn-to-attention)
 
 ## 전체 코드
 
@@ -138,7 +138,7 @@ if __name__ == "__main__":
 
 **2. Conv2d 하나로 패치 임베딩이 되는 이유.** kernel=stride=patch인 합성곱은 겹치지 않게 자른 각 패치에 같은 선형변환을 적용하는 것과 정확히 같다. `unfold`로 잘라 `Linear`를 거는 것과 수학적으로 동일하지만 훨씬 빠르다.
 
-**3. Pre-LN.** 원조 Transformer는 잔차 후에 LN(Post-LN)이었지만, 깊은 모델에서는 LN을 먼저 통과시키는 Pre-LN이 그래디언트 흐름이 안정적이라 현대 구현의 표준이다. ([정규화 위치](/handbook/08-sequence-nlp/09-transformer-block-and-masking))
+**3. Pre-LN.** 원조 Transformer는 잔차 후에 LN(Post-LN)이었지만, 깊은 모델에서는 LN을 먼저 통과시키는 Pre-LN이 그래디언트 흐름이 안정적이라 현대 구현의 표준이다. ([정규화 위치](/book/18-transformer))
 
 ## 확장 과제
 

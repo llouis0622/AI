@@ -2,7 +2,7 @@
 
 **만드는 것**: 학습한 모델을 FastAPI로 API 서버화하고, 동적 배칭으로 처리량을 끌어올리고, Docker로 포장해 어디서든 배포 가능하게 만든다. "모델이 있다"와 "서비스가 있다" 사이의 간극을 메우는 마지막 코드랩이다.
 
-**선행 지식**: [FastAPI 기반 최소 서빙](/handbook/12-mlops/06-serving-basics), [서빙 인프라](/handbook/12-mlops/07-serving-infrastructure)
+**선행 지식**: [FastAPI 기반 최소 서빙](/book/27-to-production), [서빙 인프라](/book/27-to-production)
 
 ## 1. 최소 서빙 — 그러나 올바르게
 
@@ -160,20 +160,20 @@ docker run --rm -p 8000:8000 --gpus all cifar-serve      # GPU 사용 시
 
 | 항목 | 최소한의 실천 |
 | --- | --- |
-| 로깅 | 요청 ID, 지연시간, 예측 분포를 구조화 로그로 — [드리프트 감지](/handbook/12-mlops/10-monitoring-and-drift)의 원재료 |
+| 로깅 | 요청 ID, 지연시간, 예측 분포를 구조화 로그로 — [드리프트 감지](/book/27-to-production)의 원재료 |
 | 지연시간 | p50이 아니라 **p95/p99**를 본다. 배칭의 MAX_WAIT는 지연-처리량 트레이드오프 다이얼이다 |
-| 버전 관리 | 응답에 모델 버전을 넣고, [레지스트리 승격 절차](/handbook/12-mlops/05-model-registry)로 배포한다 |
-| 성능 | 병목이면 ONNX Runtime/TensorRT 변환, [양자화](/handbook/10-llm-engineering/12-quantization) 순으로 |
-| LLM 서빙 | 자기회귀 생성은 이 방식으론 부족 — vLLM 등 [전용 엔진](/handbook/10-llm-engineering/14-inference-serving-and-batching)을 쓴다 |
-| 대규모 | 모델별 서버 관리가 힘들어지면 Triton/TorchServe, k8s [오토스케일링](/handbook/12-mlops/08-containers-and-kubernetes)으로 |
+| 버전 관리 | 응답에 모델 버전을 넣고, [레지스트리 승격 절차](/book/27-to-production)로 배포한다 |
+| 성능 | 병목이면 ONNX Runtime/TensorRT 변환, [양자화](/book/27-to-production) 순으로 |
+| LLM 서빙 | 자기회귀 생성은 이 방식으론 부족 — vLLM 등 [전용 엔진](/book/27-to-production)을 쓴다 |
+| 대규모 | 모델별 서버 관리가 힘들어지면 Triton/TorchServe, k8s [오토스케일링](/book/27-to-production)으로 |
 
 ## 확장 과제
 
 1. **부하 테스트** — `locust`로 동시 사용자 100명을 흉내 내 배칭 유/무의 p95 지연과 처리량(RPS)을 표로 만들어라.
-2. **ONNX 내보내기** — 모델을 ONNX로 변환해 `onnxruntime`으로 서빙하고 CPU 추론 속도를 비교하라. ([익스포트](/handbook/05-pytorch/08-export-torchscript-onnx))
+2. **ONNX 내보내기** — 모델을 ONNX로 변환해 `onnxruntime`으로 서빙하고 CPU 추론 속도를 비교하라. ([익스포트](/practice/02-pytorch-training-pipeline))
 3. **LLM 서빙 체험** — `vllm serve Qwen/Qwen2.5-1.5B-Instruct`로 [11에서 만든 병합 모델](/practice/11-lora-finetuning)을 띄우고, OpenAI 호환 API로 호출해 보라. 연속 배칭이 켜진 처리량을 관찰하라.
 4. **모니터링 대시보드** — 예측 클래스 분포를 시간별로 집계해, 입력 분포가 변하면 알 수 있는 최소 드리프트 모니터를 만들어라.
 
 ## 마치며
 
-여기까지 왔다면 — 역전파를 손으로 짰고, CNN·Transformer·확산 모델·RL 에이전트를 밑바닥부터 만들었고, LLM을 튜닝하고 RAG와 에이전트를 붙였고, 그 결과물을 API로 배포했다. 이제 어떤 AI 논문이나 코드베이스를 만나도 "처음 보는 마법"은 없을 것이다. [로드맵](/roadmap)으로 돌아가 빈 곳을 채우고, [복습 퀴즈](/review/)로 기억을 다져라.
+여기까지 왔다면 — 역전파를 손으로 짰고, CNN·Transformer·확산 모델·RL 에이전트를 밑바닥부터 만들었고, LLM을 튜닝하고 RAG와 에이전트를 붙였고, 그 결과물을 API로 배포했다. 이제 어떤 AI 논문이나 코드베이스를 만나도 "처음 보는 마법"은 없을 것이다. [책의 여는 글](/book/)로 돌아가 빈 곳을 채우고, [복습 퀴즈](/review/)로 기억을 다져라.

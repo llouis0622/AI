@@ -4,7 +4,7 @@
 
 **왜 이걸 먼저 하는가**: `loss.backward()` 한 줄 뒤에서 일어나는 일을 한 번이라도 직접 구현해 본 사람과 아닌 사람은, 학습이 안 될 때 디버깅하는 깊이가 다르다. 이 코드랩이 끝나면 역전파는 더 이상 마법이 아니다.
 
-**선행 지식**: [역전파 유도](/handbook/02-mathematics/10-backpropagation-derivation), [신경망의 원리](/curriculum/ch04/lecture08)
+**선행 지식**: [역전파 유도](/book/10-backpropagation), [신경망의 원리](/book/09-neural-networks)
 
 ## 전체 구조
 
@@ -14,7 +14,7 @@ $$
 z_1 = XW_1 + b_1,\quad h = \mathrm{ReLU}(z_1),\quad z_2 = hW_2 + b_2,\quad \hat{y} = \mathrm{softmax}(z_2)
 $$
 
-손실은 교차엔트로피, 역전파는 이 순서를 거꾸로 밟는다. 소프트맥스+교차엔트로피의 그래디언트가 $\hat{y} - y$로 깔끔하게 떨어지는 것이 핵심 유도다([유도 과정](/handbook/04-deep-learning/03-loss-functions)).
+손실은 교차엔트로피, 역전파는 이 순서를 거꾸로 밟는다. 소프트맥스+교차엔트로피의 그래디언트가 $\hat{y} - y$로 깔끔하게 떨어지는 것이 핵심 유도다([유도 과정](/book/05-classification)).
 
 ## 전체 코드
 
@@ -154,7 +154,7 @@ grad_check(TwoLayerMLP(), *[np.random.rand(8, 784).astype(np.float32), one_hot(n
 
 1. **층 추가** — 3층으로 확장하라. `backward`에서 무엇이 반복 패턴이 되는지 관찰하면, 임의 깊이 네트워크의 역전파가 왜 "층별 국소 미분의 곱"인지 보인다.
 2. **모멘텀 구현** — `step`에 속도 항 $v \leftarrow \beta v - \eta g$를 추가하고 수렴 속도를 비교하라.
-3. **일부러 망가뜨리기** — He 초기화를 `rng.normal(0, 1, ...)`로 바꾸면 학습이 어떻게 되는가? 왜 그런가? ([초기화 이론](/handbook/04-deep-learning/05-weight-initialization))
+3. **일부러 망가뜨리기** — He 초기화를 `rng.normal(0, 1, ...)`로 바꾸면 학습이 어떻게 되는가? 왜 그런가? ([초기화 이론](/book/11-training-deep-nets))
 4. **미니배치 크기 실험** — batch_size를 1, 128, 60000으로 바꿔 손실 곡선의 노이즈와 수렴을 비교하라.
 
 ## 다음

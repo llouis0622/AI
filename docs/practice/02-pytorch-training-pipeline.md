@@ -2,7 +2,7 @@
 
 **만드는 것**: CIFAR-10을 ResNet으로 분류하는, 실무 수준의 완전한 학습 스크립트. 데이터 증강, 혼합 정밀도(AMP), 학습률 스케줄, 체크포인트, 검증 루프까지 — 어떤 프로젝트에도 재사용할 수 있는 템플릿이다.
 
-**선행 지식**: [표준 학습 루프](/handbook/05-pytorch/05-training-loop-template), [Dataset과 DataLoader](/handbook/05-pytorch/04-dataset-and-dataloader)
+**선행 지식**: [표준 학습 루프](/practice/02-pytorch-training-pipeline), [Dataset과 DataLoader](/practice/02-pytorch-training-pipeline)
 
 ## 전체 코드
 
@@ -143,7 +143,7 @@ if __name__ == "__main__":
 
 **클리핑 전 `unscale_`.** 스케일된 그래디언트에 클리핑하면 임계값의 의미가 없어진다. 순서가 중요하다: `scale → backward → unscale → clip → step`.
 
-**체크포인트에 설정을 함께 저장.** `state_dict`만 저장하면 3주 뒤에 "이 모델이 어떤 하이퍼파라미터였지?"를 알 수 없다. 재현성의 최소 단위는 (가중치 + 설정 + 성능)이다. ([실험 추적](/handbook/12-mlops/01-experiment-tracking))
+**체크포인트에 설정을 함께 저장.** `state_dict`만 저장하면 3주 뒤에 "이 모델이 어떤 하이퍼파라미터였지?"를 알 수 없다. 재현성의 최소 단위는 (가중치 + 설정 + 성능)이다. ([실험 추적](/book/27-to-production))
 
 **성능이 좋을 때만 저장.** 마지막 에포크가 최고 성능이라는 보장이 없다 — 사실상의 조기 종료다.
 
@@ -153,14 +153,14 @@ if __name__ == "__main__":
 
 1. **첫 배치 손실** — 10 클래스 분류의 초기 손실은 $-\log(1/10) \approx 2.30$이어야 한다. 크게 다르면 초기화나 손실 정의가 잘못됐다.
 2. **작은 데이터 과적합 테스트** — 배치 하나(256장)만으로 학습해 손실이 ~0으로 가는지 확인한다. 안 가면 모델/루프에 버그가 있다.
-3. **학습률 곡선** — 손실이 처음부터 발산하면 lr 10배 감소, 너무 느리면 10배 증가부터 시도한다. ([진단 순서](/handbook/04-deep-learning/10-training-failure-diagnosis))
+3. **학습률 곡선** — 손실이 처음부터 발산하면 lr 10배 감소, 너무 느리면 10배 증가부터 시도한다. ([진단 순서](/book/12-debugging-training))
 
 ## 확장 과제
 
 1. **TensorBoard 연동** — `torch.utils.tensorboard.SummaryWriter`로 손실·정확도·학습률을 기록하고 곡선을 관찰하라.
 2. **재개(resume) 기능** — 체크포인트에서 optimizer/scheduler 상태까지 복원해 중단 지점부터 이어 학습하도록 확장하라(무엇을 추가로 저장해야 하는가?).
 3. **MixUp 구현** — 두 이미지와 레이블을 섞는 MixUp 증강을 추가하고 정확도 변화를 측정하라.
-4. **`torch.compile`** — `model = torch.compile(model)` 한 줄을 추가하고 처리량 변화를 측정하라. ([원리](/handbook/05-pytorch/07-torch-compile))
+4. **`torch.compile`** — `model = torch.compile(model)` 한 줄을 추가하고 처리량 변화를 측정하라. ([원리](/practice/02-pytorch-training-pipeline))
 
 ## 다음
 

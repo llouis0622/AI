@@ -4,7 +4,7 @@
 
 **왜 중요한가**: LLM의 입력은 텍스트가 아니라 토큰이다. 컨텍스트 길이도, API 비용도, "strawberry에 r이 몇 개냐"를 틀리는 이유도 모두 토크나이저에서 시작된다.
 
-**선행 지식**: [토큰화 이론](/handbook/08-sequence-nlp/01-tokenization)
+**선행 지식**: [토큰화 이론](/book/16-tokens-and-embeddings)
 
 ## BPE의 아이디어
 

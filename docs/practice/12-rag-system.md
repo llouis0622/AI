@@ -4,7 +4,7 @@
 
 **왜 RAG인가**: LLM은 학습 시점 이후의 정보와 비공개 문서를 모른다. 파인튜닝으로 지식을 넣는 것은 비싸고 불안정하다. 질문마다 관련 문서를 **검색해 컨텍스트로 제공**하는 것이 RAG이고, 환각을 줄이고 출처를 제시할 수 있는 실무 표준이다.
 
-**선행 지식**: [RAG 파이프라인과 청킹](/handbook/10-llm-engineering/18-rag-pipeline), [벡터 인덱스](/handbook/10-llm-engineering/19-vector-indexes), [RAG 평가](/handbook/10-llm-engineering/20-rag-evaluation)
+**선행 지식**: [RAG 파이프라인과 청킹](/book/23-using-llms), [벡터 인덱스](/book/23-using-llms), [RAG 평가](/book/23-using-llms)
 
 ## 전체 코드
 
@@ -124,7 +124,7 @@ Recall@5가 0.7이라면 — 다섯 개나 보여줘도 30%의 질문은 정답 
 2. **하이브리드 검색** — 벡터 검색은 고유명사·코드 식별자에 약하다. BM25(키워드)와 벡터 점수를 결합(RRF)하면 두 약점이 상쇄된다.
 3. **리랭커** — 1차 검색으로 상위 20개를 뽑고, cross-encoder 리랭커(`BAAI/bge-reranker-v2-m3`)로 재정렬해 상위 5개만 쓴다. Recall이 정밀도로 바뀌는 가장 확실한 투자다.
 4. **질의 재작성** — 대화 중의 후속 질문("그건 왜 그래?")은 그대로 검색하면 실패한다. LLM으로 독립형 질의로 재작성한 뒤 검색한다.
-5. **인덱스 교체** — 청크가 수십만 개를 넘으면 Flat 대신 HNSW로. ([트레이드오프](/handbook/10-llm-engineering/19-vector-indexes))
+5. **인덱스 교체** — 청크가 수십만 개를 넘으면 Flat 대신 HNSW로. ([트레이드오프](/book/23-using-llms))
 
 ## 확장 과제
 

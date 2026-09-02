@@ -2,7 +2,7 @@
 
 **만드는 것**: Hugging Face 생태계(`transformers`, `datasets`, `evaluate`)로 한국어 감성 분류기를 파인튜닝한다. NLP 실무의 표준 워크플로우 — 데이터 로드부터 학습, 평가, 추론 파이프라인, 모델 저장까지.
 
-**선행 지식**: [BERT 계열](/handbook/08-sequence-nlp/11-bert-family), [03. 전이학습](/practice/03-transfer-learning)의 개념이 텍스트로 그대로 이어진다.
+**선행 지식**: [BERT 계열](/book/18-transformer), [03. 전이학습](/practice/03-transfer-learning)의 개념이 텍스트로 그대로 이어진다.
 
 ## 전체 코드
 
@@ -133,7 +133,7 @@ print(probs)
 
 1. **Trainer 없이 직접 루프** — 같은 학습을 순수 PyTorch 루프(+`get_linear_schedule_with_warmup`)로 재현하라. Trainer가 해 주던 일(그래디언트 누적, 혼합 정밀도, 체크포인트)이 무엇인지 명확해진다.
 2. **토큰 분류로 확장** — `AutoModelForTokenClassification`으로 KLUE-NER(개체명 인식)을 파인튜닝하라. 레이블 정렬(서브워드 ↔ 단어)이 핵심 난관이다.
-3. **오분류 분석** — 검증 셋에서 confidence가 높은데 틀린 샘플 30개를 뽑아 보라. 레이블 노이즈인가, 진짜 어려운 문장인가? ([평가의 기본기](/handbook/03-machine-learning/04-evaluation-metrics))
+3. **오분류 분석** — 검증 셋에서 confidence가 높은데 틀린 샘플 30개를 뽑아 보라. 레이블 노이즈인가, 진짜 어려운 문장인가? ([평가의 기본기](/book/08-evaluation))
 4. **경량화** — distilbert 계열로 바꿔 정확도 하락 대비 속도 향상을 측정하라.
 
 ## 다음

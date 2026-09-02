@@ -2,7 +2,7 @@
 
 **만드는 것**: 인코더-디코더 Transformer 전체를 구현하고, "문자열 뒤집기" 시퀀스 변환 과제로 동작을 검증한다. 장난감 과제를 쓰는 이유: 데이터 준비에 시간을 쓰지 않고 아키텍처의 모든 부품(어텐션 3종, 마스킹 2종, 위치 인코딩)이 맞는지 몇 분 안에 확인할 수 있다.
 
-**선행 지식**: [Scaled Dot-Product Attention](/handbook/08-sequence-nlp/06-scaled-dot-product-attention), [Transformer 블록과 마스킹](/handbook/08-sequence-nlp/09-transformer-block-and-masking), [핸드북의 전체 구현](/handbook/08-sequence-nlp/10-transformer-from-scratch)
+**선행 지식**: [Scaled Dot-Product Attention](/book/17-rnn-to-attention), [Transformer 블록과 마스킹](/book/18-transformer), [0장]()
 
 ## 구조 한눈에
 

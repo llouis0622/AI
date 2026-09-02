@@ -2,7 +2,7 @@
 
 **만드는 것**: CLIP으로 (1) 학습 없이 임의 클래스를 분류하는 제로샷 분류기, (2) 텍스트로 이미지를 찾는 시맨틱 이미지 검색을 구현하고, 대조 학습 손실을 미니 구현으로 확인한다. 이미지와 텍스트가 **같은 임베딩 공간**에 산다는 것이 멀티모달 AI의 출발점이다.
 
-**선행 지식**: [자기지도 비전 학습](/handbook/07-computer-vision/11-self-supervised-vision), [문장 임베딩](/handbook/08-sequence-nlp/13-t5-and-sentence-embeddings)
+**선행 지식**: [자기지도 비전 학습](/book/14-vision-tasks), [문장 임베딩](/book/18-transformer)
 
 ## CLIP의 원리 한 문단
 
@@ -108,7 +108,7 @@ def clip_loss(img_feat, txt_feat, temperature=0.07):
             F.cross_entropy(logits.T, labels)) / 2
 ```
 
-핵심 통찰: 배치 크기 B에서 정답 1개 대 오답 B−1개의 분류 문제다. **배치가 클수록 오답(negative)이 많아져 학습 신호가 좋아진다** — CLIP이 수만 단위 배치로 학습된 이유이고, 대조 학습 전반의 공통 원리다([SimCLR](/handbook/07-computer-vision/11-self-supervised-vision)과 같은 구조).
+핵심 통찰: 배치 크기 B에서 정답 1개 대 오답 B−1개의 분류 문제다. **배치가 클수록 오답(negative)이 많아져 학습 신호가 좋아진다** — CLIP이 수만 단위 배치로 학습된 이유이고, 대조 학습 전반의 공통 원리다([SimCLR](/book/14-vision-tasks)과 같은 구조).
 
 ## 멀티모달의 다음 단계 — VLM
 
