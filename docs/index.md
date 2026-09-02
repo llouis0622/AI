@@ -2,7 +2,7 @@
 layout: home
 
 hero:
-  name: All of AI
+  name: AIology
   text: 이 페이지 하나로 인공지능을 완주한다
   tagline: 처음 배우는 사람을 위해 한 사람의 목소리로 쓴 28장의 책. 직선 하나를 긋는 기계에서 GPT·확산 모델·에이전트까지, 모든 개념을 질문에서 시작해 원리로 끝낸다.
   actions:
