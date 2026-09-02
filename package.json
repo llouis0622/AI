@@ -1,9 +1,9 @@
 {
-  "name": "ai-master",
+  "name": "aiology",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "AI 정리·학습 통합 페이지 — 개념 커리큘럼, 실무 핸드북, 로드맵, 복습 퀴즈",
+  "description": "AIology — 처음 배우는 사람이 이 페이지 하나로 인공지능을 완주하는 책",
   "scripts": {
     "dev": "vitepress dev docs",
     "build": "vitepress build docs",

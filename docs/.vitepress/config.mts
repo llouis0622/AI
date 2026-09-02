@@ -136,7 +136,7 @@ const reviewSidebar = [
 
 export default withMermaid(
   defineConfig({
-    title: 'All of AI',
+    title: 'AIology',
     description: '처음 배우는 사람이 이 페이지 하나로 인공지능을 완주하는 책 — 28장의 강의, 20편의 코드랩, 9세트의 복습 퀴즈',
     lang: 'ko-KR',
     base: '/AI/',
