@@ -4,7 +4,7 @@
 
 **핵심 개념**: 분류는 이미지 → 레이블 하나지만, 세그멘테이션은 이미지 → 같은 크기의 레이블 맵이다. 공간 정보를 잃지 않으면서 넓은 문맥을 보는 것이 과제이고, U-Net의 인코더-디코더 + 스킵 연결이 그 답이다.
 
-**선행 지식**: [세그멘테이션 이론](/handbook/07-computer-vision/09-segmentation), [합성곱 연산](/handbook/07-computer-vision/01-convolution-arithmetic)
+**선행 지식**: [세그멘테이션 이론](/book/14-vision-tasks), [합성곱 연산](/book/13-cnn)
 
 ## 전체 코드
 

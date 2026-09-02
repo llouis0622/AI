@@ -1,40 +1,30 @@
-# All of AI Hub
+# All of AI
 
-AI 정리와 학습을 하나로 모은 통합 페이지. 두 지식베이스([all-of-ai](https://github.com/llouis0622/all-of-ai), [AI-Engineer-Archive](https://github.com/llouis0622/AI-Engineer-Archive))를 통합하고, 학습 로드맵·실전 코드랩·복습 퀴즈를 더했다.
+처음 배우는 사람이 이 페이지 하나로 인공지능을 완주하도록 쓴 책. 직선 하나를 긋는 학습 기계에서 GPT·확산 모델·강화학습·에이전트·서빙까지, 한 사람의 목소리로 쓴 9부 28장에 코드랩 20편과 부별 복습 퀴즈를 더했다.
 
 배포 URL: `https://llouis0622.github.io/AI/`
 
 ## 구성
 
-| 트랙 | 구성 | 성격 |
+| | 위치 | 내용 |
 | --- | --- | --- |
-| 학습 로드맵 | 8단계 학습 경로 | 무엇을 어떤 순서로 공부할지 |
-| 커리큘럼 (`docs/curriculum/`) | 6부 · 12챕터 · 28강 | 개념과 직관, 체계 |
-| 핸드북 (`docs/handbook/`) | 14파트 · 166편 | 수식 유도와 이론, 실무 관점 |
-| 코드랩 (`docs/practice/`) | 6영역 · 20편 | 처음부터 끝까지 실행되는 완전한 코드 |
-| 복습 퀴즈 (`docs/review/`) | 9세트 · 90+ 문항 | 능동 회상 퀴즈, 맞힘/복습 기록(localStorage) |
-
-퀴즈는 커스텀 Vue 컴포넌트(`docs/.vitepress/theme/Quiz.vue`)로 구현되어, 정답 확인과 자기 평가 기록이 브라우저에 저장된다.
+| 책 | `docs/book/` | 여는 글 + 28장. 모든 장은 질문 → 직관 → 필요한 자리의 수식 → 핵심 요약 → 스스로 점검 → 다음 장 예고로 흐른다 |
+| 코드랩 | `docs/practice/` | 20편. NumPy 역전파, PyTorch 파이프라인, U-Net·탐지·ViT, BPE·Transformer·GPT, BERT/LoRA 파인튜닝, RAG, 에이전트, VAE/GAN, DDPM, DQN, PPO, CLIP, Whisper, 서빙 |
+| 복습 퀴즈 | `docs/review/` | 9세트(부별). 커스텀 Vue 퀴즈 컴포넌트로 정답 확인과 맞힘/복습 기록(localStorage) |
 
 ## 로컬 실행
 
 ```bash
 npm install
 npm run dev        # http://localhost:5173/AI/
-npm run build      # 정적 빌드
-npm run preview    # 빌드 결과 미리보기
+npm run build      # 정적 빌드 (데드링크 검사 포함)
+npm run preview
 ```
 
 ## 배포
 
-`main` 브랜치에 푸시하면 GitHub Actions가 VitePress 빌드 후 GitHub Pages로 배포한다. 저장소 설정(Settings → Pages)에서 **Source를 GitHub Actions로** 지정해야 한다.
-
-`docs/.vitepress/config.mts`의 `base`는 저장소 이름과 일치하는 `/AI/`로 설정되어 있다. 저장소 이름을 바꾸면 이 값도 함께 수정해야 한다.
+`main`에 푸시하면 GitHub Actions가 VitePress를 빌드해 GitHub Pages로 배포한다(Settings → Pages → Source: GitHub Actions). `docs/.vitepress/config.mts`의 `base`는 저장소 이름과 일치하는 `/AI/`다.
 
 ## 기술 스택
 
-- [VitePress](https://vitepress.dev/) — 정적 사이트 생성기
-- markdown-it-mathjax3 — 수식 렌더링
-- [Mermaid](https://mermaid.js.org/) — 다이어그램
-- Vue 3 커스텀 컴포넌트 — 퀴즈/진행률
-- GitHub Actions — 자동 배포
+VitePress · markdown-it-mathjax3(수식) · Mermaid(다이어그램) · Vue 3 커스텀 컴포넌트(퀴즈) · GitHub Actions

@@ -2,7 +2,7 @@
 
 **만드는 것**: 오픈소스 LLM을 LoRA/QLoRA로 지시 데이터에 파인튜닝(SFT)한다. 소비자 GPU 한 장으로 수B 파라미터 모델을 조정하는, 현재 가장 보편적인 LLM 커스터마이징 레시피다.
 
-**선행 지식**: [LoRA 수식 유도](/handbook/10-llm-engineering/10-lora), [QLoRA](/handbook/10-llm-engineering/11-peft-variants-and-qlora), [SFT 데이터 설계](/handbook/10-llm-engineering/07-sft)
+**선행 지식**: [LoRA 수식 유도](/book/23-using-llms), [QLoRA](/book/23-using-llms), [SFT 데이터 설계](/book/22-alignment)
 
 ## 원리 요약
 
@@ -131,7 +131,7 @@ tok.save_pretrained("./sft-merged")
 
 **언제 파인튜닝하고 언제 안 하는가.** 형식·문체·도메인 어휘를 일관되게 따르게 하는 데는 SFT가 강하다. 반면 **새로운 지식 주입**에는 비효율적이다 — 최신 정보·사내 문서 참조는 [RAG](/practice/12-rag-system)가 먼저다. 프롬프트 엔지니어링 → RAG → 파인튜닝 순으로 시도하는 것이 비용 순서다.
 
-**데이터 품질 > 수량.** 잘 만든 수천 건이 긁어모은 수십만 건을 이긴다. 응답 형식이 들쭉날쭉한 데이터로 SFT하면 모델도 들쭉날쭉해진다. ([SFT 데이터 설계](/handbook/10-llm-engineering/07-sft))
+**데이터 품질 > 수량.** 잘 만든 수천 건이 긁어모은 수십만 건을 이긴다. 응답 형식이 들쭉날쭉한 데이터로 SFT하면 모델도 들쭉날쭉해진다. ([SFT 데이터 설계](/book/22-alignment))
 
 **손실은 응답에만.** 챗 SFT에서는 프롬프트 토큰을 손실에서 제외(마스킹)하는 것이 표준이다 — TRL이 챗 템플릿 기반으로 처리해 준다. 직접 루프를 짤 때 놓치기 쉬운 지점이다.
 
@@ -141,8 +141,8 @@ tok.save_pretrained("./sft-merged")
 
 1. **수동 LoRA 검증** — 1절의 `LoRALinear`를 [09의 GPT](/practice/09-gpt-from-scratch)의 `qkv`에 끼워 파인튜닝하고, 전체 파인튜닝과 손실 곡선을 비교하라.
 2. **r 스윕** — r=4/16/64로 학습해 성능과 어댑터 크기를 비교하라. 어디서 포화되는가?
-3. **평가 자동화** — 파인튜닝 전후 모델에 같은 프롬프트 50개를 넣고, 더 강한 LLM에게 어느 쪽 응답이 나은지 채점시켜(LLM-as-judge) 승률을 계산하라. ([LLM 평가](/handbook/10-llm-engineering/22-llm-evaluation))
-4. **DPO 이어가기** — SFT 모델에 선호 쌍 데이터(`trl`의 `DPOTrainer`)로 DPO를 이어 붙여라. ([DPO 유도](/handbook/10-llm-engineering/09-dpo))
+3. **평가 자동화** — 파인튜닝 전후 모델에 같은 프롬프트 50개를 넣고, 더 강한 LLM에게 어느 쪽 응답이 나은지 채점시켜(LLM-as-judge) 승률을 계산하라. ([LLM 평가](/book/23-using-llms))
+4. **DPO 이어가기** — SFT 모델에 선호 쌍 데이터(`trl`의 `DPOTrainer`)로 DPO를 이어 붙여라. ([DPO 유도](/book/22-alignment))
 
 ## 다음
 

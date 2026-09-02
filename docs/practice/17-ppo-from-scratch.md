@@ -1,8 +1,8 @@
 # 17. PPO 구현
 
-**만드는 것**: PPO(Proximal Policy Optimization)를 액터-크리틱 + GAE + 클리핑까지 밑바닥부터 구현해 CartPole을 푼다. PPO는 로봇 제어부터 RLHF까지 쓰이는 현대 RL의 사실상 표준 알고리즘이다 — 이 코드를 이해하면 [RLHF](/handbook/10-llm-engineering/08-rlhf)의 학습 루프가 그대로 읽힌다.
+**만드는 것**: PPO(Proximal Policy Optimization)를 액터-크리틱 + GAE + 클리핑까지 밑바닥부터 구현해 CartPole을 푼다. PPO는 로봇 제어부터 RLHF까지 쓰이는 현대 RL의 사실상 표준 알고리즘이다 — 이 코드를 이해하면 [RLHF](/book/22-alignment)의 학습 루프가 그대로 읽힌다.
 
-**선행 지식**: [정책 경사와 PPO](/handbook/11-other-domains/06-policy-gradient-and-ppo), [강화학습의 주요 방법론](/curriculum/ch08/lecture18)
+**선행 지식**: [정책 경사와 PPO](/book/26-policy-gradient), [강화학습의 주요 방법론](/book/25-reinforcement-learning)
 
 ## DQN과 무엇이 다른가
 

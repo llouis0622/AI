@@ -2,7 +2,7 @@
 
 **만드는 것**: 디코더 전용(decoder-only) GPT를 구현해 텍스트 코퍼스로 학습하고, 온도·top-k 샘플링으로 생성하고, KV 캐시로 추론을 가속한다. 모든 현대 LLM의 최소 완전체다.
 
-**선행 지식**: [GPT와 인과 언어 모델링](/handbook/08-sequence-nlp/12-gpt-and-causal-lm), [LLM의 본질](/curriculum/ch06/lecture13), [08. Transformer](/practice/08-transformer-from-scratch)
+**선행 지식**: [GPT와 인과 언어 모델링](/book/18-transformer), [LLM의 본질](/book/21-llm-pretraining), [08. Transformer](/practice/08-transformer-from-scratch)
 
 ## 전체 코드
 
@@ -152,7 +152,7 @@ GPU에서 5000 스텝 ~10분. 한국어 소설을 넣으면 그럴듯한 한국�
 
 ## 반드시 이해할 세 지점
 
-**1. 프리필과 디코드의 분리.** `generate`는 두 단계다 — 프롬프트 전체를 병렬 처리하는 프리필(compute-bound), 토큰 하나씩 뽑는 디코드(memory-bound). KV 캐시가 없으면 매 토큰마다 전체 시퀀스를 재계산해 생성이 $O(L^2)$이 된다. `caches=None`으로 고정해 속도 차이를 직접 측정해 보라. 이 구분이 [vLLM과 서빙 최적화](/handbook/10-llm-engineering/14-inference-serving-and-batching) 전체의 출발점이다.
+**1. 프리필과 디코드의 분리.** `generate`는 두 단계다 — 프롬프트 전체를 병렬 처리하는 프리필(compute-bound), 토큰 하나씩 뽑는 디코드(memory-bound). KV 캐시가 없으면 매 토큰마다 전체 시퀀스를 재계산해 생성이 $O(L^2)$이 된다. `caches=None`으로 고정해 속도 차이를 직접 측정해 보라. 이 구분이 [vLLM과 서빙 최적화](/book/27-to-production) 전체의 출발점이다.
 
 **2. 가중치 공유(weight tying).** 입력 임베딩과 출력 헤드는 둘 다 "토큰 ↔ 벡터" 대응이므로 행렬을 공유한다. 파라미터가 크게 줄고 성능도 대체로 좋아진다 — GPT-2부터 최신 모델까지 쓰는 표준 기법이다.
 
@@ -160,9 +160,9 @@ GPU에서 5000 스텝 ~10분. 한국어 소설을 넣으면 그럴듯한 한국�
 
 ## 확장 과제
 
-1. **RoPE로 교체** — 학습형 위치 임베딩을 RoPE로 바꿔라. 학습 길이보다 긴 시퀀스에서 두 방식의 성능 차이를 관찰하면 [긴 컨텍스트 문제](/handbook/10-llm-engineering/05-long-context)가 체감된다.
+1. **RoPE로 교체** — 학습형 위치 임베딩을 RoPE로 바꿔라. 학습 길이보다 긴 시퀀스에서 두 방식의 성능 차이를 관찰하면 [긴 컨텍스트 문제](/book/21-llm-pretraining)가 체감된다.
 2. **BPE 연결** — [07의 토크나이저](/practice/07-bpe-tokenizer)로 서브워드 단위 학습으로 전환하라. 같은 컴퓨트에서 문자 단위보다 얼마나 좋은가?
-3. **스케일링 실험** — D=128/256/512로 파라미터를 4배씩 키우며 val 손실을 기록하라. 로그-로그 그래프에서 [스케일링 법칙](/handbook/10-llm-engineering/01-scaling-laws)의 직선이 보이는가?
+3. **스케일링 실험** — D=128/256/512로 파라미터를 4배씩 키우며 val 손실을 기록하라. 로그-로그 그래프에서 [스케일링 법칙](/book/21-llm-pretraining)의 직선이 보이는가?
 4. **top-p 샘플링 추가** — top-k 대신 누적 확률 기반 nucleus 샘플링을 구현하라.
 
 ## 다음

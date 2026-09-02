@@ -2,7 +2,7 @@
 
 **만드는 것**: DDPM을 밑바닥부터 — 노이즈 스케줄, 학습(노이즈 예측), 샘플링(점진적 복원)까지 구현해 MNIST 숫자를 생성한다. Stable Diffusion·이미지 생성 서비스의 뿌리가 되는 알고리즘이다.
 
-**선행 지식**: [확산 순방향 과정](/handbook/09-generative-models/06-diffusion-forward-process), [DDPM 손실 유도](/handbook/09-generative-models/07-ddpm-objective)
+**선행 지식**: [확산 순방향 과정](/book/20-diffusion), [DDPM 손실 유도](/book/20-diffusion)
 
 ## 알고리즘 요약
 
@@ -157,9 +157,9 @@ if __name__ == "__main__":
 
 ## 확장 과제
 
-1. **DDIM 샘플러** — 50스텝만으로 샘플링하는 DDIM을 구현해 1000스텝 DDPM과 품질·속도를 비교하라. ([DDIM 원리](/handbook/09-generative-models/08-ddim-and-fast-sampling))
+1. **DDIM 샘플러** — 50스텝만으로 샘플링하는 DDIM을 구현해 1000스텝 DDPM과 품질·속도를 비교하라. ([DDIM 원리](/book/20-diffusion))
 2. **코사인 스케줄** — 선형 β 대신 코사인 스케줄로 바꿔 저해상도에서의 품질 차이를 관찰하라.
-3. **클래스 조건부 + CFG** — 레이블 임베딩을 시간 임베딩에 더해 조건부로 학습하고(10%는 무조건부로), 샘플링에서 classifier-free guidance를 구현하라. guidance 배율에 따라 품질·다양성이 어떻게 변하는가? ([CFG](/handbook/09-generative-models/09-latent-diffusion-and-guidance))
+3. **클래스 조건부 + CFG** — 레이블 임베딩을 시간 임베딩에 더해 조건부로 학습하고(10%는 무조건부로), 샘플링에서 classifier-free guidance를 구현하라. guidance 배율에 따라 품질·다양성이 어떻게 변하는가? ([CFG](/book/20-diffusion))
 4. **x0 예측으로 변경** — ε 대신 x0를 예측하도록 파라미터화를 바꿔 보라. 어느 쪽이 잘 되고, 왜 실무에서는 ε(또는 v) 예측을 쓰는가?
 
 ## 다음
