@@ -2,7 +2,7 @@
 
 **만드는 것**: MNIST에서 VAE와 DCGAN을 각각 구현해 숫자 이미지를 생성한다. 생성 모델의 두 축 — "가능도 하한을 최대화"(VAE)와 "판별자를 속이기"(GAN) — 를 코드 수준에서 대비한다.
 
-**선행 지식**: [VAE: ELBO와 재파라미터화](/book/19-generative-models), [GAN: 미니맥스](/book/19-generative-models), [0장]()
+**선행 지식**: [VAE: ELBO와 재파라미터화](/book/19-generative-models), [GAN: 미니맥스](/book/19-generative-models), [19장. 만들어내는 기계](/book/19-generative-models)
 
 ## 1. VAE
 

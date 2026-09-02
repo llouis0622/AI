@@ -2,7 +2,7 @@
 
 **만드는 것**: CIFAR-10을 ResNet으로 분류하는, 실무 수준의 완전한 학습 스크립트. 데이터 증강, 혼합 정밀도(AMP), 학습률 스케줄, 체크포인트, 검증 루프까지 — 어떤 프로젝트에도 재사용할 수 있는 템플릿이다.
 
-**선행 지식**: [표준 학습 루프](/practice/02-pytorch-training-pipeline), [Dataset과 DataLoader](/practice/02-pytorch-training-pipeline)
+**선행 지식**: [11장. 깊이의 대가](/book/11-training-deep-nets), [12장. 병든 학습 고치기](/book/12-debugging-training)
 
 ## 전체 코드
 
