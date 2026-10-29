@@ -184,6 +184,7 @@ export function CodeBlock({ code, highlight = [], c }: { code: string; highlight
         background: 'var(--code-bg)',
         border: '1px solid var(--border)',
         fontFamily: 'var(--font-mono)',
+        fontVariantLigatures: 'none',
         fontSize: 12.5,
         lineHeight: 1.7,
         overflowX: 'auto',

@@ -160,6 +160,7 @@
   background: var(--inline-code-bg);
   color: var(--inline-code-text);
   font-family: var(--font-mono);
+  font-variant-ligatures: none;
   font-size: 0.86em;
   font-weight: 550;
   word-break: break-word;
@@ -173,6 +174,7 @@
   border: 1px solid var(--border);
   background-color: var(--code-bg) !important;
   font-family: var(--font-mono);
+  font-variant-ligatures: none;
   font-size: 14px;
   line-height: 1.7;
   overflow-x: auto;
