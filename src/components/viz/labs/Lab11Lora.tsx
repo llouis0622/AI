@@ -46,6 +46,8 @@ const PARAMS_7B = 7e9;
 const ADAPTER_PER_R = 2.5e6;
 
 const fmtInt = (n: number) => Math.round(n).toLocaleString('ko-KR');
+/** 16,777,216 → "1,678만" so the stat fits a phone-width card */
+const fmtBig = (n: number) => (n >= 1e6 ? `${Math.round(n / 1e4).toLocaleString('ko-KR')}만` : fmtInt(n));
 const gb = (bytes: number) => bytes / 1e9;
 
 export default function Lab11Lora({ expanded }: VizProps) {
@@ -55,6 +57,8 @@ export default function Lab11Lora({ expanded }: VizProps) {
   const [r, setR] = useState(16);
   const [box, { width }] = useElementSize<HTMLDivElement>();
   const wide = width > 720;
+  // phones: drop the side legend and crop the viewBox so labels stay at about 11px or more
+  const narrow = width > 0 && width < 520;
 
   const full = d * d;
   const lora = 2 * d * r;
@@ -71,8 +75,8 @@ export default function Lab11Lora({ expanded }: VizProps) {
     <div ref={box}>
       <div style={{ display: 'grid', gridTemplateColumns: wide ? 'minmax(0, 1.3fr) minmax(0, 1fr)' : '1fr' }}>
         <div style={{ padding: '14px 14px 4px' }}>
-          <svg className="vz-svg" viewBox="0 0 420 260" role="img" aria-label="LoRA 구조: 동결된 W와 저랭크 A, B" style={{ touchAction: 'pan-y' }}>
-            <Diagram c={c} mode={mode} r={r} />
+          <svg className="vz-svg" viewBox={`0 0 ${narrow ? 330 : 420} 260`} role="img" aria-label="LoRA 구조: 동결된 W와 저랭크 A, B" style={{ touchAction: 'pan-y' }}>
+            <Diagram c={c} mode={mode} r={r} legend={!narrow} />
           </svg>
         </div>
         <div style={{ padding: wide ? '14px 14px 4px 0' : '0 14px 4px', minWidth: 0, maxHeight: expanded ? 'none' : 420, overflow: 'auto' }}>
@@ -83,7 +87,7 @@ export default function Lab11Lora({ expanded }: VizProps) {
       <div className="vz-pad" style={{ display: 'grid', gap: 12 }}>
         <Note mood={note.mood}>{note.text}</Note>
         <div className="vz-stats">
-          <Stat label={`W 한 장 (${d}×${d})`} value={fmtInt(full)} sub="동결 — 학습 안 함" />
+          <Stat label={`W 한 장 (${d}×${d})`} value={fmtBig(full)} sub="동결 — 학습 안 함" />
           <Stat label={`LoRA A+B (r=${r})`} value={fmtInt(lora)} tone="brand" sub="2 × d × r" />
           <Stat label="학습하는 비율" value={`${(ratio * 100).toFixed(2)}%`} tone="good" sub="2r / d" />
           <Stat label="7B 어댑터 파일" value={`약 ${Math.round((adapterParams * 2) / 1e6)}MB`} sub="bf16 기준" />
@@ -120,7 +124,7 @@ export default function Lab11Lora({ expanded }: VizProps) {
   );
 }
 
-function Diagram({ c, mode, r }: { c: VizColors; mode: Mode; r: number }) {
+function Diagram({ c, mode, r, legend }: { c: VizColors; mode: Mode; r: number; legend: boolean }) {
   const hb = Math.min(44, Math.max(8, 6 + 6 * Math.log2(r)));
   const cy = 196;
   const merged = mode === 'merge';
@@ -197,7 +201,7 @@ function Diagram({ c, mode, r }: { c: VizColors; mode: Mode; r: number }) {
       )}
 
       {/* side legend */}
-      <g>
+      <g display={legend ? undefined : 'none'}>
         <T x={334} y={70} size={FS.m} weight={850} color={c.series[3]}>
           🧊 그대로
         </T>

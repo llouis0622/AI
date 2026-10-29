@@ -8,7 +8,7 @@ import { softmax } from '../core/math';
 const CONCEPTS = [
   { icon: '🐶', name: '골든리트리버', text: 'dog', img: [262, 82], txt: [282, 96] },
   { icon: '🐱', name: '고양이', text: 'cat', img: [234, 132], txt: [252, 146] },
-  { icon: '🚲', name: '자전거', text: 'bicycle', img: [376, 98], txt: [392, 118] },
+  { icon: '🚲', name: '자전거', text: 'bike', img: [376, 98], txt: [392, 118] },
   { icon: '🍜', name: '라면 한 그릇', text: 'ramen', img: [330, 214], txt: [352, 228] },
   { icon: '🌃', name: '야경 사진', text: 'night', img: [240, 230], txt: [222, 250] }
 ];
@@ -136,8 +136,8 @@ prompts = [f"a photo of {c}" for c in classes]`),
                 </T>
               </g>
               <g opacity={b}>
-                <rect x={236} y={y + 22} width={140} height={10} rx={5} fill="var(--surface-3)" />
-                <rect x={236} y={y + 22} width={140 * PROBS[i]} height={10} rx={5} fill={i === 0 ? c.pos : c.series[i % 6]} />
+                <rect x={236} y={y + 22} width={126} height={10} rx={5} fill="var(--surface-3)" />
+                <rect x={236} y={y + 22} width={126 * PROBS[i]} height={10} rx={5} fill={i === 0 ? c.pos : c.series[i % 6]} />
                 <T x={410} y={y + 31} anchor="end" size={11.5} weight={800} mono>
                   {PROBS[i] < 0.001 ? '<0.001' : PROBS[i].toFixed(3)}
                 </T>
@@ -145,7 +145,7 @@ prompts = [f"a photo of {c}" for c in classes]`),
             </g>
           );
         })}
-        <Arrow x1={200} y1={276} x2={232} y2={276} color={c.series[3]} t={seg(t, 0.45, 0.15)} label="×100" labelDy={-8} />
+        <Arrow x1={200} y1={290} x2={232} y2={290} color={c.series[3]} t={seg(t, 0.45, 0.15)} label="×100" labelDy={-8} />
       </g>
     )
   },

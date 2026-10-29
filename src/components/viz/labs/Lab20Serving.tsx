@@ -17,6 +17,15 @@ const BATCHES = (() => {
   }
   return out;
 })();
+/* one-at-a-time serving: each request waits for the previous one (3ms per forward pass) */
+const SERIAL = (() => {
+  let end = 0;
+  return ARRIVALS.map((a) => {
+    const start = Math.max(a, end);
+    end = start + 3;
+    return { start, end };
+  });
+})();
 
 const steps: StoryStep[] = [
   {
@@ -259,7 +268,7 @@ preprocess = transforms.Compose([
           ))}
           {BATCHES.map((b, i) => (
             <g key={i} opacity={b.items[0] <= now ? 1 : 0}>
-              <rect x={X(b.items[0]) - 7} y={50} width={X(b.start) - X(b.items[0]) + 7} height={24} rx={8} fill="none" stroke={c.series[0]} strokeWidth={1.5} strokeDasharray="4 3" />
+              <rect x={X(b.items[0]) - 5} y={50} width={X(b.start) - X(b.items[0]) + 4} height={24} rx={8} fill={alpha(c.series[0], 0.06)} stroke={c.series[0]} strokeWidth={1.5} strokeDasharray="4 3" />
               <line x1={X(b.start)} y1={76} x2={X(b.start)} y2={112} stroke={c.series[0]} strokeWidth={1.5} />
               {b.start <= now && <rect x={X(b.start)} y={112} width={X(b.end) - X(b.start)} height={26} rx={5} fill={c.series[0]} />}
               {b.start <= now && (
@@ -275,8 +284,8 @@ preprocess = transforms.Compose([
           <T x={20} y={196} size={11.5} weight={800} color={c.neg}>
             GPU (한 건씩)
           </T>
-          {ARRIVALS.map((ms, i) => (
-            <rect key={`n${i}`} x={X(ms)} y={204} width={X(ms + 3) - X(ms)} height={26} rx={4} fill={alpha(c.neg, 0.7)} opacity={ms <= now ? 1 : 0} />
+          {SERIAL.map((r, i) => (
+            <rect key={`n${i}`} x={X(r.start)} y={204} width={X(r.end) - X(r.start) - 1.5} height={26} rx={4} fill={alpha(c.neg, 0.7)} opacity={r.start <= now ? 1 : 0} />
           ))}
           <line x1={24} y1={250} x2={404} y2={250} stroke="var(--viz-axis)" />
           {[0, 20, 40, 60].map((ms) => (
