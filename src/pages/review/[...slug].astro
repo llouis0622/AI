@@ -28,7 +28,7 @@ const quizzes = await getQuizzes();
 const link = (e?: QuizEntry) => e && { href: quizHref(e.id), label: e.data.part === 0 ? '복습 허브' : `${e.data.part}부 퀴즈`, title: e.data.part === 0 ? '복습 퀴즈' : e.data.title };
 ---
 <DocLayout title={isHub ? '복습 퀴즈' : `${d.part}부 퀴즈. ${d.title}`} section="review" current={entry.id} headings={headings}>
-  <article class="quiz-page" data-part={d.part} data-pagefind-body>
+  <article class="quiz-page" data-part={d.part} data-pagefind-body data-pagefind-meta={`title:${isHub ? '복습 퀴즈' : `${d.part}부 퀴즈 · ${d.title}`}`}>
     <header class="qp-head">
       {part && <span class="part-badge">{part.emoji} {part.part}부 복습</span>}
       <h1 class="qp-title">{isHub ? '복습 퀴즈' : d.title}</h1>

@@ -31,7 +31,7 @@ const byPart = PARTS.map((p) => ({
       </nav>
     </header>
 
-    <div data-pagefind-body>
+    <div data-pagefind-body data-pagefind-meta="title:용어 사전">
       {byPart.map(({ part, terms }) => (
         <section class="gl-group" id={`gl-part-${part.part}`} data-part={part.part}>
           <h2 class="gl-group-title">{part.emoji} {part.part}부 · {part.title}</h2>
@@ -39,15 +39,15 @@ const byPart = PARTS.map((p) => ({
             {terms.map((t) => {
               const slug = slugOf(t.chapter);
               return (
-                <article class="gl-card card" id={t.id} data-gl-term={`${t.term} ${(t.aliases ?? []).join(' ')} ${t.short}`.toLowerCase()}>
+                <article class="gl-card card" data-gl-term={`${t.term} ${(t.aliases ?? []).join(' ')} ${t.short}`.toLowerCase()}>
                   <div class="gl-card-head">
                     <span class="gl-emoji" aria-hidden="true">{t.emoji ?? '💡'}</span>
-                    <h3>{t.term}</h3>
+                    <h3 id={t.id}>{t.term}</h3>
                     {t.aliases && t.aliases.length > 0 && <span class="gl-alias">{t.aliases.join(' · ')}</span>}
                   </div>
                   <p class="gl-short">{t.short}</p>
                   {t.long && <p class="gl-long">{t.long}</p>}
-                  {slug && <a class="gl-from" href={bookHref(slug)}>📖 {t.chapter}장에서 처음 나와요 →</a>}
+                  {slug && <a class="gl-from" data-pagefind-ignore href={bookHref(slug)}>📖 {t.chapter}장에서 처음 나와요 →</a>}
                 </article>
               );
             })}
@@ -78,7 +78,7 @@ const byPart = PARTS.map((p) => ({
   });
   // Highlight the term targeted by #hash (coming from a tooltip link)
   const target = location.hash && document.getElementById(decodeURIComponent(location.hash.slice(1)));
-  if (target) target.classList.add('is-target');
+  if (target) target.closest('.gl-card')?.classList.add('is-target');
 </script>
 
 <style>
@@ -176,6 +176,7 @@ const byPart = PARTS.map((p) => ({
   }
 
   .gl-card-head h3 {
+    scroll-margin-top: calc(var(--header-h) + 40px);
     margin: 0;
     font-size: 18px;
     font-weight: 850;

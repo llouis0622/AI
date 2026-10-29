@@ -21,7 +21,8 @@ import Icon from './Icon.astro';
 </div>
 
 <script>
-  type PagefindResult = { data: () => Promise<{ url: string; meta: { title?: string }; excerpt: string }> };
+  type SubResult = { title: string; url: string; excerpt: string };
+  type PagefindResult = { data: () => Promise<{ url: string; meta: { title?: string }; excerpt: string; sub_results?: SubResult[] }> };
   type Pagefind = { search: (q: string) => Promise<{ results: PagefindResult[] }>; init?: () => Promise<void> };
 
   const modal = document.getElementById('search-modal') as HTMLElement;
@@ -83,12 +84,15 @@ import Icon from './Icon.astro';
       return;
     }
     results.innerHTML = data
-      .map(
-        (d) => `<a class="search-hit" href="${d.url}">
-          <span class="search-hit-title">${d.meta.title ?? d.url}</span>
-          <span class="search-hit-excerpt">${d.excerpt}</span>
-        </a>`
-      )
+      .map((d) => {
+        // Jump straight to the best-matching section when Pagefind found one.
+        const subHit = d.sub_results?.find((s) => s.url !== d.url && s.title);
+        const title = subHit ? `${d.meta.title ?? ''} <span class="search-hit-sub">› ${subHit.title}</span>` : d.meta.title ?? d.url;
+        return `<a class="search-hit" href="${subHit?.url ?? d.url}">
+          <span class="search-hit-title">${title}</span>
+          <span class="search-hit-excerpt">${subHit?.excerpt ?? d.excerpt}</span>
+        </a>`;
+      })
       .join('');
     active = -1;
     setActive(0);
@@ -217,6 +221,11 @@ import Icon from './Icon.astro';
     font-weight: 750;
     font-size: 15.5px;
     margin-bottom: 4px;
+  }
+
+  .search-hit-sub {
+    font-weight: 650;
+    color: var(--text-2);
   }
 
   .search-hit-excerpt {

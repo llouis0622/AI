@@ -33,7 +33,7 @@ const link = (e?: LabEntry) => e && { href: labHref(e.id), label: e.data.lab ===
 const vizCount = vizIdsIn(entry.body).length;
 ---
 <DocLayout title={isOverview ? '코드랩 개요 · 환경 준비' : `코드랩 ${num}. ${d.title}`} description={d.builds} section="practice" current={entry.id} headings={headings}>
-  <article class="lab" data-reading data-pagefind-body data-part="7">
+  <article class="lab" data-reading data-pagefind-body data-part="7" data-pagefind-meta={`title:${isOverview ? '코드랩 개요 · 환경 준비' : `코드랩 ${num}. ${d.title}`}`}>
     <header class="lab-head">
       <div class="lab-meta">
         <span class="lab-adv">🧗 심화 트랙</span>

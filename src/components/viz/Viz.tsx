@@ -101,7 +101,7 @@ export default function Viz({ id, params }: { id: string; params?: Record<string
           </h3>
           <p className="vz-tagline">{meta.tagline}</p>
         </div>
-        <div className="vz-actions">
+        <div className="vz-actions" data-pagefind-ignore>
           {phase === 'ready' && (
             <button className="vz-action" type="button" onClick={() => setMountKey((k) => k + 1)} title="처음 상태로" aria-label="처음 상태로 되돌리기">
               ↺
@@ -119,7 +119,7 @@ export default function Viz({ id, params }: { id: string; params?: Record<string
         </div>
       </figcaption>
 
-      <div className="vz-body vz-container" onPointerDown={onInteract} onKeyDown={onInteract}>
+      <div className="vz-body vz-container" data-pagefind-ignore onPointerDown={onInteract} onKeyDown={onInteract}>
         {phase === 'ready' && Comp ? (
           <ErrorBoundary onRetry={() => setMountKey((k) => k + 1)}>
             <Comp key={mountKey} params={params} expanded={expanded} />
@@ -130,7 +130,7 @@ export default function Viz({ id, params }: { id: string; params?: Record<string
       </div>
 
       {meta.howTo && (
-        <div className="vz-foot">
+        <div className="vz-foot" data-pagefind-ignore>
           <Algo mood="wink" size={30} still />
           <span>{meta.howTo}</span>
         </div>

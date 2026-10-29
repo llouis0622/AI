@@ -14,12 +14,12 @@ const num = Number(id.split('-').pop());
   <div class="quiz-q">
     <span class="quiz-num" aria-hidden="true">Q{Number.isFinite(num) ? num : ''}</span>
     <p class="quiz-text">{q}</p>
-    <span class="quiz-status" aria-live="polite"></span>
+    <span class="quiz-status" aria-live="polite" data-pagefind-ignore></span>
   </div>
-  <button class="quiz-reveal" type="button" data-quiz-reveal aria-expanded="false">🤔 먼저 답을 떠올린 다음, 정답 보기</button>
+  <button class="quiz-reveal" type="button" data-quiz-reveal aria-expanded="false" data-pagefind-ignore>🤔 먼저 답을 떠올린 다음, 정답 보기</button>
   <div class="quiz-answer" hidden>
     <div class="quiz-a"><slot /></div>
-    <div class="quiz-actions">
+    <div class="quiz-actions" data-pagefind-ignore>
       <button class="quiz-btn quiz-pass" type="button" data-quiz-mark="pass">맞혔어요 ✓</button>
       <button class="quiz-btn quiz-again" type="button" data-quiz-mark="again">다시 볼래요 ↻</button>
       <button class="quiz-btn" type="button" data-quiz-hide>답 숨기기</button>
