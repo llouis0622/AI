@@ -732,6 +732,32 @@
   cursor: grabbing;
 }
 
+/* Inline on touch screens: one finger scrolls the page (overrides OrbitControls' inline touch-action). */
+.vz-3d.is-two-finger div,
+.vz-3d.is-two-finger canvas {
+  touch-action: pan-y !important;
+}
+
+.vz-3d-hint {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 3;
+  transform: translate(-50%, -50%);
+  max-width: calc(100% - 32px);
+  padding: 10px 16px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface-solid) 88%, transparent);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(6px);
+  font-size: 14px;
+  font-weight: 750;
+  text-align: center;
+  pointer-events: none;
+  animation: vz-note-in 0.25s var(--ease-spring);
+}
+
 .vz-3d-label {
   padding: 2px 8px;
   border-radius: 8px;

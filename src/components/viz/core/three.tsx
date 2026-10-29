@@ -1,5 +1,5 @@
-import { useMemo, useRef, type ReactNode } from 'react';
-import { Canvas, type ThreeEvent } from '@react-three/fiber';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { Canvas, useThree, type ThreeEvent } from '@react-three/fiber';
 import { Html, Line, OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { useInView } from './hooks';
@@ -9,8 +9,13 @@ import { useVizColors } from './colors';
 /* ---------- Scene ---------- */
 
 /**
- * Standard 3D stage: theme-aware lights, orbit controls (drag to rotate, wheel /
- * pinch to zoom), and rendering paused while scrolled off-screen.
+ * Standard 3D stage: theme-aware lights, orbit controls, and rendering paused
+ * while scrolled off-screen.
+ *
+ * Inline (inside an article) the stage must not hijack page scrolling, like an
+ * embedded map: mouse wheel zooms only with Ctrl/⌘, and on touch screens one
+ * finger scrolls the page while two fingers rotate / zoom. In the expanded
+ * (full-screen) frame every gesture goes to the scene.
  */
 export function Scene3D({
   children,
@@ -37,8 +42,78 @@ export function Scene3D({
   const inView = useInView(ref, '100px');
   const c = useVizColors();
   const dark = c.theme === 'dark';
+  const [expanded, setExpanded] = useState(false);
+  const [coarse, setCoarse] = useState(false);
+  const [hint, setHint] = useState<null | 'wheel' | 'touch'>(null);
+  const hintTimer = useRef(0);
+
+  useEffect(() => {
+    const frame = ref.current?.closest('.vz-frame');
+    const mq = window.matchMedia('(pointer: coarse)');
+    setCoarse(mq.matches);
+    if (!frame) return;
+    const update = () => setExpanded(frame.classList.contains('is-expanded'));
+    update();
+    const mo = new MutationObserver(update);
+    mo.observe(frame, { attributes: true, attributeFilter: ['class'] });
+    return () => mo.disconnect();
+  }, []);
+
+  const flash = (kind: 'wheel' | 'touch') => {
+    setHint(kind);
+    window.clearTimeout(hintTimer.current);
+    hintTimer.current = window.setTimeout(() => setHint(null), 1800);
+  };
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || expanded) return;
+    // Capture phase: keep plain wheel scrolling the page instead of zooming.
+    const onWheel = (e: WheelEvent) => {
+      if (e.ctrlKey || e.metaKey) return;
+      e.stopPropagation();
+      flash('wheel');
+    };
+    let touchStart: { x: number; y: number } | null = null;
+    const onTouchStart = (e: TouchEvent) => {
+      touchStart = e.touches.length === 1 ? { x: e.touches[0].clientX, y: e.touches[0].clientY } : null;
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      if (!touchStart || e.touches.length !== 1) return;
+      const dx = Math.abs(e.touches[0].clientX - touchStart.x);
+      const dy = Math.abs(e.touches[0].clientY - touchStart.y);
+      if (dx + dy > 12) {
+        flash('touch');
+        touchStart = null;
+      }
+    };
+    el.addEventListener('wheel', onWheel, { capture: true, passive: true });
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchmove', onTouchMove, { passive: true });
+    return () => {
+      el.removeEventListener('wheel', onWheel, { capture: true });
+      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('touchmove', onTouchMove);
+    };
+  }, [expanded]);
+
+  useEffect(() => () => window.clearTimeout(hintTimer.current), []);
+
+  // On touch screens, explain the two-finger gesture once when the scene appears.
+  useEffect(() => {
+    if (!coarse || expanded) return;
+    const id = window.setTimeout(() => flash('touch'), 700);
+    return () => window.clearTimeout(id);
+  }, [coarse]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const twoFinger = coarse && !expanded;
   return (
-    <div ref={ref} className="vz-3d" style={{ height }}>
+    <div ref={ref} className={`vz-3d${twoFinger ? ' is-two-finger' : ''}`} style={{ height }}>
+      {hint && (
+        <div className="vz-3d-hint" role="status">
+          {hint === 'wheel' ? 'Ctrl(⌘) + 스크롤로 확대해요' : '두 손가락으로 돌리고 확대해요 · ⤢ 크게 보기에서는 한 손가락으로!'}
+        </div>
+      )}
       <Canvas
         dpr={[1, 1.75]}
         camera={{ position: camera, fov, near: 0.1, far: 200 }}
@@ -49,6 +124,7 @@ export function Scene3D({
         <hemisphereLight args={[dark ? '#7fe9ff' : '#ffffff', dark ? '#2a0f4a' : '#f3e6d6', dark ? 0.6 : 0.55]} />
         <directionalLight position={[6, 12, 8]} intensity={dark ? 1.0 : 1.25} />
         <directionalLight position={[-8, 6, -6]} intensity={dark ? 0.35 : 0.3} />
+        <CameraFit position={camera} target={target} />
         {children}
         <OrbitControls
           makeDefault
@@ -58,6 +134,7 @@ export function Scene3D({
           autoRotate={autoRotate}
           autoRotateSpeed={0.7}
           enablePan={enablePan}
+          touches={twoFinger ? { ONE: undefined as unknown as THREE.TOUCH, TWO: THREE.TOUCH.DOLLY_ROTATE } : { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN }}
           maxPolarAngle={Math.PI * 0.495}
           minDistance={minDistance}
           maxDistance={maxDistance}
@@ -65,6 +142,26 @@ export function Scene3D({
       </Canvas>
     </div>
   );
+}
+
+/**
+ * Narrow (portrait) stages see less horizontally, so pull the camera back along
+ * its view direction until the scene fits. Runs on resize only, so user orbiting
+ * is otherwise left alone.
+ */
+function CameraFit({ position, target }: { position: [number, number, number]; target: [number, number, number] }) {
+  const { camera, size } = useThree();
+  const aspect = size.width / Math.max(1, size.height);
+  useEffect(() => {
+    const k = Math.min(2, Math.max(1, 1.6 / aspect));
+    camera.position.set(
+      target[0] + (position[0] - target[0]) * k,
+      target[1] + (position[1] - target[1]) * k,
+      target[2] + (position[2] - target[2]) * k
+    );
+    camera.updateProjectionMatrix();
+  }, [aspect]); // eslint-disable-line react-hooks/exhaustive-deps
+  return null;
 }
 
 /* ---------- Coordinate mapping (function space ⇄ scene space) ---------- */

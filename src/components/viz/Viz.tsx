@@ -165,7 +165,7 @@ function Poster({
             <button className="vz-play" type="button" onClick={onPlay}>
               <span className="vz-play-ring">▶</span>3D로 실행하기
             </button>
-            <span className="vz-poster-note">드래그로 돌리고, 휠·두 손가락으로 확대해요</span>
+            <span className="vz-poster-note">드래그로 돌려 보세요 · 확대는 Ctrl(⌘)+휠 또는 두 손가락</span>
           </>
         ) : (
           <span className="vz-loading">

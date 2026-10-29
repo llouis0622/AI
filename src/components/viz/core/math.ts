@@ -42,11 +42,11 @@ export function rng(seed = 42) {
   return { next, normal, int: (n: number) => Math.floor(next() * n), pick: <T,>(xs: T[]) => xs[Math.floor(next() * xs.length)] };
 }
 
-/** Pretty number for readouts: fixed decimals, Korean-friendly minus sign. */
+/** Pretty number for readouts: fixed decimals (∞ for overflow). */
 export function fmt(v: number, digits = 2): string {
-  if (!Number.isFinite(v)) return v > 0 ? '∞' : v < 0 ? '−∞' : '—';
-  const s = Math.abs(v) >= 1e5 ? v.toExponential(1) : v.toFixed(digits);
-  return s.replace('-', '−');
+  if (!Number.isFinite(v)) return v > 0 ? '∞' : v < 0 ? '-∞' : '—';
+  // keep the ASCII minus: the web font subset has no U+2212 glyph
+  return Math.abs(v) >= 1e5 ? v.toExponential(1) : v.toFixed(digits);
 }
 
 export function pct(v: number, digits = 0): string {

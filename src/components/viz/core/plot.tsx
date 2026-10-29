@@ -153,7 +153,7 @@ export function Plot({
             <line x1={inner.left} x2={inner.left + inner.width} y1={inner.top + inner.height} y2={inner.top + inner.height} stroke="var(--viz-axis)" strokeWidth={1.5} />
             <line x1={inner.left} x2={inner.left} y1={inner.top} y2={inner.top + inner.height} stroke="var(--viz-axis)" strokeWidth={1.5} />
             {xt.map((t) => (
-              <text key={`tx${t}`} className="vz-tick" x={x(t)} y={inner.top + inner.height + 18} textAnchor="middle">
+              <text key={`tx${t}`} className="vz-tick" x={x(t)} y={inner.top + inner.height + 16} textAnchor="middle">
                 {xFormat(t)}
               </text>
             ))}
@@ -163,7 +163,7 @@ export function Plot({
               </text>
             ))}
             {xLabel && (
-              <text className="vz-axis-label" x={inner.left + inner.width / 2} y={h - 6} textAnchor="middle">
+              <text className="vz-axis-label" x={inner.left + inner.width / 2} y={h - 3} textAnchor="middle">
                 {xLabel}
               </text>
             )}
@@ -205,12 +205,32 @@ export function MiniChart({
   const lo = yMin ?? (all.length ? Math.min(...all.map(tf)) : 0);
   const hi = yMax ?? (all.length ? Math.max(...all.map(tf)) : 1);
   const n = Math.max(2, ...series.map((s) => s.length));
+  if (Math.max(0, ...series.map((s) => s.length)) < 2) {
+    return (
+      <div
+        style={{
+          height,
+          display: 'grid',
+          placeItems: 'center',
+          borderRadius: 12,
+          border: '1.5px dashed var(--border-strong)',
+          color: 'var(--text-3)',
+          fontSize: 13,
+          fontWeight: 650,
+          textAlign: 'center',
+          padding: 12
+        }}
+      >
+        ▶ 시작하면 여기에 그래프가 그려져요
+      </div>
+    );
+  }
   return (
     <Plot
       xDomain={[0, n - 1]}
       yDomain={[lo, hi === lo ? lo + 1 : hi]}
       height={height}
-      margin={{ top: 8, right: 10, bottom: xLabel ? 30 : 18, left: 40 }}
+      margin={{ top: 8, right: 10, bottom: xLabel ? 38 : 22, left: 40 }}
       xTicks={4}
       yTicks={3}
       xLabel={xLabel}
