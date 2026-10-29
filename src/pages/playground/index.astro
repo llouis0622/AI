@@ -1,8 +1,9 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import Algo from '@/components/mascot/Algo.tsx';
+import VizCard from '@/components/viz/VizCard.astro';
 import { allViz } from '@/data/viz';
-import { PARTS, TRACKS, url, partOf } from '@/data/curriculum';
+import { PARTS, TRACKS } from '@/data/curriculum';
 
 const bookViz = allViz.filter((v) => v.chapter !== undefined);
 const labViz = allViz.filter((v) => v.lab !== undefined);
@@ -35,20 +36,7 @@ const trackOf = (lab: number) => TRACKS.find((t) => t.labs.includes(lab));
       <section class="lab-group" data-part={part.part}>
         <h2 class="lab-group-title"><span>{part.emoji}</span>{part.part}부 · {part.title}</h2>
         <div class="lab-grid">
-          {items.map((v) => (
-            <a class="lab-card card card-hover" href={url(`/playground/${v.id}/`)} data-viz-card={v.id} data-3d={v.is3D ? '1' : '0'} data-kind="book">
-              <span class="lab-art" aria-hidden="true">
-                <span class="lab-art-emoji">{v.icon}</span>
-                {v.is3D && <span class="vz-badge vz-badge-3d lab-3d">3D</span>}
-                <span class="lab-done">✓ 해봤어요</span>
-              </span>
-              <span class="lab-body">
-                <span class="lab-ch">{v.chapter}장</span>
-                <strong class="lab-name">{v.title}</strong>
-                <span class="lab-tag">{v.tagline}</span>
-              </span>
-            </a>
-          ))}
+          {items.map((v) => <VizCard meta={v} label={`${v.chapter}장`} />)}
         </div>
       </section>
     ))}
@@ -57,20 +45,7 @@ const trackOf = (lab: number) => TRACKS.find((t) => t.labs.includes(lab));
       <section class="lab-group" data-part="7" data-kind-group="lab">
         <h2 class="lab-group-title"><span>💻</span>코드랩 미리보기</h2>
         <div class="lab-grid">
-          {labViz.map((v) => (
-            <a class="lab-card card card-hover" href={url(`/playground/${v.id}/`)} data-viz-card={v.id} data-3d={v.is3D ? '1' : '0'} data-kind="lab">
-              <span class="lab-art" aria-hidden="true">
-                <span class="lab-art-emoji">{v.icon}</span>
-                {v.is3D && <span class="vz-badge vz-badge-3d lab-3d">3D</span>}
-                <span class="lab-done">✓ 해봤어요</span>
-              </span>
-              <span class="lab-body">
-                <span class="lab-ch">{trackOf(v.lab!)?.emoji} 코드랩 {String(v.lab).padStart(2, '0')}</span>
-                <strong class="lab-name">{v.title}</strong>
-                <span class="lab-tag">{v.tagline}</span>
-              </span>
-            </a>
-          ))}
+          {labViz.map((v) => <VizCard meta={v} label={`${trackOf(v.lab!)?.emoji ?? '💻'} 코드랩 ${String(v.lab).padStart(2, '0')}`} />)}
         </div>
       </section>
     )}
@@ -172,83 +147,4 @@ const trackOf = (lab: number) => TRACKS.find((t) => t.labs.includes(lab));
     gap: 16px;
   }
 
-  .lab-card {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  .lab-card[hidden] {
-    display: none;
-  }
-
-  .lab-art {
-    position: relative;
-    display: grid;
-    place-items: center;
-    height: 132px;
-    background:
-      radial-gradient(70% 80% at 30% 20%, color-mix(in srgb, var(--part) 30%, transparent), transparent 70%),
-      radial-gradient(70% 80% at 80% 90%, color-mix(in srgb, var(--brand) 22%, transparent), transparent 70%),
-      var(--surface-2);
-    border-bottom: 1px solid var(--border);
-  }
-
-  .lab-art-emoji {
-    font-size: 58px;
-    line-height: 1;
-    filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.16));
-    transition: transform 0.4s var(--ease-spring);
-  }
-
-  .lab-card:hover .lab-art-emoji {
-    transform: scale(1.12) rotate(-4deg);
-  }
-
-  .lab-3d {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-  }
-
-  .lab-done {
-    position: absolute;
-    left: 10px;
-    top: 10px;
-    display: none;
-    padding: 2px 9px;
-    border-radius: 99px;
-    background: var(--ok);
-    color: #fff;
-    font-size: 11.5px;
-    font-weight: 800;
-  }
-
-  .lab-card.is-done .lab-done {
-    display: inline-block;
-  }
-
-  .lab-body {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    padding: 14px 16px 16px;
-  }
-
-  .lab-ch {
-    font-size: 12px;
-    font-weight: 800;
-    color: var(--text-3);
-  }
-
-  .lab-name {
-    font-size: 16.5px;
-    letter-spacing: -0.02em;
-  }
-
-  .lab-tag {
-    font-size: 13.5px;
-    color: var(--text-2);
-    line-height: 1.55;
-  }
 </style>

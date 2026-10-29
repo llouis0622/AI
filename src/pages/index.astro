@@ -6,9 +6,10 @@ import HowItLearns from '@/components/home/HowItLearns.astro';
 import LearningMap from '@/components/map/LearningMap.tsx';
 import PartsGrid from '@/components/chapter/PartsGrid.astro';
 import Icon from '@/components/layout/Icon.astro';
+import VizCard from '@/components/viz/VizCard.astro';
 import { allViz } from '@/data/viz';
 import { glossaryTerms } from '@/data/glossary';
-import { PARTS, url, partOf } from '@/data/curriculum';
+import { PARTS, url } from '@/data/curriculum';
 import { getBook, getLabs, getQuizzes, bookHref, plain } from '@/lib/content';
 
 const book = await getBook();
@@ -79,22 +80,7 @@ const floatChips = ['⛰️ 경사하강법', '🧠 신경망', '👀 합성곱'
           <a class="btn btn-sm" href={url('/playground/')}>실험 {allViz.length}개 모두 보기 →</a>
         </div>
         <div class="feat-grid">
-          {featured.map((v) => {
-            const part = v.chapter !== undefined ? partOf(v.chapter) : undefined;
-            return (
-              <a class="feat-card card card-hover" href={url(`/playground/${v.id}/`)} data-part={part?.part ?? 7} data-reveal>
-                <span class="feat-art" aria-hidden="true">
-                  <span class="feat-emoji">{v.icon}</span>
-                  {v.is3D && <span class="vz-badge vz-badge-3d feat-3d">3D</span>}
-                </span>
-                <span class="feat-body">
-                  <small>{v.chapter !== undefined ? `${v.chapter}장` : `코드랩 ${v.lab}`}</small>
-                  <strong>{v.title}</strong>
-                  <span>{v.tagline}</span>
-                </span>
-              </a>
-            );
-          })}
+          {featured.map((v) => <VizCard meta={v} label={v.chapter !== undefined ? `${v.chapter}장` : `코드랩 ${v.lab}`} reveal />)}
         </div>
       </section>
     )}
@@ -322,62 +308,6 @@ const floatChips = ['⛰️ 경사하강법', '🧠 신경망', '👀 합성곱'
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 16px;
-  }
-
-  .feat-card {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  .feat-art {
-    position: relative;
-    display: grid;
-    place-items: center;
-    height: 140px;
-    background:
-      radial-gradient(70% 80% at 30% 20%, color-mix(in srgb, var(--part) 32%, transparent), transparent 70%),
-      radial-gradient(70% 80% at 80% 90%, color-mix(in srgb, var(--brand) 22%, transparent), transparent 70%),
-      var(--surface-2);
-  }
-
-  .feat-emoji {
-    font-size: 62px;
-    filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.16));
-    transition: transform 0.4s var(--ease-spring);
-  }
-
-  .feat-card:hover .feat-emoji {
-    transform: scale(1.12) rotate(-5deg);
-  }
-
-  .feat-3d {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-  }
-
-  .feat-body {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    padding: 14px 16px 18px;
-  }
-
-  .feat-body small {
-    font-weight: 800;
-    color: var(--text-3);
-  }
-
-  .feat-body strong {
-    font-size: 17px;
-    letter-spacing: -0.02em;
-  }
-
-  .feat-body span {
-    font-size: 14px;
-    color: var(--text-2);
-    line-height: 1.6;
   }
 
   .more-grid {

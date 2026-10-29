@@ -1,0 +1,167 @@
+---
+/**
+ * Gallery card for a visualization. Uses the captured thumbnails in
+ * public/thumbs/{light,dark}/<id>.jpg when present (see scripts/make-thumbs.mjs),
+ * otherwise falls back to emoji art.
+ */
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+import type { VizMeta } from '@/data/viz';
+import { url, partOf } from '@/data/curriculum';
+
+interface Props {
+  meta: VizMeta;
+  /** Small label above the title, e.g. "2장" or "💻 코드랩 03". */
+  label: string;
+  reveal?: boolean;
+}
+const { meta, label, reveal = false } = Astro.props;
+const thumb = (theme: string) => join(process.cwd(), 'public', 'thumbs', theme, `${meta.id}.jpg`);
+const hasThumb = existsSync(thumb('light')) && existsSync(thumb('dark'));
+const part = meta.chapter !== undefined ? partOf(meta.chapter)?.part : 7;
+---
+<a
+  class="vcard card card-hover"
+  href={url(`/playground/${meta.id}/`)}
+  data-viz-card={meta.id}
+  data-3d={meta.is3D ? '1' : '0'}
+  data-kind={meta.lab !== undefined ? 'lab' : 'book'}
+  data-part={part}
+  data-reveal={reveal ? '' : undefined}
+>
+  <span class:list={['vcard-art', { 'has-thumb': hasThumb }]}>
+    {hasThumb ? (
+      <>
+        <img class="vcard-img vcard-img-light" src={url(`/thumbs/light/${meta.id}.jpg`)} alt="" loading="lazy" decoding="async" width="480" height="298" />
+        <img class="vcard-img vcard-img-dark" src={url(`/thumbs/dark/${meta.id}.jpg`)} alt="" loading="lazy" decoding="async" width="480" height="298" />
+        <span class="vcard-emoji-badge" aria-hidden="true">{meta.icon}</span>
+      </>
+    ) : (
+      <span class="vcard-emoji" aria-hidden="true">{meta.icon}</span>
+    )}
+    {meta.is3D && <span class="vz-badge vz-badge-3d vcard-3d">3D</span>}
+    <span class="vcard-done">✓ 해봤어요</span>
+  </span>
+  <span class="vcard-body">
+    <span class="vcard-label">{label}</span>
+    <strong class="vcard-title">{meta.title}</strong>
+    <span class="vcard-tag">{meta.tagline}</span>
+  </span>
+</a>
+
+<style is:global>
+  .vcard {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .vcard[hidden] {
+    display: none;
+  }
+
+  .vcard-art {
+    position: relative;
+    display: grid;
+    place-items: center;
+    aspect-ratio: 480 / 298;
+    background:
+      radial-gradient(70% 80% at 30% 20%, color-mix(in srgb, var(--part) 30%, transparent), transparent 70%),
+      radial-gradient(70% 80% at 80% 90%, color-mix(in srgb, var(--brand) 22%, transparent), transparent 70%),
+      var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .vcard-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    transition: transform 0.6s var(--ease-out);
+  }
+
+  .vcard:hover .vcard-img {
+    transform: scale(1.04);
+  }
+
+  :root[data-theme='dark'] .vcard-img-light,
+  :root:not([data-theme='dark']) .vcard-img-dark {
+    display: none;
+  }
+
+  .vcard-emoji {
+    font-size: 58px;
+    line-height: 1;
+    filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.16));
+    transition: transform 0.4s var(--ease-spring);
+  }
+
+  .vcard:hover .vcard-emoji {
+    transform: scale(1.12) rotate(-4deg);
+  }
+
+  .vcard-emoji-badge {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    background: var(--surface-solid);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+    font-size: 20px;
+  }
+
+  .vcard-3d {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+  }
+
+  .vcard-done {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    display: none;
+    padding: 2px 9px;
+    border-radius: 99px;
+    background: var(--ok);
+    color: #fff;
+    font-size: 11.5px;
+    font-weight: 800;
+  }
+
+  .vcard.is-done .vcard-done {
+    display: inline-block;
+  }
+
+  .vcard-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 14px 16px 16px;
+  }
+
+  .vcard-label {
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--text-3);
+  }
+
+  .vcard-title {
+    font-size: 16.5px;
+    letter-spacing: -0.02em;
+  }
+
+  .vcard-tag {
+    font-size: 13.5px;
+    color: var(--text-2);
+    line-height: 1.55;
+  }
+</style>
