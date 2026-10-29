@@ -9,6 +9,7 @@ import PartsGrid from '@/components/chapter/PartsGrid.astro';
 import Algo from '@/components/mascot/Algo.tsx';
 import { getBook, getLabs, bookHref, labHref, readingMinutes, vizIdsIn, plain, type BookEntry } from '@/lib/content';
 import { partOf, url, chapterLabel } from '@/data/curriculum';
+import { vizById } from '@/data/viz';
 
 export async function getStaticPaths() {
   const book = await getBook();
@@ -39,6 +40,7 @@ const completeLinks = [
   ...(lastOfPart && part ? [{ href: url(`/review/quiz-part${part.part}/`), label: `✅ ${part.part}부 복습 퀴즈` }] : []),
   ...labs.slice(0, 2).map((l) => ({ href: labHref(l.id), label: `💻 코드랩 ${String(l.data.lab).padStart(2, '0')}` }))
 ];
+const vizHere = vizIdsIn(entry.body).map((id) => vizById[id]).filter(Boolean);
 const pageTitle = isIntro ? '여는 글 — 이 책을 읽는 법' : `${d.chapter}장. ${d.title}`;
 ---
 <DocLayout title={pageTitle} description={plain(d.question) || undefined} section="book" current={entry.id} headings={headings}>
@@ -63,6 +65,7 @@ const pageTitle = isIntro ? '여는 글 — 이 책을 읽는 법' : `${d.chapte
         mascot={d.mascot}
         minutes={readingMinutes(entry.body)}
         vizCount={vizIdsIn(entry.body).length}
+        firstViz={vizHere[0]?.id}
         slugs={slugs}
       />
     )}
@@ -78,9 +81,62 @@ const pageTitle = isIntro ? '여는 글 — 이 책을 읽는 법' : `${d.chapte
     {!isIntro && <CompleteCard kind="chapter" num={d.chapter} links={completeLinks} />}
     <PrevNext prev={link(prev)} next={link(next)} />
   </article>
+  {vizHere.length > 0 && (
+    <nav slot="toc-extra" class="toc-viz" aria-label="이 장의 실험" data-pagefind-ignore>
+      <p class="toc-title">이 장의 실험 🧪</p>
+      <ul>
+        {vizHere.map((v) => (
+          <li><a href={`#viz-${v.id}`}><span aria-hidden="true">{v.icon}</span>{v.title}{v.is3D && <small>3D</small>}</a></li>
+        ))}
+      </ul>
+    </nav>
+  )}
 </DocLayout>
 
 <style>
+  .toc-viz {
+    margin-top: 26px;
+  }
+
+  .toc-viz ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .toc-viz a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border-radius: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-2);
+    transition: border-color 0.2s, color 0.2s, transform 0.2s var(--ease-spring);
+  }
+
+  .toc-viz a:hover {
+    color: var(--text);
+    border-color: var(--brand);
+    transform: translateX(2px);
+  }
+
+  .toc-viz small {
+    margin-left: auto;
+    padding: 0 6px;
+    border-radius: 99px;
+    background: var(--grad-brand);
+    color: #fff;
+    font-size: 10.5px;
+    font-weight: 850;
+  }
+
   .intro-hero {
     margin-bottom: 28px;
   }

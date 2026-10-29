@@ -11,10 +11,12 @@ interface Props {
   mascot?: string;
   minutes: number;
   vizCount: number;
+  /** id of the first visualization on the page (chip links to it). */
+  firstViz?: string;
   /** chapter number -> entry id, for linking "N장" mentions in the prereq line. */
   slugs: Record<number, string>;
 }
-const { chapter, title, question, prereq, mascot, minutes, vizCount, slugs } = Astro.props;
+const { chapter, title, question, prereq, mascot, minutes, vizCount, firstViz, slugs } = Astro.props;
 const part = partOf(chapter);
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -33,7 +35,7 @@ const prereqHtml = prereq
       </a>
     )}
     <span class="chip"><Icon name="clock" size={14} />약 {minutes}분</span>
-    {vizCount > 0 && <span class="chip">🎨 시각화 {vizCount}개</span>}
+    {vizCount > 0 && <a class="chip" href={firstViz ? `#viz-${firstViz}` : undefined}>🎨 시각화 {vizCount}개 · 바로 해보기</a>}
   </div>
 
   <div class="ch-title-row">
