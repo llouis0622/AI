@@ -93,6 +93,51 @@ const pageTitle = isIntro ? '여는 글 — 이 책을 읽는 법' : `${d.chapte
   )}
 </DocLayout>
 
+<script>
+  // "스스로 점검": tick questions you have thought through (saved per chapter).
+  const article = document.querySelector<HTMLElement>('article.chapter');
+  const sec = document.querySelector<HTMLElement>('.sec-selfcheck');
+  if (article && sec) {
+    const ch = document.querySelector<HTMLElement>('[data-complete]')?.dataset.num ?? 'x';
+    const key = `aiology:selfcheck:${ch}`;
+    const items = [...sec.querySelectorAll<HTMLElement>('li[data-check]')];
+    const read = (): string[] => {
+      try {
+        return JSON.parse(localStorage.getItem(key) ?? '[]');
+      } catch {
+        return [];
+      }
+    };
+    const note = document.createElement('p');
+    note.className = 'selfcheck-note';
+    const paint = () => {
+      const done = new Set(read());
+      items.forEach((li) => {
+        const on = done.has(li.dataset.check!);
+        li.classList.toggle('is-checked', on);
+        li.querySelector('.check-box')?.setAttribute('aria-pressed', String(on));
+      });
+      note.textContent = done.size === items.length && items.length ? '🎉 모든 질문을 생각해 봤어요! 아래에서 "다 읽었어요"를 눌러 별을 켜 보세요.' : '';
+    };
+    items.at(-1)?.parentElement?.after(note);
+    items.forEach((li) =>
+      li.querySelector('.check-box')?.addEventListener('click', () => {
+        const done = new Set(read());
+        const id = li.dataset.check!;
+        if (done.has(id)) done.delete(id);
+        else done.add(id);
+        try {
+          localStorage.setItem(key, JSON.stringify([...done]));
+        } catch {
+          /* storage unavailable */
+        }
+        paint();
+      })
+    );
+    paint();
+  }
+</script>
+
 <style>
   .toc-viz {
     margin-top: 26px;

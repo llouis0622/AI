@@ -340,6 +340,127 @@
   border-bottom-color: var(--brand);
 }
 
+/* ---------- End-of-chapter cards (rehype-sections) ---------- */
+.prose .sec {
+  --sec: var(--brand);
+  --sec-soft: var(--brand-soft);
+  margin: 2.6em 0 0;
+  padding: 20px 22px 10px;
+  border-radius: var(--radius-xl);
+  background: var(--sec-soft);
+  border: 1px solid color-mix(in srgb, var(--sec) 28%, transparent);
+}
+
+.prose .sec-summary { --sec: var(--mint); --sec-soft: var(--mint-soft); }
+.prose .sec-selfcheck { --sec: var(--lav); --sec-soft: var(--lav-soft); }
+.prose .sec-next { --sec: var(--peach); --sec-soft: var(--peach-soft); }
+
+.prose .sec + .sec {
+  margin-top: 1.2em;
+}
+
+.prose .sec-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.prose .sec-head h2 {
+  margin: 0;
+  padding: 0;
+  font-size: 21px;
+}
+
+.prose .sec-head h2::before {
+  content: none;
+}
+
+.prose .sec-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: var(--surface-solid);
+  box-shadow: var(--shadow-sm);
+  font-size: 21px;
+  flex: none;
+}
+
+.prose .sec ul,
+.prose .sec ol {
+  margin-bottom: 0.9em;
+}
+
+.prose .sec li::marker {
+  color: var(--sec);
+}
+
+.prose .sec-selfcheck ol,
+.prose .sec-selfcheck ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.prose .sec-selfcheck li[data-check] {
+  position: relative;
+  margin: 0 0 12px;
+  padding: 12px 14px 12px 56px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  transition: opacity 0.3s, border-color 0.3s;
+}
+
+.prose .check-box {
+  position: absolute;
+  left: 14px;
+  top: 12px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  border: 2px solid var(--sec);
+  background: var(--surface-solid);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 850;
+  transition: background-color 0.25s, transform 0.25s var(--ease-spring);
+}
+
+.prose .check-box:hover {
+  transform: scale(1.08);
+}
+
+.prose li.is-checked {
+  border-color: color-mix(in srgb, var(--ok) 45%, transparent);
+}
+
+.prose li.is-checked .check-box {
+  background: var(--ok);
+  border-color: var(--ok);
+  color: transparent;
+}
+
+.prose li.is-checked .check-box::after {
+  content: '';
+  position: absolute;
+  width: 7px;
+  height: 13px;
+  border: solid #fff;
+  border-width: 0 3px 3px 0;
+  transform: translate(0, -2px) rotate(45deg);
+}
+
+.prose .selfcheck-note {
+  margin: 4px 0 12px;
+  font-size: 14px;
+  font-weight: 750;
+  color: var(--ok);
+}
+
 /* Section anchors offset under sticky header */
 .prose :is(h2, h3)[id] {
   scroll-margin-top: calc(var(--header-h) + 24px);

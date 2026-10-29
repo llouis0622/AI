@@ -93,6 +93,7 @@ const drawerNav = [
     <Footer />
     <SearchModal />
     <GlossaryTooltip />
+    <button class="to-top" type="button" aria-label="맨 위로" data-to-top hidden>↑</button>
 
     <script>
       import { onThemeToggle } from '@/lib/theme';
@@ -151,6 +152,15 @@ const drawerNav = [
         onScroll();
       }
 
+      // Back to top
+      const toTop = document.querySelector<HTMLButtonElement>('[data-to-top]');
+      if (toTop) {
+        const onScrollTop = () => (toTop.hidden = window.scrollY < 900);
+        window.addEventListener('scroll', onScrollTop, { passive: true });
+        onScrollTop();
+        toTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+      }
+
       // Copy buttons on code blocks
       document.querySelectorAll<HTMLPreElement>('.prose pre.astro-code').forEach((pre) => {
         const wrap = document.createElement('div');
@@ -189,6 +199,33 @@ const drawerNav = [
 
       .skip-link:focus {
         top: 12px;
+      }
+
+      .to-top {
+        position: fixed;
+        right: max(16px, env(safe-area-inset-right));
+        bottom: max(16px, env(safe-area-inset-bottom));
+        z-index: 40;
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        background: var(--surface-solid);
+        border: 1px solid var(--border-strong);
+        box-shadow: var(--shadow);
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--text-2);
+        transition: transform 0.25s var(--ease-spring), color 0.2s;
+        animation: fade-in 0.25s ease-out;
+      }
+
+      .to-top:hover {
+        transform: translateY(-3px);
+        color: var(--text);
+      }
+
+      .to-top[hidden] {
+        display: none;
       }
 
       .drawer {

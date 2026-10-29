@@ -7,6 +7,7 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import rehypeBaseLinks from './src/lib/rehype-base-links.mjs';
 import rehypeFold from './src/lib/rehype-fold.mjs';
+import rehypeSections from './src/lib/rehype-sections.mjs';
 import rehypeGlossary from './src/lib/rehype-glossary.mjs';
 import { glossaryTerms } from './src/data/glossary/index.ts';
 
@@ -28,6 +29,7 @@ export default defineConfig({
         [rehypeKatex, { strict: 'ignore', output: 'html' }],
         [rehypeBaseLinks, { base: BASE }],
         rehypeFold,
+        rehypeSections,
         [rehypeGlossary, { terms: glossaryTerms, base: BASE }]
       ]
     }),
