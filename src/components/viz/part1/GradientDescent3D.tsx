@@ -272,15 +272,25 @@ function AnimatedBall({ target, color }: { target: [number, number, number]; col
   );
 }
 
-/** Smoothly fly the camera between the default view and a top-down view. */
+/**
+ * Smoothly fly the camera between the starting view and a top-down view. The
+ * starting view is whatever the stage set up (Scene3D fits it to the stage), so
+ * the first render is left untouched.
+ */
 function CameraRig({ top }: { top: boolean }) {
   const { camera, controls } = useThree() as unknown as { camera: THREE.Camera; controls: { target: THREE.Vector3; update: () => void } | null };
   const anim = useRef<{ t: number; from: THREE.Vector3; to: THREE.Vector3 } | null>(null);
+  const home = useRef<THREE.Vector3 | null>(null);
   useEffect(() => {
+    if (!home.current) {
+      home.current = camera.position.clone();
+      if (!top) return;
+    }
+    const dist = home.current.distanceTo(new THREE.Vector3(0, 1.2, 0));
     anim.current = {
       t: 0,
       from: camera.position.clone(),
-      to: top ? new THREE.Vector3(0.001, 15, 0.4) : new THREE.Vector3(8.5, 8.2, 11)
+      to: top ? new THREE.Vector3(0.001, dist * 1.02, 0.4) : home.current.clone()
     };
   }, [top, camera]);
   useFrame((_, dt) => {

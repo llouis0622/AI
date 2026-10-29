@@ -153,7 +153,7 @@ function CameraFit({ position, target }: { position: [number, number, number]; t
   const { camera, size } = useThree();
   const aspect = size.width / Math.max(1, size.height);
   useEffect(() => {
-    const k = Math.min(2, Math.max(1, 1.6 / aspect));
+    const k = Math.min(2, Math.max(1, 1.5 / aspect));
     camera.position.set(
       target[0] + (position[0] - target[0]) * k,
       target[1] + (position[1] - target[1]) * k,
