@@ -396,6 +396,10 @@ export function Arrow3D({
 }
 
 export function Label3D({ position, children }: { position: [number, number, number]; children: ReactNode }) {
+  // drei's <Html> appends to `events.connected` once the canvas wires its events.
+  // A label mounted before that lands in the wrong node and never shows, so wait.
+  const connected = useThree((s) => s.events.connected);
+  if (!connected) return null;
   return (
     <Html position={position} center zIndexRange={[10, 0]}>
       <span className="vz-3d-label">{children}</span>

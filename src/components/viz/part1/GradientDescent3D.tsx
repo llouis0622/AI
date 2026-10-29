@@ -5,7 +5,7 @@ import type { VizProps } from '../Viz';
 import { Scene3D, Surface, Contours, Ball, Arrow3D, Label3D, DomainAxes, Line, makeMapper } from '../core/three';
 import { Controls, Segmented, Slider, Stat, Note, PlayBar, Toggle, Button } from '../core/ui';
 import { MiniChart, Plot, linePath } from '../core/plot';
-import { useElementSize, useInterval } from '../core/hooks';
+import { useInterval } from '../core/hooks';
 import { useVizColors } from '../core/colors';
 import { fmt } from '../core/math';
 
@@ -108,8 +108,8 @@ export default function GradientDescent3D({ expanded }: VizProps) {
   // Changing the landscape restarts from the same corner.
   useEffect(() => reset(), [shape]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const [box, { width }] = useElementSize<HTMLDivElement>();
-  const stageH = expanded ? 'min(68vh, 760px)' : Math.round(Math.max(320, Math.min(500, width * 0.66)));
+  // CSS-only sizing (container query units) so the height can't feed back into the width.
+  const stageH = expanded ? 'min(68vh, 760px)' : 'clamp(320px, 66cqw, 500px)';
 
   const clampU = (u: number) => Math.min(mapper.uRange[1], Math.max(mapper.uRange[0], u));
   const clampV = (v: number) => Math.min(mapper.vRange[1], Math.max(mapper.vRange[0], v));
@@ -159,7 +159,7 @@ export default function GradientDescent3D({ expanded }: VizProps) {
   }
 
   return (
-    <div ref={box}>
+    <div>
       <div style={{ position: 'relative' }}>
         <Scene3D height={stageH} camera={[8.5, 8.2, 11]} target={[0, 1.2, 0]} maxDistance={26}>
           <CameraRig top={topView} />
