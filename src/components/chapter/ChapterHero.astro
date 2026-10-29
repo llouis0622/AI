@@ -2,6 +2,7 @@
 import Algo from '@/components/mascot/Algo.tsx';
 import Icon from '@/components/layout/Icon.astro';
 import { partOf, url } from '@/data/curriculum';
+import { glossaryTerms } from '@/data/glossary';
 
 interface Props {
   chapter: number;
@@ -18,6 +19,7 @@ interface Props {
 }
 const { chapter, title, question, prereq, mascot, minutes, vizCount, firstViz, slugs } = Astro.props;
 const part = partOf(chapter);
+const newTerms = glossaryTerms.filter((t) => t.chapter === chapter);
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const bold = (s: string) => esc(s).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
@@ -50,6 +52,29 @@ const prereqHtml = prereq
         <span class="ch-q-label">이 장의 질문</span>
         <p set:html={bold(question)} />
         {mascot && <p class="ch-mascot-line">{mascot}</p>}
+      </div>
+    </div>
+  )}
+
+  {newTerms.length > 0 && (
+    <div class="ch-terms" data-pagefind-ignore>
+      <span class="ch-terms-label">📚 이 장에서 처음 만나는 낱말</span>
+      <div class="ch-terms-list">
+        {newTerms.map((t) => (
+          <span
+            class="term ch-term"
+            tabindex="0"
+            role="button"
+            data-term={t.id}
+            data-title={t.term}
+            data-def={t.short}
+            data-emoji={t.emoji ?? ''}
+            data-href={url(`/glossary/#${t.id}`)}
+          >
+            {t.emoji && <span aria-hidden="true">{t.emoji}</span>}
+            {t.term}
+          </span>
+        ))}
       </div>
     </div>
   )}
@@ -161,6 +186,48 @@ const prereqHtml = prereq
   .ch-prereq :global(a) {
     color: var(--link);
     font-weight: 700;
+  }
+
+  .ch-terms {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0 0 14px;
+  }
+
+  .ch-terms-label {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--text-2);
+  }
+
+  .ch-terms-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .ch-term {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: var(--surface);
+    border: 1px dashed color-mix(in srgb, var(--brand) 45%, transparent);
+    font-size: 13.5px;
+    font-weight: 700;
+    cursor: help;
+    transition: background-color 0.2s, border-color 0.2s, transform 0.2s var(--ease-spring);
+  }
+
+  .ch-term:hover,
+  .ch-term:focus-visible,
+  .ch-term[aria-expanded='true'] {
+    background: var(--brand-soft);
+    border-style: solid;
+    border-color: var(--brand);
+    transform: translateY(-1px);
   }
 
   @media (max-width: 640px) {
