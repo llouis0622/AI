@@ -58,7 +58,7 @@ export default function LearningMap({ parts, totalViz, showReset = false }: { pa
   const padX = w < 560 ? 44 : 64;
   const stepX = (w - padX * 2) / (cols - 1);
   const stepY = w < 560 ? 104 : 118;
-  const padY = 58;
+  const padY = 64;
   const pts = stops.map((s, i) => {
     const row = Math.floor(i / cols);
     const k = i % cols;
@@ -193,7 +193,7 @@ export default function LearningMap({ parts, totalViz, showReset = false }: { pa
             );
           })}
           {nextPt && (
-            <foreignObject x={nextPt.x - 26} y={nextPt.y - r - 62} width={52} height={56} style={{ overflow: 'visible', pointerEvents: 'none' }}>
+            <foreignObject x={nextPt.x + r - 8} y={nextPt.y - r - 34} width={52} height={56} style={{ overflow: 'visible', pointerEvents: 'none' }}>
               <div className="lmap-algo">
                 <Algo mood={doneCount ? 'happy' : 'smile'} size={48} />
               </div>
