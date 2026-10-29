@@ -23,6 +23,17 @@ export const viz: VizMeta[] = [
     featured: true
   },
   {
+    id: 'value-terrain-3d',
+    title: '가치의 지형 3D',
+    tagline: '칸마다 가치를 높이로 쌓으면, 보석에서 시작한 산이 거꾸로 자라나 출발점까지 이어져요.',
+    icon: '⛰️',
+    component: 'part8/ValueTerrain3D',
+    chapter: 25,
+    is3D: true,
+    howTo: '"⚡ 50판 순식간에"를 몇 번 눌러 산을 키운 뒤, γ를 0.5로 낮추고 다시 눌러 보세요. 산이 뾰족해져요!',
+    aspect: 1.05
+  },
+  {
     id: 'policy-gradient-bandit',
     title: '정책 경사 슬롯머신',
     tagline: '결과가 좋았던 기계의 확률을 올려 가며, 가장 좋은 기계를 스스로 찾아요.',

@@ -54,6 +54,17 @@ export const viz: VizMeta[] = [
     aspect: 1.0
   },
   {
+    id: 'transformer-3d',
+    title: 'Transformer 3D 해부도',
+    tagline: '단어 상자 4개가 블록을 층층이 올라가며 서로 대화하고(어텐션) 각자 생각을 정리해요(피드포워드).',
+    icon: '🏗️',
+    component: 'part5/Transformer3D',
+    chapter: 18,
+    is3D: true,
+    howTo: '▶ 시작으로 한 층씩 올라가 보세요. 판을 누르면 그 단계로 바로 가요. GPT와 BERT를 바꾸면 어텐션 선의 방향이 달라져요.',
+    aspect: 0.9
+  },
+  {
     id: 'mask-variants',
     title: '가림막 세 가지',
     tagline: '같은 Transformer라도 누가 누구를 볼 수 있게 하느냐에 따라 BERT, GPT, 번역기가 돼요.',

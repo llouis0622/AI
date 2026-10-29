@@ -33,6 +33,17 @@ export const viz: VizMeta[] = [
     featured: true
   },
   {
+    id: 'nn-surface-3d',
+    title: '신경망의 생각 지형 3D',
+    tagline: '높이는 "위쪽 무리일 확률"이에요. 학습할수록 평평하던 땅이 솟고 꺼지며 경계가 생겨요.',
+    icon: '🏔️',
+    component: 'part3/NNSurface3D',
+    chapter: 9,
+    is3D: true,
+    howTo: '▶ 시작을 누르고 지형을 돌려 보세요. "나선"에서 뉴런 2개와 8개 × 2층을 비교하면 땅의 구불구불함이 달라져요.',
+    aspect: 1.05
+  },
+  {
     id: 'backprop-graph',
     title: '역전파 한 칸씩',
     tagline: '계산 그래프에서 값은 앞으로, 민감도는 뒤로 흐르는 걸 한 칸씩 따라가요.',

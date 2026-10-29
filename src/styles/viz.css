@@ -368,6 +368,15 @@
   container-name: vzframe;
 }
 
+@container vzframe (max-width: 480px) {
+  /* two classes: this block sits above the base .vz-3d-label rule */
+  .vz-container .vz-3d-label {
+    padding: 1px 6px;
+    border-radius: 6px;
+    font-size: 10.5px;
+  }
+}
+
 .vz-pad {
   padding: 16px;
 }
