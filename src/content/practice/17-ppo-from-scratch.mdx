@@ -4,7 +4,26 @@ lab: 17
 track: "E. 강화학습"
 builds: "PPO(Proximal Policy Optimization)를 액터-크리틱 + GAE + 클리핑까지 밑바닥부터 구현해 CartPole을 푼다. PPO는 로봇 제어부터 RLHF까지 쓰이는 현대 RL의 사실상 표준 알고리즘이다 — 이 코드를 이해하면 [RLHF](/book/22-alignment)의 학습 루프가 그대로 읽힌다."
 chapters: [26, 25]
+summary:
+  - icon: "🎮"
+    title: "해 보고 점수 매기기"
+    text: "정책대로 **여러 판 플레이(롤아웃)**하고, 각 행동이 기대보다 좋았는지(이점)를 계산해요."
+    visual: "float"
+  - icon: "🧮"
+    title: "GAE: 공 나누기"
+    text: "보상을 **뒤에서부터 거꾸로** 계산해서 각 행동에 공이 얼마나 있는지 공평하게 나눠요."
+    visual: "slide"
+  - icon: "✂️"
+    title: "한 번에 조금씩만"
+    text: "새 정책과 옛 정책의 확률 비율을 **0.8~1.2 사이로 잘라서(clip)** 정책이 갑자기 망가지는 걸 막아요."
+    visual: "shake"
+  - icon: "💬"
+    title: "RLHF의 엔진"
+    text: "모은 데이터로 **10번 복습**한 뒤 버리고 다시 모아요. 이 PPO가 챗봇을 사람 취향에 맞추는 RLHF의 핵심이에요."
+    visual: "spin"
 ---
+
+import Viz from '@/components/viz/Viz.tsx';
 
 **만드는 것**: PPO(Proximal Policy Optimization)를 액터-크리틱 + GAE + 클리핑까지 밑바닥부터 구현해 CartPole을 푼다. PPO는 로봇 제어부터 RLHF까지 쓰이는 현대 RL의 사실상 표준 알고리즘이다 — 이 코드를 이해하면 [RLHF](/book/22-alignment)의 학습 루프가 그대로 읽힌다.
 
@@ -17,6 +36,8 @@ DQN은 가치를 배우고 정책은 argmax로 유도한다. PPO는 **정책 자
 1. **액터-크리틱** — 액터(정책)와 크리틱(상태 가치 V). 크리틱은 "이 상태에서 평균적으로 얼마나 잘하나"의 기준선이 되어 그래디언트 분산을 줄인다.
 2. **GAE** — 이점(advantage) $A_t$ = "이 행동이 평균보다 얼마나 좋았나"를 편향-분산 절충($\lambda$)으로 추정.
 3. **클리핑** — 확률비 $r_t = \pi_{new}/\pi_{old}$를 $[1-\epsilon, 1+\epsilon]$로 잘라, 한 번의 갱신으로 정책이 너무 멀리 가는 것을 막는다. 덕분에 같은 데이터로 여러 에포크 재학습이 가능하다(샘플 효율).
+
+<Viz id="lab17-ppo" client:visible />
 
 ## 전체 코드
 

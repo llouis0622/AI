@@ -4,7 +4,26 @@ lab: 11
 track: "C. NLP와 LLM"
 builds: "오픈소스 LLM을 LoRA/QLoRA로 지시 데이터에 파인튜닝(SFT)한다. 소비자 GPU 한 장으로 수B 파라미터 모델을 조정하는, 현재 가장 보편적인 LLM 커스터마이징 레시피다."
 chapters: [23, 22]
+summary:
+  - icon: "🐘"
+    title: "거대한 모델, 조금만 고치기"
+    text: "수십억 개의 숫자로 된 LLM을 통째로 다시 가르치려면 GPU가 엄청 필요해요. **조금만** 고치는 방법은 없을까요?"
+    visual: "float"
+  - icon: "🧊"
+    title: "원래 실력은 얼려 두기"
+    text: "원래 가중치 W는 **얼려서**(동결) 그대로 두고, 옆에 아주 가느다란 **A·B 두 장**만 붙여서 배워요."
+    visual: "pulse"
+  - icon: "📉"
+    title: "배울 숫자가 1%도 안 돼요"
+    text: "가느다란 길(랭크 r) 덕분에 학습할 숫자가 **전체의 0.1~1%**로 줄어요. QLoRA는 모델을 4비트로 눌러 메모리를 더 아껴요."
+    visual: "grow"
+  - icon: "🔌"
+    title: "갈아 끼우는 어댑터"
+    text: "다 배운 A·B는 **수십 MB짜리 파일**이에요. 과제마다 바꿔 끼우거나 W에 합쳐서(merge) 원래 속도로 써요."
+    visual: "slide"
 ---
+
+import Viz from '@/components/viz/Viz.tsx';
 
 **만드는 것**: 오픈소스 LLM을 LoRA/QLoRA로 지시 데이터에 파인튜닝(SFT)한다. 소비자 GPU 한 장으로 수B 파라미터 모델을 조정하는, 현재 가장 보편적인 LLM 커스터마이징 레시피다.
 
@@ -13,6 +32,8 @@ chapters: [23, 22]
 ## 원리 요약
 
 가중치 $W$를 동결하고 갱신량만 저랭크로 학습한다: $W' = W + \frac{\alpha}{r}BA$. 학습 파라미터가 전체의 ~0.1–1%로 줄고, QLoRA는 여기에 베이스 모델 4비트 양자화를 더해 메모리를 다시 1/4로 줄인다. 어댑터는 수십 MB짜리 파일이라 과제별로 여러 개를 갈아끼울 수 있다.
+
+<Viz id="lab11-lora" client:visible />
 
 ## 1. LoRA를 손으로 먼저 — 30줄 구현
 
@@ -136,6 +157,8 @@ tok.save_pretrained("./sft-merged")
 ## 실무 감각
 
 **언제 파인튜닝하고 언제 안 하는가.** 형식·문체·도메인 어휘를 일관되게 따르게 하는 데는 SFT가 강하다. 반면 **새로운 지식 주입**에는 비효율적이다 — 최신 정보·사내 문서 참조는 [RAG](/practice/12-rag-system)가 먼저다. 프롬프트 엔지니어링 → RAG → 파인튜닝 순으로 시도하는 것이 비용 순서다.
+
+<Viz id="three-dials" client:visible />
 
 **데이터 품질 > 수량.** 잘 만든 수천 건이 긁어모은 수십만 건을 이긴다. 응답 형식이 들쭉날쭉한 데이터로 SFT하면 모델도 들쭉날쭉해진다. ([SFT 데이터 설계](/book/22-alignment))
 

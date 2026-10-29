@@ -4,11 +4,32 @@ lab: 20
 track: "F. 멀티모달과 운영"
 builds: "학습한 모델을 FastAPI로 API 서버화하고, 동적 배칭으로 처리량을 끌어올리고, Docker로 포장해 어디서든 배포 가능하게 만든다. \"모델이 있다\"와 \"서비스가 있다\" 사이의 간극을 메우는 마지막 코드랩이다."
 chapters: [27]
+summary:
+  - icon: "🚀"
+    title: "모델을 서비스로"
+    text: "학습한 모델을 **웹 주소(API)** 뒤에 두면 앱 어디서든 사진을 보내고 답을 받을 수 있어요."
+    visual: "bounce"
+  - icon: "🧊"
+    title: "모델은 한 번만 불러오기"
+    text: "요청마다 모델을 불러오면 느려요. 서버가 켜질 때 **딱 한 번** 올려 두고 계속 써요."
+    visual: "pulse"
+  - icon: "📦"
+    title: "모아서 한 번에(배칭)"
+    text: "요청을 **아주 잠깐(10ms) 기다렸다 모아서** GPU에 한꺼번에 넣으면 처리량이 확 늘어요."
+    visual: "grow"
+  - icon: "🐳"
+    title: "어디서나 똑같이(Docker)"
+    text: "코드와 환경을 **상자 하나**에 담아, 내 컴퓨터든 서버든 똑같이 돌아가게 해요."
+    visual: "float"
 ---
+
+import Viz from '@/components/viz/Viz.tsx';
 
 **만드는 것**: 학습한 모델을 FastAPI로 API 서버화하고, 동적 배칭으로 처리량을 끌어올리고, Docker로 포장해 어디서든 배포 가능하게 만든다. "모델이 있다"와 "서비스가 있다" 사이의 간극을 메우는 마지막 코드랩이다.
 
 **선행 지식**: [FastAPI 기반 최소 서빙](/book/27-to-production), [서빙 인프라](/book/27-to-production)
+
+<Viz id="lab20-serving" client:visible />
 
 ## 1. 최소 서빙 — 그러나 올바르게
 
@@ -96,6 +117,8 @@ curl -s -X POST http://localhost:8000/predict -F "file=@cat.jpg" | python -m jso
 ## 2. 동적 배칭 — GPU 서빙의 핵심 기법
 
 요청을 1건씩 GPU에 넣으면 GPU가 거의 논다. 짧은 시간(예: 10ms) 동안 도착한 요청을 **모아서 한 배치로** 추론하면 처리량이 몇 배로 뛴다 — Triton·vLLM이 내부에서 하는 일의 원형이다.
+
+<Viz id="serving-sim" client:visible />
 
 ```python
 """동적 배칭: asyncio.Queue로 요청을 모아 배치 추론."""

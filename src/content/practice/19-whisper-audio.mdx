@@ -4,7 +4,26 @@ lab: 19
 track: "F. 멀티모달과 운영"
 builds: "오디오가 신경망 입력이 되는 과정(파형 → 멜 스펙트로그램)을 직접 계산해 보고, Whisper로 음성 인식(STT) 파이프라인을 구축하고, 간단한 오디오 분류기를 학습한다."
 chapters: [15]
+summary:
+  - icon: "〰️"
+    title: "소리는 떨림의 기록"
+    text: "마이크는 1초에 1만 6천 번 **공기의 떨림**을 숫자로 적어요. 이것만으론 무슨 말인지 알기 어려워요."
+    visual: "pulse"
+  - icon: "🌈"
+    title: "잘라서 주파수로"
+    text: "25ms씩 잘라 **FFT**로 어떤 높이의 소리가 섞였는지 보면, 소리의 사진인 **스펙트로그램**이 돼요."
+    visual: "slide"
+  - icon: "👂"
+    title: "사람 귀처럼 멜·로그"
+    text: "낮은 소리는 촘촘히, 높은 소리는 듬성듬성 묶고(**멜**) **로그**를 씌우면 귀가 듣는 방식과 닮아요."
+    visual: "grow"
+  - icon: "📝"
+    title: "Whisper의 받아쓰기"
+    text: "로그 멜 이미지를 **인코더**가 읽고 **디코더**가 글자를 하나씩 써요. 말없는 구간은 미리 건너뛰어요."
+    visual: "spin"
 ---
+
+import Viz from '@/components/viz/Viz.tsx';
 
 **만드는 것**: 오디오가 신경망 입력이 되는 과정(파형 → 멜 스펙트로그램)을 직접 계산해 보고, Whisper로 음성 인식(STT) 파이프라인을 구축하고, 간단한 오디오 분류기를 학습한다.
 
@@ -12,9 +31,13 @@ chapters: [15]
 
 **선행 지식**: [15장. 듣는다는 것](/book/15-audio)
 
+<Viz id="lab19-whisper" client:visible />
+
 ## 1. 오디오 → 멜 스펙트로그램
 
 소리는 1차원 파형(초당 16,000 샘플)이다. 그대로는 너무 길고 구조가 안 보이므로, 짧은 구간마다 푸리에 변환해 "시간 × 주파수" 2차원 표현으로 바꾼다. 멜 스케일은 사람 귀의 민감도(저주파에 민감)를 반영한 주파수 축이다.
+
+<Viz id="wave-to-spectrogram" client:visible />
 
 ```python
 """파형 → 멜 스펙트로그램. 의존성: pip install torchaudio matplotlib"""
