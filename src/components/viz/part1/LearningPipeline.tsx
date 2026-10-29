@@ -51,7 +51,7 @@ export default function LearningPipeline({ expanded }: VizProps) {
   const NH = 64;
 
   // packet position on the loop
-  const seg = Math.floor(phase) % 4;
+  const seg = ((Math.floor(phase) % 4) + 4) % 4;
   const fr = phase - Math.floor(phase);
   const from = pos[LOOP[seg]];
   const to = pos[LOOP[(seg + 1) % 4]];

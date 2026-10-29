@@ -62,7 +62,8 @@ export function useRafLoop(cb: (dt: number, t: number) => void, running: boolean
     let raf = 0;
     let last = performance.now();
     const frame = (now: number) => {
-      const dt = Math.min(0.05, (now - last) / 1000);
+      // rAF timestamps mark the frame start, so the first one can precede `last`
+      const dt = Math.max(0, Math.min(0.05, (now - last) / 1000));
       last = now;
       if (!document.hidden) cbRef.current(dt, now / 1000);
       raf = requestAnimationFrame(frame);
