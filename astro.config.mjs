@@ -17,6 +17,8 @@ export default defineConfig({
   base: BASE,
   trailingSlash: 'always',
   output: 'static',
+  // Overridable so parallel worktrees sharing node_modules keep separate caches.
+  cacheDir: process.env.ASTRO_CACHE_DIR ?? './node_modules/.astro',
   build: { format: 'directory' },
   integrations: [react(), mdx()],
   markdown: {
@@ -35,7 +37,6 @@ export default defineConfig({
     }
   },
   vite: {
-    // Lets parallel worktrees keep separate dependency caches.
     cacheDir: process.env.ASTRO_VITE_CACHE ?? 'node_modules/.vite',
     build: { chunkSizeWarningLimit: 1600 }
   }

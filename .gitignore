@@ -5,3 +5,5 @@ dist/
 .DS_Store
 .idea/
 *.log
+.astro-cache/
+.claude/
