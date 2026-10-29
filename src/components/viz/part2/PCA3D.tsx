@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { VizProps } from '../Viz';
-import { Scene3D, Arrow3D, Label3D, Line } from '../core/three';
+import { Scene3D, Arrow3D, Label3D, Line, Html } from '../core/three';
 import { Button, Controls, Note, Segmented, Slider, Stat, Toggle } from '../core/ui';
 import { useElementSize, usePrefersReducedMotion } from '../core/hooks';
 import { useVizColors } from '../core/colors';
@@ -156,6 +156,11 @@ export default function PCA3D({ expanded }: VizProps) {
   return (
     <div ref={box}>
       <Scene3D height={stageH} camera={[7.4, 5.0, 8.6]} target={[0, 0, 0]} minDistance={5} maxDistance={22}>
+        {/* the first <Html> overlay in a scene currently never shows up (gradient-descent-3d loses its first axis label too);
+            this empty one absorbs that so the ① label is visible */}
+        <Html position={[0, 0, 0]}>
+          <span aria-hidden="true" />
+        </Html>
         <gridHelper args={[10, 10, c.theme === 'dark' ? '#4a5590' : '#d9cdbd', c.theme === 'dark' ? '#2a3466' : '#efe5d8']} position={[0, -2.6, 0]} />
         <Cloud n={plane.n} flat={flat} reduce={reduce} colors={groupColors} shadows={shadows} lineColor={c.ink} />
         <PlaneMesh n={plane.n} u={plane.u} w={plane.w} color={c.ink} dark={c.theme === 'dark'} best={best} />
