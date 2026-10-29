@@ -4,6 +4,23 @@ lab: 13
 track: "C. NLP와 LLM"
 builds: "도구(계산기, 파일 읽기, 검색)를 스스로 골라 쓰며 여러 단계에 걸쳐 과제를 수행하는 에이전트를, 프레임워크 없이 API 호출 루프로 직접 구현한다. LangChain 같은 프레임워크가 내부에서 하는 일이 정확히 이것이다 — 한 번 직접 짜 보면 프레임워크를 \"이해하고\" 쓸 수 있게 된다."
 chapters: [24]
+summary:
+  - icon: "🔁"
+    title: "에이전트 = while 루프"
+    text: "모델에게 묻고, 모델이 **도구를 쓰겠다고 하면** 대신 실행해서 결과를 돌려주는 걸 되풀이해요."
+    visual: "spin"
+  - icon: "🧰"
+    title: "도구 설명서 건네기"
+    text: "계산기·파일 읽기 같은 도구의 **이름과 사용법(스키마)**을 알려 주면 모델이 필요할 때 골라 써요."
+    visual: "bounce"
+  - icon: "🩹"
+    title: "실수해도 스스로 고치기"
+    text: "파일 이름을 틀려도 **에러를 결과로 돌려주면** 모델이 읽고 다시 시도해요."
+    visual: "shake"
+  - icon: "🛑"
+    title: "멈출 때를 정하기"
+    text: "모델이 **end_turn**이라고 하거나 **최대 턴**에 닿으면 멈춰요. 끝없는 반복을 막는 안전장치예요."
+    visual: "pulse"
 ---
 
 import Viz from '@/components/viz/Viz.tsx';
@@ -17,6 +34,8 @@ import Viz from '@/components/viz/Viz.tsx';
 <Viz id="agent-loop" client:visible />
 
 에이전트 = **while 루프 하나**다. 모델이 도구를 요청하면 실행해 결과를 돌려주고, 더 이상 도구가 필요 없다고 할 때까지 반복한다.
+
+<Viz id="lab13-agent-trace" client:visible />
 
 ## 전체 코드
 

@@ -4,7 +4,26 @@ lab: 15
 track: "D. 생성 모델"
 builds: "DDPM을 밑바닥부터 — 노이즈 스케줄, 학습(노이즈 예측), 샘플링(점진적 복원)까지 구현해 MNIST 숫자를 생성한다. Stable Diffusion·이미지 생성 서비스의 뿌리가 되는 알고리즘이다."
 chapters: [20]
+summary:
+  - icon: "🌫️"
+    title: "조금씩 노이즈 뿌리기"
+    text: "깨끗한 그림에 노이즈를 **1000번** 조금씩 더하면 결국 모래폭풍 같은 완전한 노이즈가 돼요."
+    visual: "float"
+  - icon: "🎯"
+    title: "노이즈 맞히기 시험"
+    text: "모델은 '여기 섞인 노이즈가 뭐게?'를 맞히는 연습만 해요. 손실은 **진짜 노이즈와의 차이(MSE)**예요."
+    visual: "pulse"
+  - icon: "🔙"
+    title: "거꾸로 1000걸음"
+    text: "순수한 노이즈에서 출발해 예측한 노이즈를 **조금씩 빼면** 그림이 서서히 나타나요."
+    visual: "spin"
+  - icon: "🕰️"
+    title: "지금 몇 번째 걸음?"
+    text: "U-Net에게 **시간 t**를 함께 알려 줘야 노이즈가 얼마나 남았는지 알고 알맞게 지워요."
+    visual: "orbit"
 ---
+
+import Viz from '@/components/viz/Viz.tsx';
 
 **만드는 것**: DDPM을 밑바닥부터 — 노이즈 스케줄, 학습(노이즈 예측), 샘플링(점진적 복원)까지 구현해 MNIST 숫자를 생성한다. Stable Diffusion·이미지 생성 서비스의 뿌리가 되는 알고리즘이다.
 
@@ -25,6 +44,8 @@ $$
 $$
 
 **샘플링(역방향)**: 순수 노이즈 $x_T$에서 시작해, 매 단계 예측 노이즈를 빼며 $x_0$까지 되돌아간다.
+
+<Viz id="lab15-ddpm" client:visible />
 
 ## 전체 코드
 

@@ -4,11 +4,32 @@ lab: 14
 track: "D. 생성 모델"
 builds: "MNIST에서 VAE와 DCGAN을 각각 구현해 숫자 이미지를 생성한다. 생성 모델의 두 축 — \"가능도 하한을 최대화\"(VAE)와 \"판별자를 속이기\"(GAN) — 를 코드 수준에서 대비한다."
 chapters: [19]
+summary:
+  - icon: "☁️"
+    title: "VAE: 구름으로 압축하기"
+    text: "그림을 점 하나가 아니라 **작은 구름(평균·분산)**으로 압축해요. 구름 어디서 뽑아도 비슷한 그림이 나오게요."
+    visual: "float"
+  - icon: "🎲"
+    title: "재파라미터화 트릭"
+    text: "z = μ + σ·ε처럼 **무작위는 ε에게만** 맡겨서, 뽑는 과정에도 기울기가 흐르게 해요."
+    visual: "spin"
+  - icon: "🎭"
+    title: "GAN: 위조꾼과 감별사"
+    text: "생성자는 가짜를 만들고 판별자는 진짜·가짜를 가려요. **서로 겨루며** 둘 다 실력이 늘어요."
+    visual: "bounce"
+  - icon: "✂️"
+    title: "detach로 차례 지키기"
+    text: "판별자를 가르칠 땐 가짜 그림의 기울기를 **끊어서(detach)** 생성자까지 바뀌지 않게 해요."
+    visual: "slide"
 ---
+
+import Viz from '@/components/viz/Viz.tsx';
 
 **만드는 것**: MNIST에서 VAE와 DCGAN을 각각 구현해 숫자 이미지를 생성한다. 생성 모델의 두 축 — "가능도 하한을 최대화"(VAE)와 "판별자를 속이기"(GAN) — 를 코드 수준에서 대비한다.
 
 **선행 지식**: [VAE: ELBO와 재파라미터화](/book/19-generative-models), [GAN: 미니맥스](/book/19-generative-models), [19장. 만들어내는 기계](/book/19-generative-models)
+
+<Viz id="lab14-vae-gan" client:visible />
 
 ## 1. VAE
 
@@ -85,6 +106,8 @@ if __name__ == "__main__":
 ```
 
 ## 2. DCGAN
+
+<Viz id="gan-duel" client:visible />
 
 ```python
 """DCGAN — MNIST. 실행: python gan.py"""
