@@ -1,0 +1,104 @@
+---
+import Algo from '@/components/mascot/Algo.tsx';
+import { url } from '@/data/curriculum';
+---
+<footer class="site-footer" data-pagefind-ignore>
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <Algo size={46} mood="wink" />
+      <div>
+        <strong class="footer-title">AIology</strong>
+        <p>그림으로 보고, 손으로 만지며 배우는 인공지능 교과서.<br />직선 하나를 긋는 기계에서 GPT·확산 모델·에이전트까지.</p>
+      </div>
+    </div>
+    <nav class="footer-links" aria-label="바닥글 메뉴">
+      <div>
+        <span class="footer-head">배우기</span>
+        <a href={url('/book/')}>책 (28장)</a>
+        <a href={url('/playground/')}>시각화 실험실</a>
+        <a href={url('/map/')}>학습 지도</a>
+      </div>
+      <div>
+        <span class="footer-head">연습하기</span>
+        <a href={url('/practice/')}>코드랩 (20편)</a>
+        <a href={url('/review/')}>복습 퀴즈</a>
+        <a href={url('/glossary/')}>용어 사전</a>
+      </div>
+      <div>
+        <span class="footer-head">만든 사람</span>
+        <a href="https://github.com/llouis0622" target="_blank" rel="noopener noreferrer">llouis0622</a>
+        <a href="https://github.com/llouis0622/AI" target="_blank" rel="noopener noreferrer">GitHub 저장소</a>
+      </div>
+    </nav>
+  </div>
+  <p class="footer-note">학습 기록은 이 브라우저에만 저장돼요 · © AIology</p>
+</footer>
+
+<style>
+  .site-footer {
+    margin-top: 96px;
+    padding: 48px 0 28px;
+    border-top: 1px solid var(--border);
+    background: color-mix(in srgb, var(--bg-2) 60%, transparent);
+  }
+
+  .footer-inner {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 36px;
+  }
+
+  .footer-brand {
+    display: flex;
+    gap: 14px;
+    max-width: 380px;
+  }
+
+  .footer-brand p {
+    margin: 6px 0 0;
+    color: var(--text-2);
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .footer-title {
+    font-size: 20px;
+    letter-spacing: -0.03em;
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 48px;
+    flex-wrap: wrap;
+  }
+
+  .footer-links div {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 14px;
+  }
+
+  .footer-links a {
+    color: var(--text-2);
+  }
+
+  .footer-links a:hover {
+    color: var(--text);
+  }
+
+  .footer-head {
+    font-weight: 800;
+    font-size: 13px;
+    color: var(--text-3);
+    letter-spacing: 0.02em;
+  }
+
+  .footer-note {
+    margin: 36px 0 0;
+    text-align: center;
+    color: var(--text-3);
+    font-size: 13px;
+  }
+</style>

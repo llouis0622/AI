@@ -1,0 +1,116 @@
+---
+import { render } from 'astro:content';
+import DocLayout from '@/layouts/DocLayout.astro';
+import ChapterHero from '@/components/chapter/ChapterHero.astro';
+import VisualSummary from '@/components/summary/VisualSummary.astro';
+import CompleteCard from '@/components/chapter/CompleteCard.astro';
+import PrevNext from '@/components/chapter/PrevNext.astro';
+import PartsGrid from '@/components/chapter/PartsGrid.astro';
+import Algo from '@/components/mascot/Algo.tsx';
+import { getBook, getLabs, bookHref, labHref, readingMinutes, vizIdsIn, plain, type BookEntry } from '@/lib/content';
+import { partOf, url, chapterLabel } from '@/data/curriculum';
+
+export async function getStaticPaths() {
+  const book = await getBook();
+  return book.map((entry, i) => ({
+    params: { slug: entry.id === '00-intro' ? undefined : entry.id },
+    props: { entry, prev: book[i - 1], next: book[i + 1] }
+  }));
+}
+
+interface Props {
+  entry: BookEntry;
+  prev?: BookEntry;
+  next?: BookEntry;
+}
+
+const { entry, prev, next } = Astro.props;
+const { Content, headings } = await render(entry);
+const d = entry.data;
+const isIntro = d.chapter === 0;
+const book = await getBook();
+const slugs = Object.fromEntries(book.map((e) => [e.data.chapter, e.id]));
+const labs = (await getLabs()).filter((l) => d.labs.includes(l.data.lab) || l.data.chapters.includes(d.chapter));
+const part = partOf(d.chapter);
+const lastOfPart = part ? part.chapters[part.chapters.length - 1] === d.chapter : false;
+
+const link = (e?: BookEntry) => e && { href: bookHref(e.id), label: chapterLabel(e.data.chapter), title: e.data.title };
+const completeLinks = [
+  ...(lastOfPart && part ? [{ href: url(`/review/quiz-part${part.part}/`), label: `✅ ${part.part}부 복습 퀴즈` }] : []),
+  ...labs.slice(0, 2).map((l) => ({ href: labHref(l.id), label: `💻 코드랩 ${String(l.data.lab).padStart(2, '0')}` }))
+];
+const pageTitle = isIntro ? '여는 글 — 이 책을 읽는 법' : `${d.chapter}장. ${d.title}`;
+---
+<DocLayout title={pageTitle} description={plain(d.question) || undefined} section="book" current={entry.id} headings={headings}>
+  <article class="chapter" data-part={d.part} data-reading data-pagefind-body>
+    {isIntro ? (
+      <header class="intro-hero">
+        <div class="algo-say">
+          <Algo mood="happy" size={92} body />
+          <div class="algo-bubble">
+            <span class="intro-kicker">여는 글</span>
+            <h1 class="intro-title">{d.title}</h1>
+            <p>안녕하세요, 저는 안내 로봇 <strong>알고</strong>예요! 이 책은 글보다 <strong>그림과 실험</strong>을 먼저 보여 드려요. 막히는 단어는 점선 밑줄을 눌러 보세요.</p>
+          </div>
+        </div>
+      </header>
+    ) : (
+      <ChapterHero
+        chapter={d.chapter}
+        title={d.title}
+        question={d.question}
+        prereq={d.prereq}
+        mascot={d.mascot}
+        minutes={readingMinutes(entry.body)}
+        vizCount={vizIdsIn(entry.body).length}
+        slugs={slugs}
+      />
+    )}
+
+    <VisualSummary cards={d.summary} />
+
+    {isIntro && <PartsGrid book={book} heading="이 책의 지도 — 9부 28장" />}
+
+    <div class="prose">
+      <Content />
+    </div>
+
+    {!isIntro && <CompleteCard kind="chapter" num={d.chapter} links={completeLinks} />}
+    <PrevNext prev={link(prev)} next={link(next)} />
+  </article>
+</DocLayout>
+
+<style>
+  .intro-hero {
+    margin-bottom: 28px;
+  }
+
+  .intro-kicker {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--brand);
+  }
+
+  .intro-title {
+    margin: 2px 0 8px;
+    font-size: clamp(26px, 4vw, 36px);
+    font-weight: 850;
+    letter-spacing: -0.04em;
+    line-height: 1.25;
+  }
+
+  .intro-hero p {
+    margin: 0;
+    color: var(--text-2);
+  }
+
+  @media (max-width: 640px) {
+    .intro-hero .algo-say {
+      flex-direction: column;
+      align-items: center;
+    }
+    .intro-hero .algo-bubble::before {
+      display: none;
+    }
+  }
+</style>

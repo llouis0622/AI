@@ -1,0 +1,226 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Algo from '@/components/mascot/Algo.tsx';
+import { glossaryTerms } from '@/data/glossary';
+import { PARTS, partOf } from '@/data/curriculum';
+import { getBook, bookHref } from '@/lib/content';
+
+const book = await getBook();
+const slugOf = (ch: number) => book.find((e) => e.data.chapter === ch)?.id;
+const byPart = PARTS.map((p) => ({
+  part: p,
+  terms: glossaryTerms.filter((t) => partOf(t.chapter)?.part === p.part).sort((a, b) => a.chapter - b.chapter || a.term.localeCompare(b.term, 'ko'))
+})).filter((g) => g.terms.length);
+---
+<BaseLayout title="용어 사전" description="AI를 공부하다 막히는 낱말을 중학생도 알 수 있는 말로 풀었어요.">
+  <main id="main" class="container gl-page">
+    <header class="gl-hero">
+      <div class="algo-say">
+        <Algo mood="smile" size={84} body />
+        <div class="algo-bubble">
+          <h1 class="gl-title">용어 사전 📚</h1>
+          <p>책에서 <span class="gl-sample">점선 밑줄</span>이 그어진 낱말을 누르면 여기 있는 설명이 바로 떠요. 모두 <strong>{glossaryTerms.length}개</strong>의 낱말을 쉬운 말로 풀었어요.</p>
+        </div>
+      </div>
+      <label class="gl-search">
+        <span aria-hidden="true">🔎</span>
+        <input type="search" placeholder="낱말 찾기 (예: 기울기, 어텐션)" data-gl-search autocomplete="off" />
+      </label>
+      <nav class="gl-jump" aria-label="부별 바로가기">
+        {byPart.map(({ part }) => <a class="chip" href={`#gl-part-${part.part}`} data-part={part.part}>{part.emoji} {part.part}부</a>)}
+      </nav>
+    </header>
+
+    <div data-pagefind-body>
+      {byPart.map(({ part, terms }) => (
+        <section class="gl-group" id={`gl-part-${part.part}`} data-part={part.part}>
+          <h2 class="gl-group-title">{part.emoji} {part.part}부 · {part.title}</h2>
+          <div class="gl-grid">
+            {terms.map((t) => {
+              const slug = slugOf(t.chapter);
+              return (
+                <article class="gl-card card" id={t.id} data-gl-term={`${t.term} ${(t.aliases ?? []).join(' ')} ${t.short}`.toLowerCase()}>
+                  <div class="gl-card-head">
+                    <span class="gl-emoji" aria-hidden="true">{t.emoji ?? '💡'}</span>
+                    <h3>{t.term}</h3>
+                    {t.aliases && t.aliases.length > 0 && <span class="gl-alias">{t.aliases.join(' · ')}</span>}
+                  </div>
+                  <p class="gl-short">{t.short}</p>
+                  {t.long && <p class="gl-long">{t.long}</p>}
+                  {slug && <a class="gl-from" href={bookHref(slug)}>📖 {t.chapter}장에서 처음 나와요 →</a>}
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      ))}
+    </div>
+    <p class="gl-empty" hidden data-gl-empty>찾는 낱말이 없어요. 다른 말로 찾아볼까요?</p>
+  </main>
+</BaseLayout>
+
+<script>
+  const input = document.querySelector<HTMLInputElement>('[data-gl-search]')!;
+  const cards = [...document.querySelectorAll<HTMLElement>('[data-gl-term]')];
+  const empty = document.querySelector<HTMLElement>('[data-gl-empty]')!;
+  input.addEventListener('input', () => {
+    const q = input.value.trim().toLowerCase();
+    let shown = 0;
+    cards.forEach((c) => {
+      const ok = !q || c.dataset.glTerm!.includes(q);
+      c.hidden = !ok;
+      if (ok) shown++;
+    });
+    document.querySelectorAll<HTMLElement>('.gl-group').forEach((g) => {
+      g.hidden = ![...g.querySelectorAll<HTMLElement>('[data-gl-term]')].some((c) => !c.hidden);
+    });
+    empty.hidden = shown > 0;
+  });
+  // Highlight the term targeted by #hash (coming from a tooltip link)
+  const target = location.hash && document.getElementById(decodeURIComponent(location.hash.slice(1)));
+  if (target) target.classList.add('is-target');
+</script>
+
+<style>
+  .gl-page {
+    padding-top: 28px;
+    max-width: 1100px;
+  }
+
+  .gl-title {
+    margin: 0 0 6px;
+    font-size: clamp(28px, 4vw, 38px);
+    font-weight: 900;
+    letter-spacing: -0.04em;
+  }
+
+  .gl-hero p {
+    margin: 0;
+    color: var(--text-2);
+  }
+
+  .gl-sample {
+    border-bottom: 2px dotted var(--brand);
+  }
+
+  .gl-search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 22px;
+    padding: 0 16px;
+    height: 52px;
+    border-radius: 16px;
+    background: var(--surface);
+    border: 1.5px solid var(--border-strong);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .gl-search input {
+    flex: 1;
+    border: 0;
+    outline: none;
+    background: transparent;
+    font-size: 16.5px;
+  }
+
+  .gl-jump {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+  }
+
+  .gl-group {
+    margin-top: 36px;
+    scroll-margin-top: calc(var(--header-h) + 16px);
+  }
+
+  .gl-group[hidden],
+  .gl-card[hidden] {
+    display: none;
+  }
+
+  .gl-group-title {
+    margin: 0 0 14px;
+    font-size: 20px;
+    font-weight: 850;
+    letter-spacing: -0.03em;
+  }
+
+  .gl-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 14px;
+  }
+
+  .gl-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 18px;
+    scroll-margin-top: calc(var(--header-h) + 24px);
+    transition: box-shadow 0.3s, border-color 0.3s;
+  }
+
+  .gl-card.is-target {
+    border-color: var(--brand);
+    box-shadow: var(--shadow-lg), 0 0 0 4px var(--brand-soft);
+  }
+
+  .gl-card-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .gl-card-head h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 850;
+    letter-spacing: -0.02em;
+  }
+
+  .gl-emoji {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    background: var(--part-soft, var(--brand-soft));
+    font-size: 19px;
+  }
+
+  .gl-alias {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--text-3);
+  }
+
+  .gl-short {
+    margin: 0;
+    font-weight: 650;
+    line-height: 1.65;
+  }
+
+  .gl-long {
+    margin: 0;
+    font-size: 14px;
+    color: var(--text-2);
+    line-height: 1.7;
+  }
+
+  .gl-from {
+    margin-top: auto;
+    font-size: 13px;
+    font-weight: 750;
+    color: var(--link);
+  }
+
+  .gl-empty {
+    margin-top: 40px;
+    text-align: center;
+    color: var(--text-3);
+  }
+</style>

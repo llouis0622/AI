@@ -1,0 +1,195 @@
+---
+import { PARTS } from '@/data/curriculum';
+import { bookHref, type BookEntry } from '@/lib/content';
+
+interface Props {
+  book: BookEntry[];
+  heading?: string;
+}
+const { book, heading } = Astro.props;
+---
+<section class="parts" aria-label={heading ?? '9부 구성'}>
+  {heading && <h2 class="parts-heading">{heading}</h2>}
+  <div class="parts-grid">
+    {PARTS.map((p) => {
+      const chapters = book.filter((e) => e.data.part === p.part);
+      return (
+        <article class="part-card card card-hover" id={`part-${p.part}`} data-part={p.part} data-reveal>
+          <div class="part-top">
+            <span class="part-emoji" aria-hidden="true">{p.emoji}</span>
+            <div>
+              <span class="part-no">{p.part}부</span>
+              <h3 class="part-title">{p.title}</h3>
+            </div>
+          </div>
+          <p class="part-blurb">{p.blurb}</p>
+          <ol class="part-chapters">
+            {chapters.map((e) => (
+              <li>
+                <a href={bookHref(e.id)} data-ch={e.data.chapter}>
+                  <span class="pc-num">{e.data.chapter}</span>
+                  <span class="pc-title">{e.data.title}</span>
+                  <span class="pc-dot" aria-hidden="true"></span>
+                </a>
+              </li>
+            ))}
+          </ol>
+        </article>
+      );
+    })}
+  </div>
+</section>
+
+<script>
+  import { loadProgress, onProgress } from '@/lib/progress';
+  const paint = () => {
+    const p = loadProgress();
+    document.querySelectorAll<HTMLElement>('.part-chapters [data-ch]').forEach((a) => {
+      const m = p.chapters[a.dataset.ch!];
+      a.classList.toggle('is-visited', !!m?.visited);
+      a.classList.toggle('is-done', !!m?.done);
+    });
+  };
+  paint();
+  onProgress(paint);
+</script>
+
+<style>
+  .parts {
+    margin: 8px 0 44px;
+  }
+
+  .parts-heading {
+    margin: 0 0 16px;
+    font-size: 22px;
+    font-weight: 850;
+    letter-spacing: -0.03em;
+  }
+
+  .parts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+  }
+
+  .part-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 20px;
+    overflow: hidden;
+  }
+
+  .part-card::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 5px;
+    background: var(--part);
+    opacity: 0.85;
+  }
+
+  :global(:root[data-theme='dark']) .part-card::before {
+    box-shadow: 0 0 16px var(--part);
+  }
+
+  .part-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .part-emoji {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    background: var(--part-soft);
+    font-size: 26px;
+    flex: none;
+  }
+
+  .part-no {
+    font-size: 12.5px;
+    font-weight: 800;
+    color: var(--part);
+  }
+
+  :global(:root:not([data-theme='dark'])) .part-no {
+    color: color-mix(in srgb, var(--part) 75%, #2a2540);
+  }
+
+  .part-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 850;
+    letter-spacing: -0.03em;
+  }
+
+  .part-blurb {
+    margin: 0;
+    color: var(--text-2);
+    font-size: 14px;
+    line-height: 1.65;
+  }
+
+  .part-chapters {
+    list-style: none;
+    margin: 4px 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .part-chapters a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 8px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-2);
+    transition: background-color 0.18s, color 0.18s;
+  }
+
+  .part-chapters a:hover {
+    background: var(--part-soft);
+    color: var(--text);
+  }
+
+  .pc-num {
+    display: inline-grid;
+    place-items: center;
+    min-width: 24px;
+    height: 24px;
+    border-radius: 8px;
+    background: var(--surface-3);
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  .pc-title {
+    flex: 1;
+  }
+
+  .pc-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border-strong);
+  }
+
+  .part-chapters a.is-visited .pc-dot {
+    border-color: var(--part);
+    background: color-mix(in srgb, var(--part) 40%, transparent);
+  }
+
+  .part-chapters a.is-done .pc-dot {
+    border-color: var(--ok);
+    background: var(--ok);
+  }
+</style>

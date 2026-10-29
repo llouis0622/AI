@@ -1,0 +1,128 @@
+---
+interface Props {
+  prefix: string;
+  total: number;
+}
+const { prefix, total } = Astro.props;
+---
+<div class="qprog" data-qprog={prefix} data-total={total} data-pagefind-ignore>
+  <div class="qprog-bar"><span class="qprog-fill"></span><span class="qprog-again"></span></div>
+  <div class="qprog-text">
+    <strong class="qprog-pass">0</strong> / {total} 맞힘
+    <span class="qprog-again-text"></span>
+    <button class="quiz-btn qprog-reset" type="button">기록 지우기</button>
+  </div>
+</div>
+
+<script>
+  const roots = [...document.querySelectorAll<HTMLElement>('[data-qprog]')];
+  const count = (prefix: string) => {
+    let pass = 0;
+    let again = 0;
+    const keys: string[] = [];
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k?.startsWith(`aihub-quiz:${prefix}-`)) {
+          keys.push(k);
+          const v = localStorage.getItem(k);
+          if (v === 'pass') pass++;
+          else if (v === 'again') again++;
+        }
+      }
+    } catch {
+      /* storage unavailable */
+    }
+    return { pass, again, keys };
+  };
+  const paint = () =>
+    roots.forEach((r) => {
+      const total = Number(r.dataset.total);
+      const { pass, again } = count(r.dataset.qprog!);
+      r.querySelector<HTMLElement>('.qprog-fill')!.style.width = `${total ? (pass / total) * 100 : 0}%`;
+      r.querySelector<HTMLElement>('.qprog-again')!.style.width = `${total ? (again / total) * 100 : 0}%`;
+      r.querySelector('.qprog-pass')!.textContent = String(pass);
+      r.querySelector('.qprog-again-text')!.textContent = again ? `· 다시 볼 문제 ${again}개` : '';
+      r.classList.toggle('is-perfect', total > 0 && pass === total);
+    });
+  roots.forEach((r) =>
+    r.querySelector('.qprog-reset')!.addEventListener('click', () => {
+      try {
+        count(r.dataset.qprog!).keys.forEach((k) => localStorage.removeItem(k));
+      } catch {
+        /* ignore */
+      }
+      document.querySelectorAll<HTMLElement>('[data-quiz]').forEach((q) => {
+        q.classList.remove('is-pass', 'is-again');
+        q.querySelector('.quiz-status')!.textContent = '';
+      });
+      paint();
+    })
+  );
+  window.addEventListener('aihub-quiz-change', paint);
+  paint();
+</script>
+
+<style is:global>
+  .qprog {
+    position: sticky;
+    top: calc(var(--header-h) + 10px);
+    z-index: 5;
+    margin: 18px 0 26px;
+    padding: 14px 16px;
+    border-radius: var(--radius-lg);
+    background: color-mix(in srgb, var(--surface-solid) 92%, transparent);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .qprog-bar {
+    position: relative;
+    display: flex;
+    height: 10px;
+    border-radius: 99px;
+    background: var(--surface-3);
+    overflow: hidden;
+  }
+
+  .qprog-fill {
+    height: 100%;
+    width: 0;
+    background: var(--grad-brand);
+    transition: width 0.5s var(--ease-out);
+  }
+
+  .qprog-again {
+    height: 100%;
+    width: 0;
+    background: color-mix(in srgb, var(--warn) 70%, transparent);
+    transition: width 0.5s var(--ease-out);
+  }
+
+  .qprog-text {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    font-size: 14px;
+    color: var(--text-2);
+  }
+
+  .qprog strong {
+    background: none !important;
+  }
+
+  .qprog-reset {
+    margin-left: auto;
+    padding: 4px 10px !important;
+    font-size: 12.5px !important;
+  }
+
+  .qprog.is-perfect .qprog-text::after {
+    content: '🎉 전부 맞혔어요!';
+    font-weight: 800;
+    color: var(--ok);
+  }
+</style>

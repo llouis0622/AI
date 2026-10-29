@@ -1,0 +1,175 @@
+---
+import Algo from '@/components/mascot/Algo.tsx';
+import Icon from '@/components/layout/Icon.astro';
+import { partOf, url } from '@/data/curriculum';
+
+interface Props {
+  chapter: number;
+  title: string;
+  question?: string;
+  prereq?: string;
+  mascot?: string;
+  minutes: number;
+  vizCount: number;
+  /** chapter number -> entry id, for linking "N장" mentions in the prereq line. */
+  slugs: Record<number, string>;
+}
+const { chapter, title, question, prereq, mascot, minutes, vizCount, slugs } = Astro.props;
+const part = partOf(chapter);
+
+const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const bold = (s: string) => esc(s).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+const prereqHtml = prereq
+  ? esc(prereq)
+      .replace(/\[([^\]]+)\]\((\/[^)]+)\)/g, (_, t, href) => `<a href="${url(href.endsWith('/') ? href : `${href}/`)}">${t}</a>`)
+      .replace(/(\d+)(~\d+)?장/g, (m, n) => (slugs[Number(n)] ? `<a href="${url(`/book/${slugs[Number(n)]}/`)}">${m}</a>` : m))
+  : '';
+---
+<header class="ch-hero" data-part={part?.part ?? 0}>
+  <div class="ch-meta">
+    {part && (
+      <a class="part-badge" href={url(`/book/#part-${part.part}`)}>
+        <span>{part.emoji}</span>{part.part}부 · {part.title}
+      </a>
+    )}
+    <span class="chip"><Icon name="clock" size={14} />약 {minutes}분</span>
+    {vizCount > 0 && <span class="chip">🎨 시각화 {vizCount}개</span>}
+  </div>
+
+  <div class="ch-title-row">
+    <span class="ch-num" aria-hidden="true">{chapter}</span>
+    <h1 class="ch-title"><span class="visually-hidden">{chapter}장. </span>{title}</h1>
+  </div>
+
+  {question && (
+    <div class="algo-say ch-question">
+      <Algo mood="think" size={68} />
+      <div class="algo-bubble">
+        <span class="ch-q-label">이 장의 질문</span>
+        <p set:html={bold(question)} />
+        {mascot && <p class="ch-mascot-line">{mascot}</p>}
+      </div>
+    </div>
+  )}
+
+  {prereq && (
+    <p class="ch-prereq">
+      <span class="ch-prereq-label">먼저 보면 좋아요</span>
+      <span set:html={prereqHtml} />
+    </p>
+  )}
+</header>
+
+<style>
+  .ch-hero {
+    position: relative;
+    margin-bottom: 28px;
+  }
+
+  .ch-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+
+  .ch-title-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    margin-bottom: 26px;
+  }
+
+  .ch-num {
+    font-size: clamp(64px, 10vw, 104px);
+    font-weight: 900;
+    line-height: 0.82;
+    letter-spacing: -0.06em;
+    background: var(--grad-brand);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    flex: none;
+  }
+
+  :global(:root[data-theme='dark']) .ch-num {
+    filter: drop-shadow(0 0 18px rgba(34, 229, 255, 0.35));
+  }
+
+  .ch-title {
+    margin: 0;
+    padding-bottom: 4px;
+    font-size: clamp(28px, 4.4vw, 42px);
+    font-weight: 850;
+    line-height: 1.2;
+    letter-spacing: -0.04em;
+  }
+
+  .ch-question {
+    margin-bottom: 18px;
+  }
+
+  .ch-q-label {
+    display: inline-block;
+    margin-bottom: 4px;
+    font-size: 12.5px;
+    font-weight: 800;
+    color: var(--brand);
+    letter-spacing: 0.02em;
+  }
+
+  .ch-question p {
+    margin: 0;
+    font-size: 16.5px;
+  }
+
+  .ch-question :global(strong) {
+    font-weight: 800;
+    background: linear-gradient(transparent 60%, var(--mark) 60%);
+  }
+
+  .ch-mascot-line {
+    margin-top: 8px !important;
+    font-size: 14.5px !important;
+    color: var(--text-2);
+  }
+
+  .ch-prereq {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    align-items: baseline;
+    margin: 0;
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    font-size: 14px;
+    color: var(--text-2);
+    line-height: 1.7;
+  }
+
+  .ch-prereq-label {
+    font-weight: 800;
+    color: var(--text);
+    flex: none;
+  }
+
+  .ch-prereq :global(a) {
+    color: var(--link);
+    font-weight: 700;
+  }
+
+  @media (max-width: 640px) {
+    .ch-title-row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    .ch-question :global(.algo) {
+      width: 52px;
+      height: auto;
+    }
+  }
+</style>

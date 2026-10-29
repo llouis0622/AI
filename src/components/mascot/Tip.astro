@@ -1,0 +1,42 @@
+---
+/**
+ * MDX callout: 알고 says something. Usage in MDX:
+ *   import Tip from '@/components/mascot/Tip.astro';
+ *   <Tip mood="wow">슬라이더를 끝까지 밀어 보세요!</Tip>
+ */
+import Algo, { type AlgoMood } from './Algo.tsx';
+
+interface Props {
+  mood?: AlgoMood;
+  title?: string;
+}
+const { mood = 'smile', title } = Astro.props;
+---
+<aside class="algo-say tip" data-pagefind-ignore>
+  <Algo mood={mood} size={56} />
+  <div class="algo-bubble">
+    {title && <strong class="tip-title">{title}</strong>}
+    <div class="tip-body"><slot /></div>
+  </div>
+</aside>
+
+<style>
+  .tip {
+    margin: 1.6em 0;
+  }
+
+  .tip-title {
+    display: block;
+    margin-bottom: 2px;
+    font-size: 15px;
+    background: none !important;
+  }
+
+  .tip-body :global(p) {
+    margin: 0;
+  }
+
+  .tip-body :global(p + p) {
+    margin-top: 0.6em;
+  }
+</style>

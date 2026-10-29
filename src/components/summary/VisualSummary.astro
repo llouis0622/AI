@@ -1,0 +1,332 @@
+---
+/**
+ * "그림으로 3분 요약" — a strip of animated picture cards at the top of a chapter.
+ * Cards come from the chapter frontmatter (`summary:`). Static HTML + CSS
+ * animations; a tiny script adds the auto-play spotlight.
+ */
+interface Card {
+  icon: string;
+  title: string;
+  text: string;
+  visual?: string;
+}
+interface Props {
+  cards: Card[];
+  heading?: string;
+}
+const { cards, heading = '그림으로 3분 요약' } = Astro.props;
+const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const rich = (s: string) => esc(s).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+---
+{cards.length > 0 && (
+  <section class="vsum" data-vsum aria-label={heading}>
+    <div class="vsum-head">
+      <span class="vsum-badge">🎬 {heading}</span>
+      <button class="vsum-play" type="button" data-vsum-play aria-pressed="false">
+        <span class="vsum-play-on">▶ 차례로 보기</span>
+        <span class="vsum-play-off">❚❚ 멈추기</span>
+      </button>
+    </div>
+    <ol class="vsum-grid" style={`--n:${cards.length}`}>
+      {cards.map((c, i) => (
+        <li class="vsum-card" style={`--i:${i}`} data-vsum-card>
+          <div class={`vsum-art vsum-v-${c.visual ?? 'float'}`} aria-hidden="true">
+            <span class="vsum-ring"></span>
+            <span class="vsum-emoji">{c.icon}</span>
+          </div>
+          <div class="vsum-body">
+            <span class="vsum-step">{i + 1}</span>
+            <h3 class="vsum-title" set:html={rich(c.title)} />
+            <p class="vsum-text" set:html={rich(c.text)} />
+          </div>
+        </li>
+      ))}
+    </ol>
+  </section>
+)}
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-vsum]').forEach((root) => {
+    const cards = [...root.querySelectorAll<HTMLElement>('[data-vsum-card]')];
+    const btn = root.querySelector<HTMLButtonElement>('[data-vsum-play]')!;
+    let timer = 0;
+    let i = -1;
+    const spotlight = (k: number) => {
+      cards.forEach((c, j) => c.classList.toggle('is-spot', j === k));
+      root.classList.toggle('is-playing', k >= 0);
+    };
+    const stop = () => {
+      clearInterval(timer);
+      timer = 0;
+      i = -1;
+      spotlight(-1);
+      btn.setAttribute('aria-pressed', 'false');
+    };
+    const tick = () => {
+      i += 1;
+      if (i >= cards.length) return stop();
+      spotlight(i);
+    };
+    btn.addEventListener('click', () => {
+      if (timer) return stop();
+      btn.setAttribute('aria-pressed', 'true');
+      tick();
+      timer = window.setInterval(tick, 3200);
+    });
+    cards.forEach((c, k) =>
+      c.addEventListener('click', () => {
+        if (!timer) spotlight(k === i ? -1 : k);
+        i = k === i ? -1 : k;
+      })
+    );
+    // Stagger cards in when the strip scrolls into view.
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          root.classList.add('is-in');
+          io.disconnect();
+        }
+      },
+      { threshold: 0.2 }
+    );
+    io.observe(root);
+  });
+</script>
+
+<style>
+  .vsum {
+    position: relative;
+    margin: 8px 0 40px;
+    padding: 20px;
+    border-radius: var(--radius-xl);
+    background:
+      radial-gradient(120% 80% at 0% 0%, color-mix(in srgb, var(--part, var(--brand)) 14%, transparent), transparent 60%),
+      var(--surface);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+
+  :global(:root[data-theme='dark']) .vsum {
+    backdrop-filter: blur(16px);
+    box-shadow: var(--shadow), inset 0 0 0 1px rgba(34, 229, 255, 0.05);
+  }
+
+  .vsum-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .vsum-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: var(--radius-pill);
+    background: var(--grad-brand);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+
+  :global(:root[data-theme='dark']) .vsum-badge {
+    color: #041018;
+    box-shadow: var(--glow);
+  }
+
+  .vsum-play {
+    padding: 6px 14px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border-strong);
+    background: var(--surface-solid);
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--text-2);
+    transition: transform 0.2s var(--ease-spring);
+  }
+
+  .vsum-play:hover {
+    transform: translateY(-1px);
+    color: var(--text);
+  }
+
+  .vsum-play-off,
+  .vsum-play[aria-pressed='true'] .vsum-play-on {
+    display: none;
+  }
+
+  .vsum-play[aria-pressed='true'] .vsum-play-off {
+    display: inline;
+  }
+
+  .vsum-grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    counter-reset: step;
+  }
+
+  .vsum-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    border-radius: var(--radius-lg);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+    transition: transform 0.5s var(--ease-spring), box-shadow 0.35s, border-color 0.3s, opacity 0.5s;
+  }
+
+  .vsum.is-in .vsum-card {
+    opacity: 1;
+    transform: none;
+    transition-delay: calc(var(--i) * 110ms);
+  }
+
+  .vsum.is-playing .vsum-card {
+    opacity: 0.45;
+    transition-delay: 0s;
+  }
+
+  .vsum .vsum-card.is-spot {
+    opacity: 1;
+    transform: translateY(-4px) scale(1.02);
+    border-color: color-mix(in srgb, var(--part, var(--brand)) 60%, transparent);
+    box-shadow: var(--shadow-lg);
+    transition-delay: 0s;
+  }
+
+  :global(:root[data-theme='dark']) .vsum .vsum-card.is-spot {
+    box-shadow: var(--shadow-lg), var(--glow);
+  }
+
+  .vsum-art {
+    position: relative;
+    display: grid;
+    place-items: center;
+    height: 96px;
+    border-radius: 18px;
+    background:
+      radial-gradient(60% 70% at 50% 60%, color-mix(in srgb, var(--part, var(--brand)) 22%, transparent), transparent 75%),
+      var(--surface-solid);
+    overflow: hidden;
+  }
+
+  .vsum-emoji {
+    position: relative;
+    z-index: 1;
+    font-size: 46px;
+    line-height: 1;
+    filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.12));
+  }
+
+  .vsum-ring {
+    position: absolute;
+    width: 74px;
+    height: 74px;
+    border-radius: 50%;
+    border: 2px dashed color-mix(in srgb, var(--part, var(--brand)) 45%, transparent);
+  }
+
+  /* Visual variants */
+  .vsum-v-float .vsum-emoji { animation: v-float 3.2s ease-in-out infinite; }
+  .vsum-v-float .vsum-ring { animation: v-spin 14s linear infinite; }
+  .vsum-v-pulse .vsum-emoji { animation: v-pulse 1.8s ease-in-out infinite; }
+  .vsum-v-pulse .vsum-ring { animation: v-ripple 1.8s ease-out infinite; }
+  .vsum-v-spin .vsum-emoji { animation: v-spin 6s linear infinite; }
+  .vsum-v-spin .vsum-ring { animation: v-spin 3s linear infinite reverse; }
+  .vsum-v-shake .vsum-emoji { animation: v-shake 2.4s ease-in-out infinite; }
+  .vsum-v-grow .vsum-emoji { animation: v-grow 2.6s var(--ease-spring) infinite; }
+  .vsum-v-grow .vsum-ring { animation: v-ripple 2.6s ease-out infinite; }
+  .vsum-v-orbit .vsum-ring { animation: v-spin 4s linear infinite; border-style: dotted; border-width: 4px; }
+  .vsum-v-orbit .vsum-emoji { animation: v-float 3s ease-in-out infinite; }
+  .vsum-v-slide .vsum-emoji { animation: v-slide 2.8s ease-in-out infinite; }
+  .vsum-v-bounce .vsum-emoji { animation: v-bounce 1.4s var(--ease-spring) infinite; }
+
+  @keyframes v-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+  @keyframes v-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+  @keyframes v-ripple { from { transform: scale(0.7); opacity: 1; } to { transform: scale(1.5); opacity: 0; } }
+  @keyframes v-spin { to { transform: rotate(360deg); } }
+  @keyframes v-shake { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(-10deg); } 40% { transform: rotate(8deg); } 60% { transform: rotate(-5deg); } 80% { transform: rotate(3deg); } }
+  @keyframes v-grow { 0%, 100% { transform: scale(0.9); } 50% { transform: scale(1.15); } }
+  @keyframes v-slide { 0%, 100% { transform: translateX(-12px); } 50% { transform: translateX(12px); } }
+  @keyframes v-bounce { 0%, 100% { transform: translateY(0); } 35% { transform: translateY(-14px); } 55% { transform: translateY(0); } 70% { transform: translateY(-5px); } }
+
+  .vsum-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .vsum-step {
+    display: inline-grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--part, var(--brand)) 20%, transparent);
+    color: var(--text);
+    font-size: 12.5px;
+    font-weight: 850;
+  }
+
+  .vsum-title {
+    margin: 4px 0 0;
+    font-size: 16.5px;
+    font-weight: 800;
+    line-height: 1.4;
+    letter-spacing: -0.02em;
+  }
+
+  .vsum-text {
+    margin: 0;
+    font-size: 14.5px;
+    line-height: 1.65;
+    color: var(--text-2);
+  }
+
+  .vsum-text :global(strong),
+  .vsum-title :global(strong) {
+    color: var(--text);
+    background: linear-gradient(transparent 60%, var(--mark) 60%);
+  }
+
+  @media (max-width: 640px) {
+    .vsum {
+      padding: 14px;
+      border-radius: var(--radius-lg);
+      margin-inline: calc(var(--gutter) * -0.25);
+    }
+    .vsum-grid {
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+    .vsum-card {
+      flex-direction: row;
+      align-items: center;
+      padding: 12px;
+    }
+    .vsum-art {
+      width: 84px;
+      height: 84px;
+      flex: none;
+    }
+    .vsum-emoji {
+      font-size: 38px;
+    }
+    .vsum-ring {
+      width: 60px;
+      height: 60px;
+    }
+  }
+</style>

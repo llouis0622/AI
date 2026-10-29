@@ -1,0 +1,12 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PartsGrid from '@/components/chapter/PartsGrid.astro';
+import { getBook } from '@/lib/content';
+const book = await getBook();
+---
+<BaseLayout title="학습 지도">
+  <main id="main" class="container" style="padding-top:28px">
+    <h1>학습 지도</h1>
+    <PartsGrid book={book} />
+  </main>
+</BaseLayout>

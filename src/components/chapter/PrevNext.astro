@@ -1,0 +1,76 @@
+---
+import Icon from '@/components/layout/Icon.astro';
+
+interface Link {
+  href: string;
+  label: string;
+  title: string;
+}
+interface Props {
+  prev?: Link;
+  next?: Link;
+}
+const { prev, next } = Astro.props;
+---
+<nav class="prevnext" aria-label="이전 / 다음" data-pagefind-ignore>
+  {prev ? (
+    <a class="pn card card-hover pn-prev" href={prev.href} rel="prev">
+      <span class="pn-dir"><Icon name="arrow-left" size={16} />이전 · {prev.label}</span>
+      <span class="pn-title">{prev.title}</span>
+    </a>
+  ) : <span />}
+  {next ? (
+    <a class="pn card card-hover pn-next" href={next.href} rel="next">
+      <span class="pn-dir">다음 · {next.label}<Icon name="arrow-right" size={16} /></span>
+      <span class="pn-title">{next.title}</span>
+    </a>
+  ) : <span />}
+</nav>
+
+<style>
+  .prevnext {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 32px;
+  }
+
+  .pn {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 18px 20px;
+    min-width: 0;
+  }
+
+  .pn-next {
+    text-align: right;
+    align-items: flex-end;
+  }
+
+  .pn-dir {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-3);
+  }
+
+  .pn-title {
+    font-size: 16.5px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.4;
+  }
+
+  @media (max-width: 640px) {
+    .prevnext {
+      grid-template-columns: 1fr;
+    }
+    .pn-next {
+      text-align: left;
+      align-items: flex-start;
+    }
+  }
+</style>

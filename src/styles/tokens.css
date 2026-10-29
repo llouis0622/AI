@@ -1,0 +1,197 @@
+/*
+ * Design tokens. Light = pastel cream, Dark = neon space.
+ * Every component reads colors from here; visualizations read the --viz-* set
+ * (canvas and WebGL code pick them up through getComputedStyle).
+ */
+:root {
+  --font-sans: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui,
+    'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, Consolas, 'D2Coding', monospace;
+
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+  --radius: 18px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-pill: 999px;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --header-h: 64px;
+  --content-w: 760px;
+  --sidebar-w: 280px;
+  --toc-w: 228px;
+  --gutter: clamp(16px, 4vw, 32px);
+}
+
+:root,
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --bg: #fff9f1;
+  --bg-2: #fff2e2;
+  --surface: #ffffff;
+  --surface-solid: #ffffff;
+  --surface-2: #fff7ee;
+  --surface-3: #f7efe4;
+  --overlay: rgba(42, 37, 64, 0.38);
+  --border: #efe3d3;
+  --border-strong: #e0cfb9;
+  --text: #2a2540;
+  --text-2: #57516c;
+  --text-3: #8c86a0;
+  --link: #6a58f0;
+
+  --brand: #7c6cf6;
+  --brand-2: #2fbf98;
+  --brand-ink: #ffffff;
+  --brand-soft: #eeeaff;
+  --grad-brand: linear-gradient(120deg, #8a7cff 0%, #6fb8ff 48%, #3cc4a0 100%);
+  --grad-warm: linear-gradient(120deg, #ff9a7a 0%, #ffc56b 100%);
+
+  --mint: #2fbf98;
+  --mint-soft: #dcf6ec;
+  --lav: #7c6cf6;
+  --lav-soft: #ece8ff;
+  --peach: #ff8a65;
+  --peach-soft: #ffe6dc;
+  --sky: #3f9ff0;
+  --sky-soft: #dcefff;
+  --lemon: #e7a90f;
+  --lemon-soft: #fff1c9;
+  --pink: #f5679b;
+  --pink-soft: #ffe2ed;
+  --lime: #5fb336;
+  --lime-soft: #e5f6d8;
+  --amber: #f08a24;
+  --amber-soft: #ffe9d1;
+  --coral: #f2626b;
+  --coral-soft: #ffe1e3;
+
+  --ok: #2fbf98;
+  --warn: #f08a24;
+  --bad: #f2626b;
+
+  --shadow-sm: 0 1px 2px rgba(80, 52, 20, 0.06), 0 2px 8px rgba(80, 52, 20, 0.05);
+  --shadow: 0 2px 6px rgba(80, 52, 20, 0.06), 0 12px 32px rgba(80, 52, 20, 0.08);
+  --shadow-lg: 0 10px 24px rgba(80, 52, 20, 0.08), 0 28px 64px rgba(80, 52, 20, 0.12);
+  --glow: none;
+  --glow-strong: none;
+  --focus: 0 0 0 3px rgba(124, 108, 246, 0.35);
+
+  --code-bg: #fbf6ef;
+  --code-text: #3b3550;
+  --inline-code-bg: #f4ecff;
+  --inline-code-text: #5b45d6;
+  --mark: #fff0b8;
+
+  --viz-bg: #fffdf9;
+  --viz-panel: #fff8ef;
+  --viz-grid: rgba(42, 37, 64, 0.07);
+  --viz-axis: rgba(42, 37, 64, 0.42);
+  --viz-text: #57516c;
+  --viz-1: #7c6cf6;
+  --viz-2: #2fbf98;
+  --viz-3: #ff8a65;
+  --viz-4: #3f9ff0;
+  --viz-5: #e7a90f;
+  --viz-6: #f5679b;
+  --viz-pos: #2fbf98;
+  --viz-neg: #f2626b;
+  --viz-low: #9ee6cf;
+  --viz-mid: #b9c8ff;
+  --viz-high: #ffb3a1;
+  --viz-ink: #2a2540;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #050816;
+  --bg-2: #0a0f27;
+  --surface: rgba(16, 22, 52, 0.72);
+  --surface-solid: #10163a;
+  --surface-2: rgba(23, 30, 70, 0.72);
+  --surface-3: #18204d;
+  --overlay: rgba(2, 4, 14, 0.66);
+  --border: rgba(126, 146, 255, 0.16);
+  --border-strong: rgba(126, 146, 255, 0.32);
+  --text: #ebf0ff;
+  --text-2: #aab4da;
+  --text-3: #707ba8;
+  --link: #5ce8ff;
+
+  --brand: #22e5ff;
+  --brand-2: #ff3dcb;
+  --brand-ink: #041018;
+  --brand-soft: rgba(34, 229, 255, 0.12);
+  --grad-brand: linear-gradient(120deg, #22e5ff 0%, #8b5cff 52%, #ff3dcb 100%);
+  --grad-warm: linear-gradient(120deg, #ff3dcb 0%, #ffb020 100%);
+
+  --mint: #2ef2c0;
+  --mint-soft: rgba(46, 242, 192, 0.12);
+  --lav: #a38bff;
+  --lav-soft: rgba(163, 139, 255, 0.14);
+  --peach: #ff7a59;
+  --peach-soft: rgba(255, 122, 89, 0.14);
+  --sky: #3db8ff;
+  --sky-soft: rgba(61, 184, 255, 0.14);
+  --lemon: #ffd23f;
+  --lemon-soft: rgba(255, 210, 63, 0.13);
+  --pink: #ff4fd8;
+  --pink-soft: rgba(255, 79, 216, 0.13);
+  --lime: #b6ff3b;
+  --lime-soft: rgba(182, 255, 59, 0.12);
+  --amber: #ffb020;
+  --amber-soft: rgba(255, 176, 32, 0.13);
+  --coral: #ff4d6d;
+  --coral-soft: rgba(255, 77, 109, 0.14);
+
+  --ok: #2ef2c0;
+  --warn: #ffb020;
+  --bad: #ff4d6d;
+
+  --shadow-sm: 0 0 0 1px rgba(126, 146, 255, 0.08), 0 4px 14px rgba(0, 0, 0, 0.35);
+  --shadow: 0 0 0 1px rgba(126, 146, 255, 0.1), 0 12px 36px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 0 0 1px rgba(126, 146, 255, 0.12), 0 24px 70px rgba(0, 0, 0, 0.55);
+  --glow: 0 0 22px rgba(34, 229, 255, 0.28);
+  --glow-strong: 0 0 18px rgba(34, 229, 255, 0.55), 0 0 42px rgba(255, 61, 203, 0.25);
+  --focus: 0 0 0 3px rgba(34, 229, 255, 0.45);
+
+  --code-bg: #0a0f2c;
+  --code-text: #c8d3ff;
+  --inline-code-bg: rgba(34, 229, 255, 0.1);
+  --inline-code-text: #7defff;
+  --mark: rgba(255, 210, 63, 0.25);
+
+  --viz-bg: rgba(6, 10, 30, 0.82);
+  --viz-panel: rgba(18, 24, 58, 0.8);
+  --viz-grid: rgba(130, 150, 255, 0.12);
+  --viz-axis: rgba(180, 195, 255, 0.48);
+  --viz-text: #aab4da;
+  --viz-1: #22e5ff;
+  --viz-2: #ff3dcb;
+  --viz-3: #b6ff3b;
+  --viz-4: #ffb020;
+  --viz-5: #a38bff;
+  --viz-6: #2ef2c0;
+  --viz-pos: #2ef2c0;
+  --viz-neg: #ff4d6d;
+  --viz-low: #1b3a8f;
+  --viz-mid: #6b3cff;
+  --viz-high: #ff3dcb;
+  --viz-ink: #ebf0ff;
+}
+
+/* Part accent colors, used by badges, map islands and cards. */
+[data-part='1'] { --part: var(--mint); --part-soft: var(--mint-soft); }
+[data-part='2'] { --part: var(--lemon); --part-soft: var(--lemon-soft); }
+[data-part='3'] { --part: var(--lav); --part-soft: var(--lav-soft); }
+[data-part='4'] { --part: var(--sky); --part-soft: var(--sky-soft); }
+[data-part='5'] { --part: var(--peach); --part-soft: var(--peach-soft); }
+[data-part='6'] { --part: var(--pink); --part-soft: var(--pink-soft); }
+[data-part='7'] { --part: var(--brand); --part-soft: var(--brand-soft); }
+[data-part='8'] { --part: var(--lime); --part-soft: var(--lime-soft); }
+[data-part='9'] { --part: var(--amber); --part-soft: var(--amber-soft); }
+[data-part='0'] { --part: var(--brand); --part-soft: var(--brand-soft); }

@@ -1,0 +1,275 @@
+---
+import Icon from './Icon.astro';
+---
+<div class="search-modal" id="search-modal" role="dialog" aria-modal="true" aria-label="사이트 검색" hidden data-pagefind-ignore>
+  <div class="search-backdrop" data-search-close></div>
+  <div class="search-panel">
+    <div class="search-field">
+      <Icon name="search" size={20} />
+      <input id="search-input" type="search" placeholder="궁금한 개념을 검색해 보세요 (예: 경사하강법, 어텐션)" autocomplete="off" spellcheck="false" />
+      <button class="search-esc" type="button" data-search-close aria-label="검색 닫기">ESC</button>
+    </div>
+    <div class="search-results" id="search-results" aria-live="polite">
+      <p class="search-empty">책 · 코드랩 · 퀴즈 · 용어 사전 전체에서 찾아요.</p>
+    </div>
+    <div class="search-foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 이동</span>
+      <span><kbd>Enter</kbd> 열기</span>
+      <span><kbd>Esc</kbd> 닫기</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  type PagefindResult = { data: () => Promise<{ url: string; meta: { title?: string }; excerpt: string }> };
+  type Pagefind = { search: (q: string) => Promise<{ results: PagefindResult[] }>; init?: () => Promise<void> };
+
+  const modal = document.getElementById('search-modal') as HTMLElement;
+  const input = document.getElementById('search-input') as HTMLInputElement;
+  const results = document.getElementById('search-results') as HTMLElement;
+  let pagefind: Pagefind | null = null;
+  let active = -1;
+  let timer = 0;
+  let lastFocus: Element | null = null;
+
+  async function loadPagefind(): Promise<Pagefind | null> {
+    if (pagefind) return pagefind;
+    try {
+      const path = `${import.meta.env.BASE_URL}pagefind/pagefind.js`;
+      pagefind = (await import(/* @vite-ignore */ path)) as Pagefind;
+      await pagefind.init?.();
+      return pagefind;
+    } catch {
+      return null;
+    }
+  }
+
+  function open() {
+    lastFocus = document.activeElement;
+    modal.hidden = false;
+    document.documentElement.classList.add('modal-open');
+    requestAnimationFrame(() => input.focus());
+    loadPagefind();
+  }
+
+  function close() {
+    modal.hidden = true;
+    document.documentElement.classList.remove('modal-open');
+    (lastFocus as HTMLElement | null)?.focus?.();
+  }
+
+  function setActive(i: number) {
+    const items = [...results.querySelectorAll<HTMLAnchorElement>('.search-hit')];
+    if (!items.length) return;
+    active = (i + items.length) % items.length;
+    items.forEach((el, k) => el.classList.toggle('is-active', k === active));
+    items[active].scrollIntoView({ block: 'nearest' });
+  }
+
+  async function run(q: string) {
+    if (!q.trim()) {
+      results.innerHTML = '<p class="search-empty">책 · 코드랩 · 퀴즈 · 용어 사전 전체에서 찾아요.</p>';
+      return;
+    }
+    const pf = await loadPagefind();
+    if (!pf) {
+      results.innerHTML = '<p class="search-empty">검색 색인은 사이트를 빌드하면 만들어져요. (개발 모드에서는 동작하지 않아요)</p>';
+      return;
+    }
+    const res = await pf.search(q);
+    const data = await Promise.all(res.results.slice(0, 12).map((r) => r.data()));
+    if (!data.length) {
+      results.innerHTML = `<p class="search-empty">"${q.replace(/</g, '&lt;')}"에 대한 결과가 없어요. 다른 단어로 찾아볼까요?</p>`;
+      return;
+    }
+    results.innerHTML = data
+      .map(
+        (d) => `<a class="search-hit" href="${d.url}">
+          <span class="search-hit-title">${d.meta.title ?? d.url}</span>
+          <span class="search-hit-excerpt">${d.excerpt}</span>
+        </a>`
+      )
+      .join('');
+    active = -1;
+    setActive(0);
+  }
+
+  input.addEventListener('input', () => {
+    clearTimeout(timer);
+    timer = window.setTimeout(() => run(input.value), 140);
+  });
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); setActive(active + 1); }
+    if (e.key === 'ArrowUp') { e.preventDefault(); setActive(active - 1); }
+    if (e.key === 'Enter') {
+      const hit = results.querySelectorAll<HTMLAnchorElement>('.search-hit')[active];
+      if (hit) window.location.href = hit.href;
+    }
+  });
+
+  document.addEventListener('click', (e) => {
+    const t = e.target as HTMLElement;
+    if (t.closest('[data-search-open]')) open();
+    if (t.closest('[data-search-close]')) close();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    const typing = /^(INPUT|TEXTAREA|SELECT)$/.test((e.target as HTMLElement).tagName);
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); modal.hidden ? open() : close(); }
+    else if (e.key === '/' && !typing && modal.hidden) { e.preventDefault(); open(); }
+    else if (e.key === 'Escape' && !modal.hidden) close();
+  });
+</script>
+
+<style is:global>
+  .search-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: min(12vh, 100px) 16px 16px;
+  }
+
+  .search-modal[hidden] {
+    display: none;
+  }
+
+  .search-backdrop {
+    position: absolute;
+    inset: 0;
+    background: var(--overlay);
+    backdrop-filter: blur(6px);
+    animation: fade-in 0.2s ease-out;
+  }
+
+  .search-panel {
+    position: relative;
+    width: min(640px, 100%);
+    max-height: min(70vh, 640px);
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--radius-lg);
+    background: var(--surface-solid);
+    border: 1px solid var(--border-strong);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    animation: pop-in 0.28s var(--ease-spring);
+  }
+
+  .search-field {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-3);
+  }
+
+  .search-field input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    font-size: 17px;
+    color: var(--text);
+  }
+
+  .search-esc {
+    padding: 3px 8px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-3);
+  }
+
+  .search-results {
+    overflow-y: auto;
+    padding: 8px;
+  }
+
+  .search-empty {
+    margin: 0;
+    padding: 28px 16px;
+    text-align: center;
+    color: var(--text-3);
+    font-size: 15px;
+  }
+
+  .search-hit {
+    display: block;
+    padding: 12px 14px;
+    border-radius: 14px;
+    transition: background-color 0.15s;
+  }
+
+  .search-hit.is-active,
+  .search-hit:hover {
+    background: var(--brand-soft);
+  }
+
+  .search-hit-title {
+    display: block;
+    font-weight: 750;
+    font-size: 15.5px;
+    margin-bottom: 4px;
+  }
+
+  .search-hit-excerpt {
+    display: block;
+    font-size: 13.5px;
+    color: var(--text-2);
+    line-height: 1.6;
+  }
+
+  .search-hit-excerpt mark {
+    background: var(--mark);
+    color: inherit;
+    border-radius: 3px;
+    padding: 0 2px;
+  }
+
+  .search-foot {
+    display: flex;
+    gap: 16px;
+    padding: 10px 16px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-3);
+  }
+
+  .search-foot kbd {
+    padding: 0 5px;
+    margin-right: 3px;
+    border-radius: 5px;
+    border: 1px solid var(--border);
+    font-family: var(--font-sans);
+  }
+
+  @media (max-width: 640px) {
+    .search-foot {
+      display: none;
+    }
+    .search-modal {
+      padding-top: 12px;
+    }
+  }
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes pop-in {
+    from { opacity: 0; transform: translateY(10px) scale(0.98); }
+    to { opacity: 1; transform: none; }
+  }
+
+  html.modal-open {
+    overflow: hidden;
+  }
+</style>

@@ -1,0 +1,171 @@
+/* 알고 mascot colors + idle animation */
+:root,
+:root[data-theme='light'] {
+  --algo-head: #ffffff;
+  --algo-line: #2a2540;
+  --algo-screen: #2e2850;
+  --algo-eye: #7ef5d8;
+  --algo-ear: #b7abff;
+  --algo-bulb: #ffc94d;
+  --algo-cheek: #ff9dbb;
+}
+
+:root[data-theme='dark'] {
+  --algo-head: #141c48;
+  --algo-line: #22e5ff;
+  --algo-screen: #050816;
+  --algo-eye: #22e5ff;
+  --algo-ear: #ff3dcb;
+  --algo-bulb: #ffd23f;
+  --algo-cheek: rgba(255, 61, 203, 0.55);
+}
+
+.algo {
+  overflow: visible;
+  flex: none;
+}
+
+.algo .algo-head {
+  fill: var(--algo-head);
+  stroke: var(--algo-line);
+}
+
+.algo .algo-line {
+  stroke: var(--algo-line);
+}
+
+.algo .algo-screen {
+  fill: var(--algo-screen);
+}
+
+.algo .algo-eye {
+  fill: var(--algo-eye);
+}
+
+.algo .algo-eye-stroke {
+  stroke: var(--algo-eye);
+}
+
+.algo .algo-ear {
+  fill: var(--algo-ear);
+}
+
+.algo .algo-bulb {
+  fill: var(--algo-bulb);
+}
+
+.algo .algo-cheek {
+  fill: var(--algo-cheek);
+}
+
+.algo .algo-heart {
+  fill: none;
+}
+
+:root[data-theme='dark'] .algo .algo-eye,
+:root[data-theme='dark'] .algo .algo-bulb {
+  filter: drop-shadow(0 0 3px currentColor);
+  color: var(--algo-eye);
+}
+
+:root[data-theme='dark'] .algo .algo-head {
+  filter: drop-shadow(0 0 4px rgba(34, 229, 255, 0.45));
+}
+
+.algo .algo-float {
+  animation: algo-float 4.2s ease-in-out infinite;
+  transform-origin: 60px 60px;
+}
+
+.algo .algo-eyes {
+  animation: algo-blink 5.5s infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.algo .algo-bulb {
+  animation: algo-pulse 2.4s ease-in-out infinite;
+}
+
+.algo .algo-arm-r {
+  animation: algo-wave 2.8s ease-in-out infinite;
+  transform-origin: 82px 102px;
+}
+
+.algo-cheer .algo-float {
+  animation: algo-bounce 1.2s var(--ease-spring) infinite;
+}
+
+.algo-still .algo-float,
+.algo-still .algo-eyes,
+.algo-still .algo-bulb,
+.algo-still .algo-arm-r {
+  animation: none;
+}
+
+@keyframes algo-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes algo-bounce {
+  0%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-8px); }
+}
+
+@keyframes algo-blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.1); }
+}
+
+@keyframes algo-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+@keyframes algo-wave {
+  0%, 60%, 100% { transform: rotate(0deg); }
+  70% { transform: rotate(-28deg); }
+  80% { transform: rotate(-8deg); }
+  90% { transform: rotate(-24deg); }
+}
+
+/* Speech bubble used next to the mascot */
+.algo-say {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.algo-bubble {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  padding: 14px 18px;
+  border-radius: 20px;
+  border-top-left-radius: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  font-size: 15.5px;
+  line-height: 1.7;
+}
+
+.algo-bubble::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 14px;
+  width: 14px;
+  height: 14px;
+  background: inherit;
+  border-left: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  transform: rotate(45deg);
+  border-bottom-left-radius: 4px;
+}
+
+:root[data-theme='dark'] .algo-bubble {
+  background: var(--surface-solid);
+  box-shadow: var(--shadow-sm), 0 0 18px rgba(34, 229, 255, 0.1);
+}

@@ -1,0 +1,174 @@
+---
+import Algo from '@/components/mascot/Algo.tsx';
+import { url } from '@/data/curriculum';
+
+interface Props {
+  kind: 'chapter' | 'lab';
+  num: number;
+  /** Optional links shown under the button. */
+  links?: { href: string; label: string }[];
+}
+const { kind, num, links = [] } = Astro.props;
+---
+<section class="complete card" data-complete={kind} data-num={num} data-pagefind-ignore>
+  <div class="complete-mascot">
+    <span class="mascot-idle"><Algo mood="smile" size={84} body /></span>
+    <span class="mascot-done"><Algo mood="cheer" size={84} body /></span>
+  </div>
+  <div class="complete-body">
+    <h2 class="complete-title">
+      <span class="t-idle">{kind === 'chapter' ? '이 장을 끝까지 읽었나요?' : '이 코드랩을 끝냈나요?'}</span>
+      <span class="t-done">멋져요! 한 걸음 더 성장했어요 🎉</span>
+    </h2>
+    <p class="complete-text">
+      <span class="t-idle">완료로 표시하면 <a href={url('/map/')}>학습 지도</a>에 별이 켜져요.</span>
+      <span class="t-done">학습 지도에 기록했어요. 다음으로 넘어가 볼까요?</span>
+    </p>
+    <div class="complete-actions">
+      <button class="btn btn-primary" type="button" data-complete-btn>
+        <span class="t-idle">다 읽었어요 ✓</span>
+        <span class="t-done">완료됨 ✓ (취소하려면 클릭)</span>
+      </button>
+      {links.map((l) => <a class="btn" href={l.href}>{l.label}</a>)}
+    </div>
+  </div>
+</section>
+
+<script>
+  import { loadProgress, onProgress, setChapterDone, setLabDone, markChapterVisited, markLabVisited } from '@/lib/progress';
+
+  document.querySelectorAll<HTMLElement>('[data-complete]').forEach((card) => {
+    const kind = card.dataset.complete as 'chapter' | 'lab';
+    const num = Number(card.dataset.num);
+    const btn = card.querySelector<HTMLButtonElement>('[data-complete-btn]')!;
+    const isDone = () => {
+      const p = loadProgress();
+      return !!(kind === 'chapter' ? p.chapters[num]?.done : p.labs[num]?.done);
+    };
+    const paint = () => card.classList.toggle('is-done', isDone());
+    if (kind === 'chapter') markChapterVisited(num);
+    else markLabVisited(num);
+    paint();
+    onProgress(paint);
+    btn.addEventListener('click', () => {
+      const next = !isDone();
+      if (kind === 'chapter') setChapterDone(num, next);
+      else setLabDone(num, next);
+      if (next) burst(btn);
+    });
+  });
+
+  function burst(anchor: HTMLElement) {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const r = anchor.getBoundingClientRect();
+    const colors = ['#7c6cf6', '#2fbf98', '#ff8a65', '#3f9ff0', '#ffc94d', '#f5679b', '#22e5ff', '#ff3dcb'];
+    for (let i = 0; i < 28; i++) {
+      const s = document.createElement('span');
+      s.className = 'confetti';
+      const angle = (Math.PI * 2 * i) / 28 + Math.random() * 0.3;
+      const dist = 70 + Math.random() * 90;
+      s.style.left = `${r.left + r.width / 2}px`;
+      s.style.top = `${r.top + r.height / 2}px`;
+      s.style.background = colors[i % colors.length];
+      s.style.setProperty('--dx', `${Math.cos(angle) * dist}px`);
+      s.style.setProperty('--dy', `${Math.sin(angle) * dist - 40}px`);
+      s.style.setProperty('--rot', `${Math.random() * 720 - 360}deg`);
+      document.body.appendChild(s);
+      setTimeout(() => s.remove(), 1100);
+    }
+  }
+</script>
+
+<style>
+  .complete {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    margin-top: 56px;
+    padding: 24px 26px;
+    border-radius: var(--radius-xl);
+    background:
+      radial-gradient(90% 120% at 100% 0%, color-mix(in srgb, var(--mint) 16%, transparent), transparent 60%),
+      radial-gradient(90% 120% at 0% 100%, color-mix(in srgb, var(--lav) 16%, transparent), transparent 60%),
+      var(--surface);
+  }
+
+  .complete-mascot {
+    flex: none;
+  }
+
+  .complete-title {
+    margin: 0 0 4px;
+    font-size: 21px;
+    font-weight: 850;
+    letter-spacing: -0.03em;
+  }
+
+  .complete-text {
+    margin: 0 0 14px;
+    color: var(--text-2);
+    font-size: 15px;
+  }
+
+  .complete-text a {
+    color: var(--link);
+    font-weight: 700;
+  }
+
+  .complete-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .t-done,
+  .mascot-done {
+    display: none;
+  }
+
+  .complete.is-done .t-idle,
+  .complete.is-done .mascot-idle {
+    display: none;
+  }
+
+  .complete.is-done .t-done,
+  .complete.is-done .mascot-done {
+    display: inline;
+  }
+
+  .complete.is-done .mascot-done {
+    display: block;
+  }
+
+  .complete.is-done [data-complete-btn] {
+    background: var(--ok);
+    color: #fff;
+    box-shadow: none;
+  }
+
+  :global(.confetti) {
+    position: fixed;
+    z-index: 300;
+    width: 9px;
+    height: 13px;
+    border-radius: 3px;
+    pointer-events: none;
+    animation: confetti 1s var(--ease-out) forwards;
+  }
+
+  @keyframes -global-confetti {
+    from { transform: translate(-50%, -50%) rotate(0); opacity: 1; }
+    to { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy) + 60px)) rotate(var(--rot)); opacity: 0; }
+  }
+
+  @media (max-width: 640px) {
+    .complete {
+      flex-direction: column;
+      text-align: center;
+      padding: 22px 18px;
+    }
+    .complete-actions {
+      justify-content: center;
+    }
+  }
+</style>

@@ -1,0 +1,248 @@
+---
+import Algo from '@/components/mascot/Algo.tsx';
+import Icon from './Icon.astro';
+import { url } from '@/data/curriculum';
+
+interface Props {
+  /** Show the drawer button even on wide screens (pages with a sidebar use it below 1100px). */
+  hasSidebar?: boolean;
+}
+const { hasSidebar = false } = Astro.props;
+
+const nav = [
+  { href: '/book/', label: '책', icon: 'book' },
+  { href: '/playground/', label: '실험실', icon: 'flask' },
+  { href: '/practice/', label: '코드랩', icon: 'code' },
+  { href: '/review/', label: '복습', icon: 'quiz' },
+  { href: '/glossary/', label: '용어 사전', icon: 'glossary' },
+  { href: '/map/', label: '학습 지도', icon: 'map' }
+] as const;
+
+const path = Astro.url.pathname;
+const isActive = (href: string) => path.startsWith(url(href));
+---
+<header class="site-header" data-pagefind-ignore>
+  <div class="header-inner">
+    <button class="btn btn-ghost btn-icon drawer-btn" type="button" aria-label="메뉴 열기" aria-controls="drawer" aria-expanded="false" data-drawer-open data-has-sidebar={hasSidebar ? '' : undefined}>
+      <Icon name="menu" size={22} />
+    </button>
+
+    <a class="logo" href={url('/')} aria-label="AIology 홈">
+      <Algo size={34} still />
+      <span class="logo-text">AI<span class="logo-ology">ology</span></span>
+    </a>
+
+    <nav class="main-nav" aria-label="주요 메뉴">
+      {nav.map((item) => (
+        <a href={url(item.href)} class:list={['nav-link', { active: isActive(item.href) }]} aria-current={isActive(item.href) ? 'page' : undefined}>
+          {item.label}
+        </a>
+      ))}
+    </nav>
+
+    <div class="header-actions">
+      <button class="search-btn" type="button" data-search-open aria-label="검색 (Ctrl+K)">
+        <Icon name="search" size={18} />
+        <span class="search-label">검색</span>
+        <kbd class="search-kbd">⌘K</kbd>
+      </button>
+      <button class="btn btn-ghost btn-icon theme-btn" type="button" data-theme-toggle aria-label="라이트/다크 모드 전환">
+        <span class="theme-icon theme-sun"><Icon name="sun" size={20} /></span>
+        <span class="theme-icon theme-moon"><Icon name="moon" size={20} /></span>
+      </button>
+      <a class="btn btn-ghost btn-icon gh-btn" href="https://github.com/llouis0622/AI" target="_blank" rel="noopener noreferrer" aria-label="GitHub 저장소">
+        <Icon name="github" size={20} />
+      </a>
+    </div>
+  </div>
+  <div class="reading-progress" aria-hidden="true"><span></span></div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    height: var(--header-h);
+    background: color-mix(in srgb, var(--bg) 78%, transparent);
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header-inner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 100%;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 0 var(--gutter);
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 850;
+    font-size: 21px;
+    letter-spacing: -0.04em;
+    flex: none;
+  }
+
+  .logo-ology {
+    background: var(--grad-brand);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .main-nav {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: 18px;
+  }
+
+  .nav-link {
+    position: relative;
+    padding: 8px 13px;
+    border-radius: 12px;
+    color: var(--text-2);
+    font-size: 15px;
+    font-weight: 650;
+    transition: color 0.2s, background-color 0.2s;
+  }
+
+  .nav-link:hover {
+    color: var(--text);
+    background: var(--surface-2);
+  }
+
+  .nav-link.active {
+    color: var(--text);
+  }
+
+  .nav-link.active::after {
+    content: '';
+    position: absolute;
+    left: 13px;
+    right: 13px;
+    bottom: 2px;
+    height: 3px;
+    border-radius: 3px;
+    background: var(--grad-brand);
+  }
+
+  :global(:root[data-theme='dark']) .nav-link.active::after {
+    box-shadow: var(--glow);
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+  }
+
+  .search-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 40px;
+    padding: 0 10px 0 14px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-3);
+    font-size: 14px;
+    font-weight: 600;
+    min-width: 180px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .search-btn:hover {
+    border-color: var(--border-strong);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .search-kbd {
+    margin-left: auto;
+    padding: 1px 7px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    font-family: var(--font-sans);
+    font-size: 12px;
+    color: var(--text-3);
+  }
+
+  .theme-icon {
+    display: grid;
+    place-items: center;
+  }
+
+  :global(:root:not([data-theme='dark'])) .theme-sun,
+  :global(:root[data-theme='dark']) .theme-moon {
+    display: none;
+  }
+
+  .drawer-btn {
+    display: none;
+  }
+
+  .reading-progress {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 3px;
+    pointer-events: none;
+  }
+
+  .reading-progress span {
+    display: block;
+    height: 100%;
+    width: 100%;
+    transform-origin: left;
+    transform: scaleX(var(--read, 0));
+    background: var(--grad-brand);
+    border-radius: 0 3px 3px 0;
+  }
+
+  :global(:root[data-theme='dark']) .reading-progress span {
+    box-shadow: var(--glow-strong);
+  }
+
+  @media (max-width: 1180px) {
+    .search-label,
+    .search-kbd {
+      display: none;
+    }
+    .search-btn {
+      min-width: 0;
+      width: 40px;
+      justify-content: center;
+      padding: 0;
+    }
+    .main-nav {
+      margin-left: 8px;
+    }
+    .nav-link {
+      padding: 8px 9px;
+      font-size: 14.5px;
+    }
+  }
+
+  @media (max-width: 960px) {
+    .main-nav {
+      display: none;
+    }
+    .drawer-btn {
+      display: inline-flex;
+    }
+    .gh-btn {
+      display: none;
+    }
+  }
+</style>
