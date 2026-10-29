@@ -21,6 +21,8 @@ export default defineConfig({
   // Overridable so parallel worktrees sharing node_modules keep separate caches.
   cacheDir: process.env.ASTRO_CACHE_DIR ?? './node_modules/.astro',
   build: { format: 'directory' },
+  // Fetch the next page while the reader hovers a link.
+  prefetch: { prefetchAll: true, defaultStrategy: 'hover' },
   integrations: [react(), mdx()],
   markdown: {
     processor: unified({

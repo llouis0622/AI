@@ -5,6 +5,11 @@
 @import './viz.css';
 @import './map.css';
 
+/* Smooth cross-fade between pages in browsers that support it (no JS). */
+@view-transition {
+  navigation: auto;
+}
+
 /* ---------- Reset ---------- */
 *,
 *::before,
@@ -347,6 +352,9 @@ a.chip:hover {
 
 /* ---------- Reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
+  @view-transition {
+    navigation: none;
+  }
   html {
     scroll-behavior: auto;
   }
