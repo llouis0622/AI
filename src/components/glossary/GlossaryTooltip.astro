@@ -1,0 +1,164 @@
+---
+/**
+ * One floating tooltip shared by every `.term` span that rehype-glossary emits.
+ * Hover / focus shows it, tap toggles it (touch), Esc closes it.
+ */
+---
+<div class="term-tip" id="term-tip" role="tooltip" hidden data-pagefind-ignore>
+  <div class="term-tip-head">
+    <span class="term-tip-emoji"></span>
+    <strong class="term-tip-title"></strong>
+  </div>
+  <p class="term-tip-def"></p>
+  <a class="term-tip-link" href="#">용어 사전에서 더 보기 →</a>
+</div>
+
+<script>
+  const tip = document.getElementById('term-tip') as HTMLElement;
+  const titleEl = tip.querySelector('.term-tip-title') as HTMLElement;
+  const emojiEl = tip.querySelector('.term-tip-emoji') as HTMLElement;
+  const defEl = tip.querySelector('.term-tip-def') as HTMLElement;
+  const linkEl = tip.querySelector('.term-tip-link') as HTMLAnchorElement;
+  let current: HTMLElement | null = null;
+  let hideTimer = 0;
+  let pinned = false;
+
+  function place(target: HTMLElement) {
+    const r = target.getBoundingClientRect();
+    const tw = tip.offsetWidth;
+    const th = tip.offsetHeight;
+    const margin = 10;
+    let left = r.left + r.width / 2 - tw / 2;
+    left = Math.max(margin, Math.min(left, window.innerWidth - tw - margin));
+    const above = r.top - th - 10;
+    const top = above > margin ? above : r.bottom + 10;
+    tip.style.left = `${left + window.scrollX}px`;
+    tip.style.top = `${top + window.scrollY}px`;
+    tip.dataset.side = above > margin ? 'top' : 'bottom';
+  }
+
+  function show(target: HTMLElement) {
+    clearTimeout(hideTimer);
+    if (current && current !== target) current.setAttribute('aria-expanded', 'false');
+    current = target;
+    titleEl.textContent = target.dataset.title ?? target.textContent ?? '';
+    emojiEl.textContent = target.dataset.emoji || '💡';
+    defEl.textContent = target.dataset.def ?? '';
+    linkEl.href = target.dataset.href ?? '#';
+    tip.hidden = false;
+    target.setAttribute('aria-expanded', 'true');
+    place(target);
+  }
+
+  function hide(delay = 120) {
+    clearTimeout(hideTimer);
+    hideTimer = window.setTimeout(() => {
+      tip.hidden = true;
+      pinned = false;
+      current?.setAttribute('aria-expanded', 'false');
+      current = null;
+    }, delay);
+  }
+
+  const termOf = (e: Event) => (e.target as HTMLElement).closest?.('.term') as HTMLElement | null;
+
+  document.addEventListener('pointerover', (e) => {
+    if ((e as PointerEvent).pointerType !== 'mouse') return;
+    const t = termOf(e);
+    if (t) show(t);
+    else if ((e.target as HTMLElement).closest('#term-tip')) clearTimeout(hideTimer);
+  });
+
+  document.addEventListener('pointerout', (e) => {
+    if ((e as PointerEvent).pointerType !== 'mouse' || pinned) return;
+    const t = termOf(e);
+    const toTip = (e as PointerEvent).relatedTarget instanceof Element && (e as PointerEvent).relatedTarget!.closest('#term-tip');
+    if ((t || (e.target as HTMLElement).closest('#term-tip')) && !toTip) hide(220);
+  });
+
+  document.addEventListener('click', (e) => {
+    const t = termOf(e);
+    if (t) {
+      e.preventDefault();
+      if (current === t && pinned) hide(0);
+      else {
+        show(t);
+        pinned = true;
+      }
+      return;
+    }
+    if (!(e.target as HTMLElement).closest('#term-tip')) hide(0);
+  });
+
+  document.addEventListener('focusin', (e) => {
+    const t = termOf(e);
+    if (t) show(t);
+  });
+
+  document.addEventListener('focusout', (e) => {
+    if (termOf(e) && !pinned) hide(160);
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !tip.hidden) hide(0);
+    if ((e.key === 'Enter' || e.key === ' ') && termOf(e)) {
+      e.preventDefault();
+      show(termOf(e)!);
+      pinned = true;
+    }
+  });
+
+  window.addEventListener('resize', () => current && place(current));
+</script>
+
+<style is:global>
+  .term-tip {
+    position: absolute;
+    z-index: 90;
+    width: min(320px, calc(100vw - 20px));
+    padding: 14px 16px 12px;
+    border-radius: 18px;
+    background: var(--surface-solid);
+    border: 1px solid var(--border-strong);
+    box-shadow: var(--shadow-lg);
+    font-size: 14.5px;
+    line-height: 1.65;
+    animation: tip-in 0.22s var(--ease-spring);
+  }
+
+  :root[data-theme='dark'] .term-tip {
+    box-shadow: var(--shadow-lg), var(--glow);
+  }
+
+  .term-tip[hidden] {
+    display: none;
+  }
+
+  .term-tip-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    font-size: 16px;
+  }
+
+  .term-tip-emoji {
+    font-size: 20px;
+  }
+
+  .term-tip-def {
+    margin: 0 0 8px;
+    color: var(--text-2);
+  }
+
+  .term-tip-link {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--link);
+  }
+
+  @keyframes tip-in {
+    from { opacity: 0; transform: translateY(4px) scale(0.97); }
+    to { opacity: 1; transform: none; }
+  }
+</style>

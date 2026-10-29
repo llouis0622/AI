@@ -1,0 +1,91 @@
+---
+import type { MarkdownHeading } from 'astro';
+
+interface Props {
+  headings: MarkdownHeading[];
+}
+const items = Astro.props.headings.filter((h) => h.depth === 2 || h.depth === 3);
+---
+{items.length > 0 && (
+  <nav class="toc" aria-label="이 페이지의 목차" data-pagefind-ignore>
+    <p class="toc-title">이 장의 목차</p>
+    <ul>
+      {items.map((h) => (
+        <li class={`toc-d${h.depth}`}>
+          <a href={`#${h.slug}`} data-toc={h.slug}>{h.text}</a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+)}
+
+<script>
+  const links = [...document.querySelectorAll<HTMLAnchorElement>('.toc a[data-toc]')];
+  if (links.length) {
+    const targets = links
+      .map((a) => document.getElementById(a.dataset.toc!))
+      .filter((el): el is HTMLElement => !!el);
+    let current = '';
+    const onScroll = () => {
+      const y = window.scrollY + 120;
+      let id = targets[0]?.id ?? '';
+      for (const t of targets) if (t.offsetTop <= y) id = t.id;
+      if (id === current) return;
+      current = id;
+      links.forEach((a) => a.classList.toggle('active', a.dataset.toc === id));
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  }
+</script>
+
+<style is:global>
+  .toc {
+    font-size: 13.5px;
+  }
+
+  .toc-title {
+    margin: 0 0 10px;
+    font-size: 12.5px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    color: var(--text-3);
+  }
+
+  .toc ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-left: 2px solid var(--border);
+  }
+
+  .toc li a {
+    display: block;
+    margin-left: -2px;
+    padding: 5px 0 5px 14px;
+    border-left: 2px solid transparent;
+    color: var(--text-3);
+    line-height: 1.45;
+    transition: color 0.2s, border-color 0.2s;
+  }
+
+  .toc li.toc-d3 a {
+    padding-left: 26px;
+    font-size: 13px;
+  }
+
+  .toc li a:hover {
+    color: var(--text);
+  }
+
+  .toc li a.active {
+    color: var(--text);
+    font-weight: 700;
+    border-left-color: var(--brand);
+  }
+
+  :root[data-theme='dark'] .toc li a.active {
+    border-left-color: var(--brand);
+    text-shadow: 0 0 12px rgba(34, 229, 255, 0.35);
+  }
+</style>

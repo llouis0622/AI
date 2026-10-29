@@ -1,0 +1,67 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Algo from '@/components/mascot/Algo.tsx';
+import LearningMap from '@/components/map/LearningMap.tsx';
+import { allViz } from '@/data/viz';
+import { PARTS, url } from '@/data/curriculum';
+import { getBook, bookHref, plain } from '@/lib/content';
+
+const book = await getBook();
+const mapParts = PARTS.map((p) => ({
+  part: p.part,
+  title: p.title,
+  emoji: p.emoji,
+  chapters: book
+    .filter((e) => e.data.part === p.part)
+    .map((e) => ({ n: e.data.chapter, title: e.data.title, href: bookHref(e.id), question: plain(e.data.question).replace(/\s+/g, ' ') }))
+}));
+---
+<BaseLayout title="학습 지도" description="28장을 잇는 나만의 학습 지도. 읽은 장과 해 본 실험이 기록돼요.">
+  <main id="main" class="container map-page">
+    <header class="map-hero">
+      <div class="algo-say">
+        <Algo mood="cheer" size={84} body />
+        <div class="algo-bubble">
+          <h1 class="map-title">나의 학습 지도 🗺️</h1>
+          <p>정류장을 누르면 그 장으로 가요. 장을 다 읽고 맨 아래 <strong>"다 읽었어요 ✓"</strong>를 누르면 별이 켜져요. 실험을 직접 만져 본 것도 기록돼요!</p>
+        </div>
+      </div>
+    </header>
+    <LearningMap parts={mapParts} totalViz={allViz.length} showReset client:load />
+    <p class="map-note">💡 기록은 지금 쓰는 브라우저에만 저장돼요. 다른 기기에서는 처음부터 시작해요. <a href={url('/playground/')}>실험실</a>에서 아직 안 해 본 실험만 골라 볼 수도 있어요.</p>
+  </main>
+</BaseLayout>
+
+<style>
+  .map-page {
+    padding-top: 28px;
+    max-width: 1160px;
+  }
+
+  .map-hero {
+    margin-bottom: 22px;
+  }
+
+  .map-title {
+    margin: 0 0 6px;
+    font-size: clamp(26px, 4vw, 36px);
+    font-weight: 900;
+    letter-spacing: -0.04em;
+  }
+
+  .map-hero p {
+    margin: 0;
+    color: var(--text-2);
+  }
+
+  .map-note {
+    margin-top: 24px;
+    font-size: 14px;
+    color: var(--text-2);
+  }
+
+  .map-note a {
+    color: var(--link);
+    font-weight: 700;
+  }
+</style>

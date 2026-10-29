@@ -1,0 +1,160 @@
+/* ===== 학습 지도 (LearningMap) ===== */
+.lmap {
+  position: relative;
+}
+
+.lmap-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 20px;
+  padding: 18px 20px;
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+:root[data-theme='dark'] .lmap-top {
+  backdrop-filter: blur(14px);
+}
+
+.lmap-ring {
+  flex: none;
+}
+
+.lmap-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.lmap-stats strong {
+  font-size: 18px;
+  font-weight: 850;
+  letter-spacing: -0.03em;
+}
+
+.lmap-stats span {
+  font-size: 14px;
+  color: var(--text-2);
+}
+
+.lmap-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.lmap-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 8px;
+  overflow: visible;
+}
+
+.lmap-done-road {
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--brand) 40%, transparent));
+}
+
+.lmap-stop {
+  cursor: pointer;
+  outline: none;
+}
+
+.lmap-stop circle {
+  transition: transform 0.3s var(--ease-spring);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.lmap-stop:hover circle,
+.lmap-stop:focus-visible circle,
+.lmap-stop.is-hover circle {
+  transform: scale(1.14);
+}
+
+.lmap-stop:focus-visible circle:first-of-type {
+  stroke-width: 6;
+}
+
+.lmap-halo {
+  animation: lmap-pulse 2.8s ease-in-out infinite;
+}
+
+@keyframes lmap-pulse {
+  0%, 100% { opacity: 0.12; }
+  50% { opacity: 0.32; }
+}
+
+.lmap-algo {
+  display: grid;
+  place-items: center;
+  animation: lmap-hop 1.6s var(--ease-spring) infinite;
+}
+
+@keyframes lmap-hop {
+  0%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-7px); }
+}
+
+.lmap-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 18px 20px;
+}
+
+.lmap-card h3 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 2px 0 0;
+  font-size: 19px;
+  font-weight: 850;
+  letter-spacing: -0.03em;
+}
+
+.lmap-card p {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 15px;
+}
+
+.lmap-tag {
+  padding: 2px 9px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 800;
+  background: var(--surface-3);
+  color: var(--text-2);
+}
+
+.lmap-tag-done {
+  background: color-mix(in srgb, var(--ok) 18%, transparent);
+  color: var(--ok);
+}
+
+.lmap-tag-visited {
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+@media (max-width: 640px) {
+  .lmap-top {
+    padding: 14px;
+  }
+  .lmap-actions {
+    width: 100%;
+  }
+  .lmap-actions .btn-primary {
+    flex: 1;
+  }
+}

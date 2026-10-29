@@ -1,0 +1,93 @@
+---
+import type { MarkdownHeading } from 'astro';
+import 'katex/dist/katex.min.css';
+import BaseLayout from './BaseLayout.astro';
+import Sidebar from '@/components/layout/Sidebar.astro';
+import Toc from '@/components/layout/Toc.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  section: 'book' | 'practice' | 'review';
+  current?: string;
+  headings?: MarkdownHeading[];
+}
+const { title, description, section, current, headings = [] } = Astro.props;
+---
+<BaseLayout title={title} description={description} hasSidebar>
+  <Sidebar slot="drawer" section={section} current={current} />
+  <div class="doc-shell">
+    <aside class="doc-sidebar">
+      <div class="doc-sticky">
+        <Sidebar section={section} current={current} />
+      </div>
+    </aside>
+    <main id="main" class="doc-main">
+      <slot />
+    </main>
+    <aside class="doc-toc">
+      <div class="doc-sticky">
+        <Toc headings={headings} />
+        <slot name="toc-extra" />
+      </div>
+    </aside>
+  </div>
+</BaseLayout>
+
+<style is:global>
+  .doc-shell {
+    display: grid;
+    grid-template-columns: var(--sidebar-w) minmax(0, 1fr) var(--toc-w);
+    gap: 40px;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 0 var(--gutter);
+  }
+
+  .doc-sticky {
+    position: sticky;
+    top: calc(var(--header-h) + 20px);
+    max-height: calc(100dvh - var(--header-h) - 40px);
+    overflow-y: auto;
+    padding: 4px 6px 24px 2px;
+    overscroll-behavior: contain;
+  }
+
+  .doc-sidebar {
+    padding-top: 28px;
+  }
+
+  .doc-main {
+    min-width: 0;
+    width: 100%;
+    max-width: var(--content-w);
+    margin: 0 auto;
+    padding-top: 32px;
+  }
+
+  .doc-toc {
+    padding-top: 36px;
+  }
+
+  @media (max-width: 1280px) {
+    .doc-shell {
+      grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+    }
+    .doc-toc {
+      display: none;
+    }
+  }
+
+  @media (max-width: 960px) {
+    .doc-shell {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0;
+    }
+    .doc-sidebar {
+      display: none;
+    }
+    .doc-main {
+      padding-top: 20px;
+    }
+  }
+</style>

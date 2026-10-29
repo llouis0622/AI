@@ -1,0 +1,46 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Algo from '@/components/mascot/Algo.tsx';
+import { url } from '@/data/curriculum';
+---
+<BaseLayout title="길을 잃었어요">
+  <main id="main" class="container nf">
+    <Algo mood="wow" size={150} body />
+    <h1>404 · 이 페이지는 아직 학습되지 않았어요</h1>
+    <p>주소가 바뀌었거나 없는 페이지예요. 경사하강법처럼 한 걸음씩 다시 찾아볼까요?</p>
+    <div class="nf-actions">
+      <a class="btn btn-primary" href={url('/')}>홈으로</a>
+      <a class="btn" href={url('/book/')}>책 목차</a>
+      <button class="btn" type="button" data-search-open>🔎 검색하기</button>
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  .nf {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding-top: 64px;
+  }
+
+  .nf h1 {
+    margin: 22px 0 10px;
+    font-size: clamp(24px, 4vw, 34px);
+    font-weight: 900;
+    letter-spacing: -0.04em;
+  }
+
+  .nf p {
+    margin: 0 0 24px;
+    color: var(--text-2);
+  }
+
+  .nf-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+  }
+</style>

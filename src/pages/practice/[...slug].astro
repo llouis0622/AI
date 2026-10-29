@@ -1,0 +1,134 @@
+---
+import { render } from 'astro:content';
+import DocLayout from '@/layouts/DocLayout.astro';
+import CompleteCard from '@/components/chapter/CompleteCard.astro';
+import PrevNext from '@/components/chapter/PrevNext.astro';
+import VisualSummary from '@/components/summary/VisualSummary.astro';
+import Algo from '@/components/mascot/Algo.tsx';
+import { getLabs, getBook, labHref, bookHref, vizIdsIn, type LabEntry } from '@/lib/content';
+import { TRACKS } from '@/data/curriculum';
+
+export async function getStaticPaths() {
+  const labs = await getLabs();
+  return labs.map((entry, i) => ({
+    params: { slug: entry.id === '00-overview' ? undefined : entry.id },
+    props: { entry, prev: labs[i - 1], next: labs[i + 1] }
+  }));
+}
+
+interface Props {
+  entry: LabEntry;
+  prev?: LabEntry;
+  next?: LabEntry;
+}
+const { entry, prev, next } = Astro.props;
+const { Content, headings } = await render(entry);
+const d = entry.data;
+const isOverview = d.lab === 0;
+const book = await getBook();
+const prereqs = [...d.chapters].sort((a, b) => a - b).map((n) => book.find((e) => e.data.chapter === n)).filter(Boolean);
+const track = TRACKS.find((t) => t.labs.includes(d.lab));
+const num = String(d.lab).padStart(2, '0');
+const link = (e?: LabEntry) => e && { href: labHref(e.id), label: e.data.lab === 0 ? '개요' : `코드랩 ${String(e.data.lab).padStart(2, '0')}`, title: e.data.title };
+const vizCount = vizIdsIn(entry.body).length;
+---
+<DocLayout title={isOverview ? '코드랩 개요 · 환경 준비' : `코드랩 ${num}. ${d.title}`} description={d.builds} section="practice" current={entry.id} headings={headings}>
+  <article class="lab" data-reading data-pagefind-body data-part="7" data-pagefind-meta={`title:${isOverview ? '코드랩 개요 · 환경 준비' : `코드랩 ${num}. ${d.title}`}`}>
+    <header class="lab-head">
+      <div class="lab-meta">
+        <span class="lab-adv">🧗 심화 트랙</span>
+        {track && <span class="chip">{track.emoji} {track.title}</span>}
+        {vizCount > 0 && <span class="chip">🎬 그림 미리보기 {vizCount}개</span>}
+      </div>
+      <h1 class="lab-h1">
+        {!isOverview && <span class="lab-num">LAB {num}</span>}
+        {d.title}
+      </h1>
+      {isOverview ? (
+        <div class="algo-say">
+          <Algo mood="wink" size={64} />
+          <div class="algo-bubble">
+            코드랩은 책에서 배운 원리를 <strong>직접 코드로</strong> 만들어 보는 곳이에요. 처음이라면 책을 먼저 읽고 와도 괜찮아요. 각 코드랩 맨 위의 <strong>그림 미리보기</strong>가 코드가 하는 일을 먼저 보여 줄 거예요!
+          </div>
+        </div>
+      ) : (
+        prereqs.length > 0 && (
+          <p class="lab-prereq">
+            <span>먼저 읽고 오면 좋아요</span>
+            {prereqs.map((e) => <a class="chip" href={bookHref(e!.id)}>{e!.data.chapter}장 · {e!.data.title}</a>)}
+          </p>
+        )
+      )}
+    </header>
+
+    <VisualSummary cards={d.summary} heading="코드가 하는 일, 그림으로 먼저" />
+
+    <div class="prose">
+      <Content />
+    </div>
+
+    {!isOverview && <CompleteCard kind="lab" num={d.lab} />}
+    <PrevNext prev={link(prev)} next={link(next)} />
+  </article>
+</DocLayout>
+
+<style>
+  .lab-head {
+    margin-bottom: 26px;
+  }
+
+  .lab-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .lab-adv {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: var(--grad-warm);
+    color: #3b1d0e;
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  :global(:root[data-theme='dark']) .lab-adv {
+    color: #1a0610;
+  }
+
+  .lab-h1 {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 0 0 18px;
+    font-size: clamp(28px, 4.2vw, 40px);
+    font-weight: 850;
+    letter-spacing: -0.04em;
+    line-height: 1.2;
+  }
+
+  .lab-num {
+    font-family: var(--font-mono);
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    background: var(--grad-brand);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .lab-prereq {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: 14px;
+    font-weight: 750;
+  }
+</style>

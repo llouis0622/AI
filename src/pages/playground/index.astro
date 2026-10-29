@@ -1,0 +1,150 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Algo from '@/components/mascot/Algo.tsx';
+import VizCard from '@/components/viz/VizCard.astro';
+import { allViz } from '@/data/viz';
+import { PARTS, TRACKS } from '@/data/curriculum';
+
+const bookViz = allViz.filter((v) => v.chapter !== undefined);
+const labViz = allViz.filter((v) => v.lab !== undefined);
+const count3D = allViz.filter((v) => v.is3D).length;
+const groups = PARTS.map((p) => ({ part: p, items: bookViz.filter((v) => p.chapters.includes(v.chapter!)) })).filter((g) => g.items.length);
+const trackOf = (lab: number) => TRACKS.find((t) => t.labs.includes(lab));
+---
+<BaseLayout title="시각화 실험실" description="경사하강법, 신경망, 어텐션, 확산 모델… AI의 핵심 개념을 3D와 애니메이션으로 직접 만져 보는 실험실.">
+  <main id="main" class="container lab-page">
+    <header class="lab-hero">
+      <div class="algo-say">
+        <Algo mood="cheer" size={96} body />
+        <div class="algo-bubble">
+          <h1 class="lab-title">시각화 실험실 <span class="gradient-text">🧪</span></h1>
+          <p>
+            글 대신 <strong>눈과 손</strong>으로 배우는 곳이에요. 슬라이더를 밀고, 점을 끌고, 3D를 돌려 보세요.
+            지금 <strong>{allViz.length}개</strong>의 실험이 있고, 그중 <strong>{count3D}개</strong>는 3D예요.
+          </p>
+        </div>
+      </div>
+      <div class="lab-filters" role="toolbar" aria-label="실험 거르기">
+        <button class="chip is-on" data-filter="all" type="button">전체</button>
+        <button class="chip" data-filter="3d" type="button">🧊 3D만</button>
+        <button class="chip" data-filter="todo" type="button">🌱 아직 안 해본 것</button>
+        {labViz.length > 0 && <button class="chip" data-filter="lab" type="button">💻 코드랩</button>}
+      </div>
+    </header>
+
+    {groups.map(({ part, items }) => (
+      <section class="lab-group" data-part={part.part}>
+        <h2 class="lab-group-title"><span>{part.emoji}</span>{part.part}부 · {part.title}</h2>
+        <div class="lab-grid">
+          {items.map((v) => <VizCard meta={v} label={`${v.chapter}장`} />)}
+        </div>
+      </section>
+    ))}
+
+    {labViz.length > 0 && (
+      <section class="lab-group" data-part="7" data-kind-group="lab">
+        <h2 class="lab-group-title"><span>💻</span>코드랩 미리보기</h2>
+        <div class="lab-grid">
+          {labViz.map((v) => <VizCard meta={v} label={`${trackOf(v.lab!)?.emoji ?? '💻'} 코드랩 ${String(v.lab).padStart(2, '0')}`} />)}
+        </div>
+      </section>
+    )}
+  </main>
+</BaseLayout>
+
+<script>
+  import { loadProgress, onProgress } from '@/lib/progress';
+  const cards = [...document.querySelectorAll<HTMLElement>('[data-viz-card]')];
+  let filter = 'all';
+  const paint = () => {
+    const p = loadProgress();
+    cards.forEach((c) => {
+      const done = !!p.viz[c.dataset.vizCard!];
+      c.classList.toggle('is-done', done);
+      const show =
+        filter === 'all' ||
+        (filter === '3d' && c.dataset['3d'] === '1') ||
+        (filter === 'todo' && !done) ||
+        (filter === 'lab' && c.dataset.kind === 'lab');
+      c.hidden = !show;
+    });
+    document.querySelectorAll<HTMLElement>('.lab-group').forEach((g) => {
+      g.hidden = ![...g.querySelectorAll<HTMLElement>('[data-viz-card]')].some((c) => !c.hidden);
+    });
+  };
+  document.querySelectorAll<HTMLButtonElement>('[data-filter]').forEach((b) =>
+    b.addEventListener('click', () => {
+      filter = b.dataset.filter!;
+      document.querySelectorAll('[data-filter]').forEach((x) => x.classList.toggle('is-on', x === b));
+      paint();
+    })
+  );
+  paint();
+  onProgress(paint);
+</script>
+
+<style>
+  .lab-page {
+    padding-top: 28px;
+  }
+
+  .lab-hero {
+    margin-bottom: 24px;
+  }
+
+  .lab-title {
+    margin: 0 0 6px;
+    font-size: clamp(28px, 4vw, 40px);
+    font-weight: 900;
+    letter-spacing: -0.04em;
+  }
+
+  .lab-hero p {
+    margin: 0;
+    color: var(--text-2);
+  }
+
+  .lab-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 20px;
+  }
+
+  .lab-filters .chip {
+    cursor: pointer;
+    font-size: 14px;
+    padding: 7px 14px;
+  }
+
+  .lab-filters .chip.is-on {
+    background: var(--grad-btn);
+    color: var(--btn-ink);
+    border-color: transparent;
+  }
+
+  :global(:root[data-theme='dark']) .lab-filters .chip.is-on {
+    color: #041018;
+  }
+
+  .lab-group {
+    margin-top: 36px;
+  }
+
+  .lab-group-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 14px;
+    font-size: 20px;
+    font-weight: 850;
+    letter-spacing: -0.03em;
+  }
+
+  .lab-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+  }
+
+</style>

@@ -1,0 +1,186 @@
+---
+/**
+ * Active-recall card. The answer (slot) stays hidden until "정답 보기".
+ * Marks are saved as `aihub-quiz:<id>` = pass | again (kept compatible with the old site).
+ */
+interface Props {
+  id: string;
+  q: string;
+}
+const { id, q } = Astro.props;
+const num = Number(id.split('-').pop());
+---
+<section class="quiz" data-quiz={id}>
+  <div class="quiz-q">
+    <span class="quiz-num" aria-hidden="true">Q{Number.isFinite(num) ? num : ''}</span>
+    <p class="quiz-text">{q}</p>
+    <span class="quiz-status" aria-live="polite" data-pagefind-ignore></span>
+  </div>
+  <button class="quiz-reveal" type="button" data-quiz-reveal aria-expanded="false" data-pagefind-ignore>🤔 먼저 답을 떠올린 다음, 정답 보기</button>
+  <div class="quiz-answer" hidden>
+    <div class="quiz-a"><slot /></div>
+    <div class="quiz-actions" data-pagefind-ignore>
+      <button class="quiz-btn quiz-pass" type="button" data-quiz-mark="pass">맞혔어요 ✓</button>
+      <button class="quiz-btn quiz-again" type="button" data-quiz-mark="again">다시 볼래요 ↻</button>
+      <button class="quiz-btn" type="button" data-quiz-hide>답 숨기기</button>
+    </div>
+  </div>
+</section>
+
+<script>
+  const KEY = (id: string) => `aihub-quiz:${id}`;
+  const read = (id: string) => {
+    try {
+      return localStorage.getItem(KEY(id));
+    } catch {
+      return null;
+    }
+  };
+  const paint = (el: HTMLElement) => {
+    const v = read(el.dataset.quiz!);
+    el.classList.toggle('is-pass', v === 'pass');
+    el.classList.toggle('is-again', v === 'again');
+    el.querySelector('.quiz-status')!.textContent = v === 'pass' ? '맞힘 ✓' : v === 'again' ? '복습 필요 ↻' : '';
+  };
+  document.querySelectorAll<HTMLElement>('[data-quiz]').forEach((el) => {
+    paint(el);
+    const answer = el.querySelector<HTMLElement>('.quiz-answer')!;
+    const reveal = el.querySelector<HTMLButtonElement>('[data-quiz-reveal]')!;
+    reveal.addEventListener('click', () => {
+      answer.hidden = false;
+      reveal.hidden = true;
+      reveal.setAttribute('aria-expanded', 'true');
+    });
+    el.querySelector('[data-quiz-hide]')!.addEventListener('click', () => {
+      answer.hidden = true;
+      reveal.hidden = false;
+      reveal.setAttribute('aria-expanded', 'false');
+      reveal.focus();
+    });
+    el.querySelectorAll<HTMLButtonElement>('[data-quiz-mark]').forEach((b) =>
+      b.addEventListener('click', () => {
+        try {
+          localStorage.setItem(KEY(el.dataset.quiz!), b.dataset.quizMark!);
+        } catch {
+          /* storage unavailable */
+        }
+        paint(el);
+        window.dispatchEvent(new CustomEvent('aihub-quiz-change'));
+      })
+    );
+  });
+</script>
+
+<style is:global>
+  .quiz {
+    margin: 18px 0;
+    padding: 18px 18px 16px;
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    box-shadow: var(--shadow-sm);
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+
+  .quiz.is-pass {
+    border-color: color-mix(in srgb, var(--ok) 65%, transparent);
+  }
+
+  .quiz.is-again {
+    border-color: color-mix(in srgb, var(--warn) 65%, transparent);
+  }
+
+  .quiz-q {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .quiz-num {
+    display: grid;
+    place-items: center;
+    min-width: 40px;
+    height: 32px;
+    padding: 0 6px;
+    border-radius: 10px;
+    background: var(--part-soft, var(--brand-soft));
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 850;
+    flex: none;
+  }
+
+  .quiz-text {
+    flex: 1;
+    margin: 4px 0 0 !important;
+    font-weight: 750;
+    font-size: 16.5px;
+    line-height: 1.6;
+  }
+
+  .quiz-status {
+    flex: none;
+    margin-top: 6px;
+    font-size: 12.5px;
+    font-weight: 800;
+    color: var(--text-3);
+  }
+
+  .quiz.is-pass .quiz-status { color: var(--ok); }
+  .quiz.is-again .quiz-status { color: var(--warn); }
+
+  .quiz-reveal {
+    margin-top: 14px;
+    padding: 9px 16px;
+    border-radius: 12px;
+    border: 1.5px dashed var(--border-strong);
+    background: var(--surface-2);
+    font-size: 14px;
+    font-weight: 750;
+    color: var(--text-2);
+    transition: border-color 0.2s, color 0.2s, transform 0.2s var(--ease-spring);
+  }
+
+  .quiz-reveal:hover {
+    border-color: var(--brand);
+    color: var(--text);
+    transform: translateY(-1px);
+  }
+
+  .quiz-answer {
+    animation: fold-in 0.35s var(--ease-out);
+  }
+
+  .quiz-a {
+    margin-top: 14px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: var(--surface-2);
+    border-left: 4px solid var(--brand);
+    font-size: 15.5px;
+  }
+
+  .quiz-a > :first-child { margin-top: 0; }
+  .quiz-a > :last-child { margin-bottom: 0; }
+
+  .quiz-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .quiz-btn {
+    padding: 7px 14px;
+    border-radius: 11px;
+    border: 1px solid var(--border-strong);
+    background: var(--surface-solid);
+    font-size: 13.5px;
+    font-weight: 750;
+    color: var(--text-2);
+    transition: border-color 0.2s, color 0.2s, background-color 0.2s;
+  }
+
+  .quiz-pass:hover { border-color: var(--ok); color: var(--ok); }
+  .quiz-again:hover { border-color: var(--warn); color: var(--warn); }
+</style>

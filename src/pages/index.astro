@@ -1,0 +1,371 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Algo from '@/components/mascot/Algo.tsx';
+import HeroScene from '@/components/home/HeroScene.tsx';
+import HowItLearns from '@/components/home/HowItLearns.astro';
+import LearningMap from '@/components/map/LearningMap.tsx';
+import PartsGrid from '@/components/chapter/PartsGrid.astro';
+import Icon from '@/components/layout/Icon.astro';
+import VizCard from '@/components/viz/VizCard.astro';
+import { allViz } from '@/data/viz';
+import { glossaryTerms } from '@/data/glossary';
+import { PARTS, url } from '@/data/curriculum';
+import { getBook, getLabs, getQuizzes, bookHref, plain } from '@/lib/content';
+
+const book = await getBook();
+const labs = await getLabs();
+const quizzes = await getQuizzes();
+const featured = allViz.filter((v) => v.featured).slice(0, 8);
+const mapParts = PARTS.map((p) => ({
+  part: p.part,
+  title: p.title,
+  emoji: p.emoji,
+  chapters: book
+    .filter((e) => e.data.part === p.part)
+    .map((e) => ({ n: e.data.chapter, title: e.data.title, href: bookHref(e.id), question: plain(e.data.question).replace(/\s+/g, ' ') }))
+}));
+const totalQuestions = quizzes.reduce((s, q) => s + q.data.total, 0);
+const floatChips = ['⛰️ 경사하강법', '🧠 신경망', '👀 합성곱', '💬 어텐션', '🎨 확산 모델', '🤖 GPT', '🎮 강화학습'];
+---
+<BaseLayout bodyClass="home">
+  <main id="main">
+    <section class="hero">
+      <div class="container hero-inner">
+        <div class="hero-copy">
+          <span class="hero-kicker">🎨 그림으로 배우는 인공지능 교과서</span>
+          <h1 class="hero-title">
+            AI를 <span class="gradient-text">눈으로 보고,<br />손으로 만지며</span> 배워요
+          </h1>
+          <p class="hero-lead">
+            직선 하나를 긋는 학습 기계부터 GPT·확산 모델·에이전트까지. 어려운 수식 대신 <strong>움직이는 그림과 3D 실험</strong>으로 처음부터 차근차근 안내해요.
+          </p>
+          <div class="hero-cta">
+            <a class="btn btn-primary hero-btn" href={bookHref('01-what-is-ai')}>1장부터 시작하기 <Icon name="arrow-right" size={18} /></a>
+            <a class="btn hero-btn" href={url('/playground/')}>🧪 실험실 둘러보기</a>
+          </div>
+          <ul class="hero-stats" aria-label="구성">
+            <li><strong>28</strong>장의 이야기</li>
+            <li><strong>{allViz.length}</strong>개의 실험</li>
+            <li><strong>{labs.length - 1}</strong>편의 코드랩</li>
+            <li><strong>{totalQuestions}</strong>개의 복습 문제</li>
+          </ul>
+        </div>
+        <div class="hero-visual">
+          <div class="hero-orb" aria-hidden="true"></div>
+          <HeroScene client:idle />
+          {floatChips.map((t, i) => <span class={`hero-chip hero-chip-${i}`} aria-hidden="true">{t}</span>)}
+          <div class="hero-algo algo-say">
+            <Algo mood="happy" size={70} body />
+            <div class="algo-bubble">
+              안녕하세요! 저는 <strong>알고</strong>예요. 저 공은 지금 <strong>"배우는 중"</strong>이에요. 왜 그런지, 1장부터 같이 알아봐요!
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="container home-section">
+      <h2 class="section-title" data-reveal>AI는 이렇게 배워요</h2>
+      <p class="section-sub" data-reveal>사람이 규칙을 알려 주지 않아도, 예시만 보고 스스로 규칙을 찾아내요. 딱 세 단계예요.</p>
+      <HowItLearns />
+    </section>
+
+    {featured.length > 0 && (
+      <section class="container home-section">
+        <div class="section-head">
+          <div>
+            <h2 class="section-title" data-reveal>직접 만져 보는 개념들</h2>
+            <p class="section-sub" data-reveal>읽기 전에 먼저 놀아 보세요. 슬라이더를 밀고, 점을 끌고, 3D를 돌리다 보면 개념이 저절로 잡혀요.</p>
+          </div>
+          <a class="btn btn-sm" href={url('/playground/')}>실험 {allViz.length}개 모두 보기 →</a>
+        </div>
+        <div class="feat-grid">
+          {featured.map((v) => <VizCard meta={v} label={v.chapter !== undefined ? `${v.chapter}장` : `코드랩 ${v.lab}`} reveal />)}
+        </div>
+      </section>
+    )}
+
+    <section class="container home-section" id="map">
+      <h2 class="section-title" data-reveal>나의 학습 지도</h2>
+      <p class="section-sub" data-reveal>읽은 장은 별이 켜지고, 알고가 다음에 읽을 곳에서 기다려요. 기록은 이 브라우저에만 저장돼요.</p>
+      <LearningMap parts={mapParts} totalViz={allViz.length} client:visible />
+    </section>
+
+    <section class="container home-section">
+      <h2 class="section-title" data-reveal>9부 28장, 한눈에 보기</h2>
+      <p class="section-sub" data-reveal>모든 장은 앞 장만 알면 읽을 수 있게 차례대로 쌓여 있어요.</p>
+      <PartsGrid book={book} />
+    </section>
+
+    <section class="container home-section">
+      <h2 class="section-title" data-reveal>더 깊이, 더 단단하게</h2>
+      <div class="more-grid">
+        <a class="more-card card card-hover" href={url('/practice/')} data-reveal>
+          <span class="more-emoji">💻</span>
+          <strong>코드랩 {labs.length - 1}편</strong>
+          <span>책에서 배운 원리를 파이썬 코드로 직접 만들어요. 코드가 하는 일을 그림으로 먼저 보여 줘요.</span>
+        </a>
+        <a class="more-card card card-hover" href={url('/review/')} data-reveal>
+          <span class="more-emoji">✅</span>
+          <strong>복습 퀴즈 {quizzes.length - 1}세트</strong>
+          <span>답을 보기 전에 먼저 떠올려 보는 연습. 맞힌 문제와 다시 볼 문제가 기록돼요.</span>
+        </a>
+        <a class="more-card card card-hover" href={url('/glossary/')} data-reveal>
+          <span class="more-emoji">📚</span>
+          <strong>용어 사전 {glossaryTerms.length}개</strong>
+          <span>막히는 낱말을 중학생도 알 수 있는 말로 풀었어요. 본문의 점선을 눌러도 바로 떠요.</span>
+        </a>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<style>
+  .hero {
+    position: relative;
+    padding: clamp(28px, 6vw, 72px) 0 24px;
+    overflow: hidden;
+  }
+
+  .hero-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    align-items: center;
+    gap: 32px;
+  }
+
+  .hero-kicker {
+    display: inline-flex;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    font-size: 14px;
+    font-weight: 750;
+    color: var(--text-2);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .hero-title {
+    margin: 18px 0 16px;
+    font-size: clamp(36px, 6vw, 64px);
+    font-weight: 900;
+    line-height: 1.14;
+    letter-spacing: -0.05em;
+  }
+
+  :global(:root[data-theme='dark']) .hero-title .gradient-text {
+    filter: drop-shadow(0 0 22px rgba(34, 229, 255, 0.35));
+  }
+
+  .hero-lead {
+    margin: 0 0 26px;
+    max-width: 540px;
+    font-size: clamp(16px, 1.6vw, 18.5px);
+    line-height: 1.75;
+    color: var(--text-2);
+  }
+
+  .hero-lead strong {
+    color: var(--text);
+  }
+
+  .hero-cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .hero-btn {
+    min-height: 52px;
+    padding: 0 24px;
+    font-size: 16.5px;
+  }
+
+  .hero-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 22px;
+    margin: 28px 0 0;
+    padding: 0;
+    list-style: none;
+    color: var(--text-2);
+    font-size: 14.5px;
+  }
+
+  .hero-stats strong {
+    margin-right: 3px;
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--text);
+    letter-spacing: -0.03em;
+  }
+
+  .hero-visual {
+    position: relative;
+    min-height: 460px;
+  }
+
+  .hero-orb {
+    position: absolute;
+    inset: 6% 4%;
+    border-radius: 50%;
+    background:
+      radial-gradient(closest-side, color-mix(in srgb, var(--lav) 28%, transparent), transparent),
+      radial-gradient(closest-side at 70% 70%, color-mix(in srgb, var(--mint) 24%, transparent), transparent);
+    filter: blur(10px);
+  }
+
+  .hero-visual :global(.hero-scene) {
+    position: absolute;
+    inset: 0;
+    -webkit-mask-image: radial-gradient(62% 58% at 50% 48%, #000 55%, transparent 100%);
+    mask-image: radial-gradient(62% 58% at 50% 48%, #000 55%, transparent 100%);
+  }
+
+  .hero-visual :global(.hero-canvas) {
+    position: absolute !important;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .hero-visual :global(.hero-fallback) {
+    position: absolute;
+    inset: 10% 6% 22%;
+    display: grid;
+    place-items: center;
+    opacity: 0.85;
+  }
+
+  .hero-visual :global(.hero-canvas + .hero-fallback),
+  .hero-visual :global(.hero-scene:has(canvas) .hero-fallback) {
+    display: none;
+  }
+
+  .hero-chip {
+    position: absolute;
+    z-index: 2;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--surface-solid);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    font-size: 13px;
+    font-weight: 800;
+    white-space: nowrap;
+    animation: chip-float 6s ease-in-out infinite;
+  }
+
+  :global(:root[data-theme='dark']) .hero-chip {
+    box-shadow: var(--shadow), 0 0 14px rgba(34, 229, 255, 0.18);
+  }
+
+  .hero-chip-0 { left: 2%; top: 8%; animation-delay: 0s; }
+  .hero-chip-1 { right: 4%; top: 4%; animation-delay: -1s; }
+  .hero-chip-2 { right: 0; top: 36%; animation-delay: -2s; }
+  .hero-chip-3 { left: 0; top: 42%; animation-delay: -3s; }
+  .hero-chip-4 { right: 10%; bottom: 30%; animation-delay: -4s; }
+  .hero-chip-5 { left: 24%; top: -2%; animation-delay: -2.5s; }
+  .hero-chip-6 { left: 8%; bottom: 32%; animation-delay: -5s; }
+
+  @keyframes chip-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  .hero-algo {
+    position: absolute;
+    left: 6%;
+    right: 6%;
+    bottom: 0;
+    z-index: 3;
+    align-items: flex-end;
+  }
+
+  .hero-algo .algo-bubble {
+    font-size: 14.5px;
+    margin-bottom: 18px;
+  }
+
+  .home-section {
+    margin-top: clamp(56px, 9vw, 104px);
+  }
+
+  .section-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px 24px;
+    margin-bottom: 0;
+  }
+
+  .section-head .btn {
+    margin-bottom: 28px;
+  }
+
+  .feat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 16px;
+  }
+
+  .more-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+  }
+
+  .more-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 22px;
+  }
+
+  .more-emoji {
+    font-size: 36px;
+  }
+
+  .more-card strong {
+    font-size: 19px;
+    letter-spacing: -0.03em;
+  }
+
+  .more-card span:last-child {
+    color: var(--text-2);
+    font-size: 14.5px;
+    line-height: 1.65;
+  }
+
+  @media (max-width: 960px) {
+    .hero-inner {
+      grid-template-columns: 1fr;
+    }
+    .hero-visual {
+      min-height: 400px;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .hero-visual {
+      min-height: 360px;
+      margin-inline: calc(var(--gutter) * -1);
+    }
+    .hero-chip {
+      font-size: 11.5px;
+      padding: 4px 9px;
+    }
+    .hero-chip-5,
+    .hero-chip-6 {
+      display: none;
+    }
+    .hero-algo .algo-bubble {
+      font-size: 13.5px;
+    }
+    .hero-btn {
+      flex: 1;
+    }
+  }
+</style>

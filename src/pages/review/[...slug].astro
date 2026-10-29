@@ -1,0 +1,178 @@
+---
+import { render } from 'astro:content';
+import DocLayout from '@/layouts/DocLayout.astro';
+import PrevNext from '@/components/chapter/PrevNext.astro';
+import Algo from '@/components/mascot/Algo.tsx';
+import { getQuizzes, quizHref, type QuizEntry } from '@/lib/content';
+import { PARTS, url } from '@/data/curriculum';
+
+export async function getStaticPaths() {
+  const quizzes = await getQuizzes();
+  return quizzes.map((entry, i) => ({
+    params: { slug: entry.id === 'index' ? undefined : entry.id },
+    props: { entry, prev: quizzes[i - 1], next: quizzes[i + 1] }
+  }));
+}
+
+interface Props {
+  entry: QuizEntry;
+  prev?: QuizEntry;
+  next?: QuizEntry;
+}
+const { entry, prev, next } = Astro.props;
+const { Content, headings } = await render(entry);
+const d = entry.data;
+const isHub = d.part === 0;
+const part = PARTS.find((p) => p.part === d.part);
+const quizzes = await getQuizzes();
+const link = (e?: QuizEntry) => e && { href: quizHref(e.id), label: e.data.part === 0 ? '복습 허브' : `${e.data.part}부 퀴즈`, title: e.data.part === 0 ? '복습 퀴즈' : e.data.title };
+---
+<DocLayout title={isHub ? '복습 퀴즈' : `${d.part}부 퀴즈. ${d.title}`} section="review" current={entry.id} headings={headings}>
+  <article class="quiz-page" data-part={d.part} data-pagefind-body data-pagefind-meta={`title:${isHub ? '복습 퀴즈' : `${d.part}부 퀴즈 · ${d.title}`}`}>
+    <header class="qp-head">
+      {part && <span class="part-badge">{part.emoji} {part.part}부 복습</span>}
+      <h1 class="qp-title">{isHub ? '복습 퀴즈' : d.title}</h1>
+      <div class="algo-say">
+        <Algo mood={isHub ? 'happy' : 'think'} size={60} />
+        <div class="algo-bubble">
+          {isHub
+            ? '답을 보기 전에 머릿속으로 먼저 답해 보세요. 그게 기억을 오래 남기는 가장 확실한 방법이에요!'
+            : `문제 ${d.total}개예요. 먼저 스스로 답해 보고 "정답 보기"로 확인한 뒤, 맞혔는지 표시해 주세요.`}
+        </div>
+      </div>
+    </header>
+
+    {isHub && (
+      <div class="qp-grid">
+        {quizzes.filter((q) => q.data.part > 0).map((q) => {
+          const p = PARTS.find((x) => x.part === q.data.part)!;
+          return (
+            <a class="qp-card card card-hover" href={quizHref(q.id)} data-part={q.data.part} data-quiz-prefix={`p${q.data.part}`} data-total={q.data.total}>
+              <span class="qp-emoji" aria-hidden="true">{p.emoji}</span>
+              <span class="qp-card-body">
+                <small>{p.part}부 · {q.data.total}문제</small>
+                <strong>{q.data.title}</strong>
+                <span class="qp-bar"><span></span></span>
+                <span class="qp-stat">아직 기록이 없어요</span>
+              </span>
+            </a>
+          );
+        })}
+      </div>
+    )}
+
+    <div class="prose">
+      <Content />
+    </div>
+
+    <PrevNext prev={link(prev)} next={link(next)} />
+    {!isHub && <p class="qp-back"><a href={url('/review/')}>← 복습 허브로</a></p>}
+  </article>
+</DocLayout>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-quiz-prefix]').forEach((card) => {
+    const prefix = card.dataset.quizPrefix!;
+    const total = Number(card.dataset.total);
+    let pass = 0;
+    let again = 0;
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k?.startsWith(`aihub-quiz:${prefix}-`)) {
+          const v = localStorage.getItem(k);
+          if (v === 'pass') pass++;
+          else if (v === 'again') again++;
+        }
+      }
+    } catch {
+      /* storage unavailable */
+    }
+    const bar = card.querySelector<HTMLElement>('.qp-bar span')!;
+    bar.style.width = `${total ? Math.round((pass / total) * 100) : 0}%`;
+    if (pass || again) card.querySelector('.qp-stat')!.textContent = `맞힘 ${pass} / ${total}${again ? ` · 복습 ${again}` : ''}`;
+  });
+</script>
+
+<style>
+  .qp-head {
+    margin-bottom: 26px;
+  }
+
+  .qp-title {
+    margin: 12px 0 18px;
+    font-size: clamp(28px, 4.2vw, 40px);
+    font-weight: 850;
+    letter-spacing: -0.04em;
+  }
+
+  .qp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+
+  .qp-card {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 16px;
+  }
+
+  .qp-emoji {
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    background: var(--part-soft);
+    font-size: 24px;
+    flex: none;
+  }
+
+  .qp-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .qp-card-body small {
+    font-weight: 750;
+    color: var(--text-3);
+  }
+
+  .qp-bar {
+    display: block;
+    height: 7px;
+    margin-top: 6px;
+    border-radius: 99px;
+    background: var(--surface-3);
+    overflow: hidden;
+  }
+
+  .qp-bar span {
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: 99px;
+    background: var(--grad-brand);
+    transition: width 0.6s var(--ease-out);
+  }
+
+  .qp-stat {
+    font-size: 12.5px;
+    color: var(--text-2);
+  }
+
+  .qp-back {
+    margin-top: 18px;
+    font-weight: 700;
+  }
+
+  .qp-back a {
+    color: var(--link);
+  }
+</style>

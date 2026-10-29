@@ -1,0 +1,116 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Viz from '@/components/viz/Viz.tsx';
+import Icon from '@/components/layout/Icon.astro';
+import { allViz, type VizMeta } from '@/data/viz';
+import { getBook, getLabs, bookHref, labHref } from '@/lib/content';
+import { url, partOf } from '@/data/curriculum';
+
+export function getStaticPaths() {
+  return allViz.map((v, i) => ({ params: { id: v.id }, props: { meta: v, prev: allViz[i - 1], next: allViz[i + 1] } }));
+}
+
+interface Props {
+  meta: VizMeta;
+  prev?: VizMeta;
+  next?: VizMeta;
+}
+const { meta, prev, next } = Astro.props;
+const book = await getBook();
+const labs = await getLabs();
+const chapter = meta.chapter !== undefined ? book.find((e) => e.data.chapter === meta.chapter) : undefined;
+const lab = meta.lab !== undefined ? labs.find((e) => e.data.lab === meta.lab) : undefined;
+const home = chapter
+  ? { href: `${bookHref(chapter.id)}#viz-${meta.id}`, label: `${chapter.data.chapter}장 「${chapter.data.title}」` }
+  : lab
+    ? { href: `${labHref(lab.id)}#viz-${meta.id}`, label: `코드랩 ${String(lab.data.lab).padStart(2, '0')} 「${lab.data.title}」` }
+    : undefined;
+const part = meta.chapter !== undefined ? partOf(meta.chapter) : undefined;
+---
+<BaseLayout title={`${meta.title} — 시각화 실험실`} description={meta.tagline}>
+  <main id="main" class="container pg-single" data-part={part?.part ?? 0}>
+    <nav class="crumbs" aria-label="경로">
+      <a href={url('/playground/')}><Icon name="flask" size={16} />시각화 실험실</a>
+      <span aria-hidden="true">›</span>
+      <span>{meta.title}</span>
+    </nav>
+
+    <Viz id={meta.id} client:load />
+
+    {home && (
+      <a class="pg-home card card-hover" href={home.href}>
+        <span class="pg-home-emoji" aria-hidden="true">{part?.emoji ?? '💻'}</span>
+        <span>
+          <small>이 실험이 나오는 곳</small>
+          <strong>{home.label}</strong>
+        </span>
+        <Icon name="arrow-right" />
+      </a>
+    )}
+
+    <nav class="pg-pn" aria-label="다른 실험">
+      {prev ? <a class="btn" href={url(`/playground/${prev.id}/`)}><Icon name="arrow-left" size={16} />{prev.icon} {prev.title}</a> : <span />}
+      {next ? <a class="btn" href={url(`/playground/${next.id}/`)}>{next.icon} {next.title}<Icon name="arrow-right" size={16} /></a> : <span />}
+    </nav>
+  </main>
+</BaseLayout>
+
+<style>
+  .pg-single {
+    max-width: 1080px;
+    padding-top: 24px;
+  }
+
+  .crumbs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 650;
+    color: var(--text-2);
+  }
+
+  .crumbs a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--link);
+  }
+
+  .pg-home {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+  }
+
+  .pg-home span {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  .pg-home small {
+    color: var(--text-3);
+    font-weight: 700;
+  }
+
+  .pg-home-emoji {
+    flex: none !important;
+    display: grid !important;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    background: var(--part-soft);
+    font-size: 24px;
+  }
+
+  .pg-pn {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 20px;
+  }
+</style>

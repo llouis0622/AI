@@ -1,0 +1,312 @@
+---
+import '@/styles/global.css';
+import Header from '@/components/layout/Header.astro';
+import Footer from '@/components/layout/Footer.astro';
+import SearchModal from '@/components/layout/SearchModal.astro';
+import GlossaryTooltip from '@/components/glossary/GlossaryTooltip.astro';
+import Icon from '@/components/layout/Icon.astro';
+import { url } from '@/data/curriculum';
+
+interface Props {
+  title?: string;
+  description?: string;
+  hasSidebar?: boolean;
+  /** Extra class on <body>. */
+  bodyClass?: string;
+}
+
+const {
+  title,
+  description = '그림과 3D 시각화로 보면서 배우는 인공지능 교과서. 직선 하나를 긋는 학습 기계에서 GPT·확산 모델·강화학습·에이전트까지.',
+  hasSidebar = false,
+  bodyClass = ''
+} = Astro.props;
+
+const fullTitle = title ? `${title} · AIology` : 'AIology — 그림으로 배우는 인공지능';
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const drawerHtml = Astro.slots.has('drawer') ? await Astro.slots.render('drawer') : '';
+
+const drawerNav = [
+  { href: '/', label: '홈', icon: 'home' },
+  { href: '/book/', label: '책', icon: 'book' },
+  { href: '/playground/', label: '시각화 실험실', icon: 'flask' },
+  { href: '/practice/', label: '코드랩', icon: 'code' },
+  { href: '/review/', label: '복습 퀴즈', icon: 'quiz' },
+  { href: '/glossary/', label: '용어 사전', icon: 'glossary' },
+  { href: '/map/', label: '학습 지도', icon: 'map' }
+] as const;
+---
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href={url('/favicon.svg')} />
+    <meta name="theme-color" content="#fff9f1" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#050816" media="(prefers-color-scheme: dark)" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:image" content={new URL(url('/og.png'), Astro.site)} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <noscript><style>[data-reveal]{opacity:1!important;transform:none!important}</style></noscript>
+    <script is:inline>
+      (function () {
+        var t;
+        try { t = localStorage.getItem('aiology:theme'); } catch (e) {}
+        if (t !== 'light' && t !== 'dark') {
+          t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        document.documentElement.setAttribute('data-theme', t);
+      })();
+    </script>
+  </head>
+  <body class={bodyClass}>
+    <a class="skip-link" href="#main">본문으로 건너뛰기</a>
+    <div class="sky" aria-hidden="true"><div class="stars-far"></div></div>
+    <Header hasSidebar={hasSidebar} />
+
+    <div class="drawer" id="drawer" aria-hidden="true" data-pagefind-ignore>
+      <div class="drawer-backdrop" data-drawer-close></div>
+      <aside class="drawer-panel" aria-label="메뉴">
+        <div class="drawer-head">
+          <strong>메뉴</strong>
+          <button class="btn btn-ghost btn-icon" type="button" data-drawer-close aria-label="메뉴 닫기"><Icon name="close" /></button>
+        </div>
+        <nav class="drawer-nav">
+          {drawerNav.map((item) => (
+            <a href={url(item.href)}><Icon name={item.icon} size={18} />{item.label}</a>
+          ))}
+        </nav>
+        {drawerHtml && <div class="drawer-extra"><Fragment set:html={drawerHtml} /></div>}
+      </aside>
+    </div>
+
+    <slot />
+    <Footer />
+    <SearchModal />
+    <GlossaryTooltip />
+    <button class="to-top" type="button" aria-label="맨 위로" data-to-top hidden>↑</button>
+
+    <script>
+      import { onThemeToggle } from '@/lib/theme';
+      onThemeToggle();
+
+      // Drawer (mobile navigation)
+      const drawer = document.getElementById('drawer')!;
+      const openBtn = document.querySelector<HTMLButtonElement>('[data-drawer-open]');
+      const setDrawer = (open: boolean) => {
+        drawer.classList.toggle('is-open', open);
+        drawer.setAttribute('aria-hidden', String(!open));
+        openBtn?.setAttribute('aria-expanded', String(open));
+        document.documentElement.classList.toggle('modal-open', open);
+        if (open) drawer.querySelector<HTMLElement>('.drawer-panel a, .drawer-panel button')?.focus();
+      };
+      openBtn?.addEventListener('click', () => setDrawer(true));
+      drawer.addEventListener('click', (e) => {
+        const t = e.target as HTMLElement;
+        if (t.closest('[data-drawer-close]') || t.closest('a')) setDrawer(false);
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && drawer.classList.contains('is-open')) setDrawer(false);
+      });
+
+      // Scroll reveal
+      const io = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('is-visible');
+              io.unobserve(entry.target);
+            }
+          }
+        },
+        { rootMargin: '0px 0px -8% 0px' }
+      );
+      document.querySelectorAll('[data-reveal]').forEach((el) => io.observe(el));
+
+      // Reading progress for long articles
+      const article = document.querySelector<HTMLElement>('[data-reading]');
+      const bar = document.querySelector<HTMLElement>('.reading-progress');
+      if (article && bar) {
+        let ticking = false;
+        const onScroll = () => {
+          if (ticking) return;
+          ticking = true;
+          requestAnimationFrame(() => {
+            const r = article.getBoundingClientRect();
+            const total = r.height - window.innerHeight * 0.6;
+            const p = Math.min(1, Math.max(0, -r.top / Math.max(1, total)));
+            bar.style.setProperty('--read', p.toFixed(4));
+            ticking = false;
+          });
+        };
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+      }
+
+      // Back to top
+      const toTop = document.querySelector<HTMLButtonElement>('[data-to-top]');
+      if (toTop) {
+        const onScrollTop = () => (toTop.hidden = window.scrollY < 900);
+        window.addEventListener('scroll', onScrollTop, { passive: true });
+        onScrollTop();
+        toTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+      }
+
+      // Copy buttons on code blocks
+      document.querySelectorAll<HTMLPreElement>('.prose pre.astro-code').forEach((pre) => {
+        const wrap = document.createElement('div');
+        wrap.className = 'code-block';
+        pre.replaceWith(wrap);
+        wrap.appendChild(pre);
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'copy-btn';
+        btn.textContent = '복사';
+        btn.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(pre.innerText);
+            btn.textContent = '복사됨 ✓';
+          } catch {
+            btn.textContent = '복사 실패';
+          }
+          setTimeout(() => (btn.textContent = '복사'), 1600);
+        });
+        wrap.appendChild(btn);
+      });
+    </script>
+
+    <style is:global>
+      .skip-link {
+        position: absolute;
+        left: 12px;
+        top: -60px;
+        z-index: 200;
+        padding: 10px 16px;
+        border-radius: 12px;
+        background: var(--surface-solid);
+        border: 1px solid var(--border-strong);
+        font-weight: 700;
+      }
+
+      .skip-link:focus {
+        top: 12px;
+      }
+
+      .to-top {
+        position: fixed;
+        right: max(16px, env(safe-area-inset-right));
+        bottom: max(16px, env(safe-area-inset-bottom));
+        z-index: 40;
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        background: var(--surface-solid);
+        border: 1px solid var(--border-strong);
+        box-shadow: var(--shadow);
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--text-2);
+        transition: transform 0.25s var(--ease-spring), color 0.2s;
+        animation: fade-in 0.25s ease-out;
+      }
+
+      .to-top:hover {
+        transform: translateY(-3px);
+        color: var(--text);
+      }
+
+      .to-top[hidden] {
+        display: none;
+      }
+
+      .drawer {
+        position: fixed;
+        inset: 0;
+        z-index: 80;
+        visibility: hidden;
+      }
+
+      .drawer.is-open {
+        visibility: visible;
+      }
+
+      .drawer-backdrop {
+        position: absolute;
+        inset: 0;
+        background: var(--overlay);
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+
+      .drawer.is-open .drawer-backdrop {
+        opacity: 1;
+      }
+
+      .drawer-panel {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: min(340px, 88vw);
+        display: flex;
+        flex-direction: column;
+        background: var(--surface-solid);
+        border-right: 1px solid var(--border);
+        box-shadow: var(--shadow-lg);
+        transform: translateX(-104%);
+        transition: transform 0.38s var(--ease-out);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding-bottom: env(safe-area-inset-bottom);
+      }
+
+      .drawer.is-open .drawer-panel {
+        transform: none;
+      }
+
+      .drawer-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 12px 12px 20px;
+        border-bottom: 1px solid var(--border);
+        position: sticky;
+        top: 0;
+        background: var(--surface-solid);
+        z-index: 1;
+      }
+
+      .drawer-nav {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+        padding: 14px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .drawer-nav a {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: var(--surface-2);
+        font-size: 14.5px;
+        font-weight: 650;
+      }
+
+      .drawer-extra {
+        padding: 8px 6px 24px;
+      }
+    </style>
+  </body>
+</html>
