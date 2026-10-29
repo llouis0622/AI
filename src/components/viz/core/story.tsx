@@ -81,8 +81,8 @@ export function CodeStory({
               height: 26,
               padding: '0 8px',
               borderRadius: 9,
-              background: 'var(--grad-brand)',
-              color: c.theme === 'dark' ? '#041018' : '#fff',
+              background: 'var(--grad-btn)',
+              color: 'var(--btn-ink)',
               fontWeight: 850,
               fontSize: 13
             }}

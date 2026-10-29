@@ -189,10 +189,10 @@ a {
 }
 
 .btn-primary {
-  --btn-bg: var(--grad-brand);
-  --btn-fg: #fff;
+  --btn-bg: var(--grad-btn);
+  --btn-fg: var(--btn-ink);
   --btn-border: transparent;
-  background: var(--grad-brand);
+  background: var(--grad-btn);
   box-shadow: 0 6px 18px color-mix(in srgb, var(--brand) 35%, transparent);
 }
 

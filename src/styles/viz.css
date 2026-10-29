@@ -89,8 +89,8 @@
 }
 
 .vz-badge-3d {
-  background: var(--grad-brand);
-  color: #fff;
+  background: var(--grad-btn);
+  color: var(--btn-ink);
 }
 
 :root[data-theme='dark'] .vz-badge-3d {
@@ -192,8 +192,8 @@
   gap: 10px;
   padding: 14px 26px;
   border-radius: 999px;
-  background: var(--grad-brand);
-  color: #fff;
+  background: var(--grad-btn);
+  color: var(--btn-ink);
   font-size: 16px;
   font-weight: 800;
   box-shadow: 0 10px 26px color-mix(in srgb, var(--brand) 40%, transparent);
@@ -464,8 +464,8 @@
 
 .vz-btn-primary {
   border-color: transparent;
-  background: var(--grad-brand);
-  color: #fff;
+  background: var(--grad-btn);
+  color: var(--btn-ink);
 }
 
 :root[data-theme='dark'] .vz-btn-primary {
