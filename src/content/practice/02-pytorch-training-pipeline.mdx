@@ -4,11 +4,32 @@ lab: 2
 track: "A. 기초"
 builds: "CIFAR-10을 ResNet으로 분류하는, 실무 수준의 완전한 학습 스크립트. 데이터 증강, 혼합 정밀도(AMP), 학습률 스케줄, 체크포인트, 검증 루프까지 — 어떤 프로젝트에도 재사용할 수 있는 템플릿이다."
 chapters: [11, 12]
+summary:
+  - icon: "🖼️"
+    title: "섞고, 자르고, 뒤집고"
+    text: "훈련 사진은 매번 **조금씩 다르게** 변형해서 외우지 못하게 하고, 검증 사진은 항상 그대로 둬요."
+    visual: "shake"
+  - icon: "⚡"
+    title: "빠르고 가볍게 (AMP)"
+    text: "순전파를 fp16으로 돌려 메모리는 절반, 속도는 1.5~3배. 대신 **scale → unscale** 순서를 지켜요."
+    visual: "pulse"
+  - icon: "📈"
+    title: "학습률도 계획이 있다"
+    text: "OneCycle: 처음 10%는 천천히 올리고(웜업), 나머지는 코사인 곡선으로 **부드럽게 내려요**."
+    visual: "grow"
+  - icon: "💾"
+    title: "최고 기록만 저장"
+    text: "정확도가 새 기록을 세울 때만 **가중치 + 설정**을 함께 저장해요. 20 에포크면 약 92%!"
+    visual: "bounce"
 ---
+
+import Viz from '@/components/viz/Viz.tsx';
 
 **만드는 것**: CIFAR-10을 ResNet으로 분류하는, 실무 수준의 완전한 학습 스크립트. 데이터 증강, 혼합 정밀도(AMP), 학습률 스케줄, 체크포인트, 검증 루프까지 — 어떤 프로젝트에도 재사용할 수 있는 템플릿이다.
 
 **선행 지식**: [11장. 깊이의 대가](/book/11-training-deep-nets), [12장. 병든 학습 고치기](/book/12-debugging-training)
+
+<Viz id="lab02-training-pipeline" client:visible />
 
 ## 전체 코드
 
@@ -160,6 +181,8 @@ if __name__ == "__main__":
 1. **첫 배치 손실** — 10 클래스 분류의 초기 손실은 $-\log(1/10) \approx 2.30$이어야 한다. 크게 다르면 초기화나 손실 정의가 잘못됐다.
 2. **작은 데이터 과적합 테스트** — 배치 하나(256장)만으로 학습해 손실이 ~0으로 가는지 확인한다. 안 가면 모델/루프에 버그가 있다.
 3. **학습률 곡선** — 손실이 처음부터 발산하면 lr 10배 감소, 너무 느리면 10배 증가부터 시도한다. ([진단 순서](/book/12-debugging-training))
+
+<Viz id="loss-doctor" client:visible />
 
 ## 확장 과제
 

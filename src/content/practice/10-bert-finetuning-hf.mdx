@@ -4,11 +4,32 @@ lab: 10
 track: "C. NLP와 LLM"
 builds: "Hugging Face 생태계(`transformers`, `datasets`, `evaluate`)로 한국어 감성 분류기를 파인튜닝한다. NLP 실무의 표준 워크플로우 — 데이터 로드부터 학습, 평가, 추론 파이프라인, 모델 저장까지."
 chapters: [18]
+summary:
+  - icon: "🎬"
+    title: "리뷰 20만 개"
+    text: "네이버 영화 리뷰(NSMC)를 **긍정/부정**으로 나누는 감성 분류기를 만들어요."
+    visual: "float"
+  - icon: "✂️"
+    title: "토크나이즈 + 동적 패딩"
+    text: "모델 전용 토크나이저로 자르고, 배치마다 **그 배치의 최대 길이**까지만 채워요."
+    visual: "slide"
+  - icon: "🧠"
+    title: "BERT + 새 머리"
+    text: "사전학습된 BERT 위에 **[CLS] → 2칸 분류 헤드**만 새로 붙여요. 몸통은 이미 언어를 알아요."
+    visual: "orbit"
+  - icon: "🐢"
+    title: "작은 학습률로 살살"
+    text: "학습률 **2e-5**와 웜업으로 조심스럽게. 너무 크면 사전학습 지식이 무너져요."
+    visual: "grow"
 ---
+
+import Viz from '@/components/viz/Viz.tsx';
 
 **만드는 것**: Hugging Face 생태계(`transformers`, `datasets`, `evaluate`)로 한국어 감성 분류기를 파인튜닝한다. NLP 실무의 표준 워크플로우 — 데이터 로드부터 학습, 평가, 추론 파이프라인, 모델 저장까지.
 
 **선행 지식**: [BERT 계열](/book/18-transformer), [03. 전이학습](/practice/03-transfer-learning)의 개념이 텍스트로 그대로 이어진다.
+
+<Viz id="lab10-bert-finetune" client:visible />
 
 ## 전체 코드
 
