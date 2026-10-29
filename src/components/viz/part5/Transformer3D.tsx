@@ -149,7 +149,7 @@ export default function Transformer3D({ expanded }: VizProps) {
 
   return (
     <div>
-      <Scene3D height={stageH} camera={[9.5, 7.5, 11.5]} target={[0, 4.1, 0]} minDistance={6} maxDistance={26}>
+      <Scene3D height={stageH} camera={[5.5, 6.0, 13.8]} target={[0, 4.1, 0]} minDistance={6} maxDistance={28} fit={1}>
         {/* token labels under the input */}
         {TOKENS[variant].map((t, i) => (
           <Label3D key={`${variant}-${t}-${i}`} position={[XS[i], -0.35, 0.9]}>
@@ -173,7 +173,18 @@ export default function Transformer3D({ expanded }: VizProps) {
                   <meshStandardMaterial color={c.series[2]} transparent opacity={at('ffn') ? 0.55 : 0.22} emissive={c.series[2]} emissiveIntensity={at('ffn') ? 0.5 : 0} />
                 </mesh>
               ))}
-              <Label3D position={[-4.1, base(b) + OFFSET.ffn, 0]}>{`블록 ${b + 1} · 피드포워드`}</Label3D>
+              {at('ffn') && <Label3D position={[-4.1, base(b) + OFFSET.ffn, 0]}>{`블록 ${b + 1} · 피드포워드`}</Label3D>}
+              <Line
+                points={[
+                  [3.55, base(b) - 0.05, 0],
+                  [3.75, base(b) - 0.05, 0],
+                  [3.75, base(b) + OFFSET.add2 + 0.05, 0],
+                  [3.55, base(b) + OFFSET.add2 + 0.05, 0]
+                ]}
+                color={ink}
+                lineWidth={1.5}
+              />
+              <Label3D position={[4.5, base(b) + OFFSET.add2 / 2, 0]}>{`블록 ${b + 1}`}</Label3D>
               {rails &&
                 XS.map((x, i) => (
                   <group key={`r${i}`}>
@@ -209,7 +220,7 @@ export default function Transformer3D({ expanded }: VizProps) {
         {cur.kind === 'head' &&
           OUTPUTS[variant].map(([w, p], k) => {
             const x = -2.4 + k * 1.6;
-            const h = 0.25 + p * 2.2;
+            const h = 0.2 + p * 1.4;
             return (
               <group key={w}>
                 <mesh position={[x, HEAD_Y - 0.15 + h / 2, -0.2]}>
@@ -288,7 +299,7 @@ function Plate({
         <boxGeometry args={[6.6, thin ? 0.05 : 0.09, 1.5]} />
         <meshStandardMaterial color={color} transparent opacity={active ? 0.5 : 0.16} emissive={color} emissiveIntensity={active ? 0.45 : 0.05} depthWrite={false} />
       </mesh>
-      <Label3D position={[-4.1, y, 0]}>{label}</Label3D>
+      {active && <Label3D position={[-4.1, y, 0]}>{label}</Label3D>}
     </group>
   );
 }
@@ -328,8 +339,8 @@ function TokenBoxes({ stage, colors, focus }: { stage: Stage; colors: string[]; 
       if (!g) return;
       const targetY = stage.kind === 'head' ? (i === focus ? HEAD_Y - 0.55 : base(2) - 0.35) : stage.y + 0.3;
       g.position.y += (targetY - g.position.y) * (1 - Math.exp(-dt * 5));
-      const s = 1 + Math.sin(swell.current * Math.PI) * 0.45;
-      g.scale.setScalar(s);
+      // the feed-forward layer widens each token's vector, then narrows it again
+      g.scale.setScalar(1 + swell.current * 0.45);
     });
   });
   return (

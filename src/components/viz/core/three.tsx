@@ -26,7 +26,8 @@ export function Scene3D({
   autoRotate = false,
   minDistance = 4,
   maxDistance = 22,
-  enablePan = false
+  enablePan = false,
+  fit = 1.5
 }: {
   children: ReactNode;
   height?: number | string;
@@ -37,6 +38,8 @@ export function Scene3D({
   minDistance?: number;
   maxDistance?: number;
   enablePan?: boolean;
+  /** How far a portrait stage pulls the camera back: k = clamp(fit / aspect, 1, 2). */
+  fit?: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, '100px');
@@ -124,7 +127,7 @@ export function Scene3D({
         <hemisphereLight args={[dark ? '#7fe9ff' : '#ffffff', dark ? '#2a0f4a' : '#f3e6d6', dark ? 0.6 : 0.55]} />
         <directionalLight position={[6, 12, 8]} intensity={dark ? 1.0 : 1.25} />
         <directionalLight position={[-8, 6, -6]} intensity={dark ? 0.35 : 0.3} />
-        <CameraFit position={camera} target={target} />
+        <CameraFit position={camera} target={target} fit={fit} />
         {children}
         <OrbitControls
           makeDefault
@@ -149,11 +152,11 @@ export function Scene3D({
  * its view direction until the scene fits. Runs on resize only, so user orbiting
  * is otherwise left alone.
  */
-function CameraFit({ position, target }: { position: [number, number, number]; target: [number, number, number] }) {
+function CameraFit({ position, target, fit }: { position: [number, number, number]; target: [number, number, number]; fit: number }) {
   const { camera, size } = useThree();
   const aspect = size.width / Math.max(1, size.height);
   useEffect(() => {
-    const k = Math.min(2, Math.max(1, 1.5 / aspect));
+    const k = Math.min(2, Math.max(1, fit / aspect));
     camera.position.set(
       target[0] + (position[0] - target[0]) * k,
       target[1] + (position[1] - target[1]) * k,
