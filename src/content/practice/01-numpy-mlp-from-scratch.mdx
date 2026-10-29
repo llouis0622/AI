@@ -4,7 +4,26 @@ lab: 1
 track: "A. 기초"
 builds: "프레임워크 없이 NumPy만으로 2층 MLP를 구현해 MNIST 손글씨를 97%+ 정확도로 분류한다."
 chapters: [10, 9]
+summary:
+  - icon: "🖼️"
+    title: "그림을 숫자로"
+    text: "28×28 손글씨 한 장을 **784개 숫자** 한 줄로 펴고, 128장씩 묶어 행렬 X로 만들어요."
+    visual: "slide"
+  - icon: "🧮"
+    title: "곱하고, 꺾고, 확률로"
+    text: "행렬 곱 → **ReLU** → 행렬 곱 → **소프트맥스**. 마지막엔 숫자 0~9 각각의 확률이 나와요."
+    visual: "pulse"
+  - icon: "↩️"
+    title: "기울기는 거꾸로"
+    text: "손실에서 출발해 **(probs − Y) / n** 한 줄로 시작, 층을 거슬러 올라가며 기울기를 구해요."
+    visual: "spin"
+  - icon: "🏆"
+    title: "반복하면 97.5%"
+    text: "기울기 반대로 한 걸음씩. 프레임워크 없이 NumPy만으로 **테스트 정확도 97.5%**에 도착해요."
+    visual: "bounce"
 ---
+
+import Viz from '@/components/viz/Viz.tsx';
 
 **만드는 것**: 프레임워크 없이 NumPy만으로 2층 MLP를 구현해 MNIST 손글씨를 97%+ 정확도로 분류한다.
 
@@ -21,6 +40,8 @@ z_1 = XW_1 + b_1,\quad h = \mathrm{ReLU}(z_1),\quad z_2 = hW_2 + b_2,\quad \hat{
 $$
 
 손실은 교차엔트로피, 역전파는 이 순서를 거꾸로 밟는다. 소프트맥스+교차엔트로피의 그래디언트가 $\hat{y} - y$로 깔끔하게 떨어지는 것이 핵심 유도다([유도 과정](/book/05-classification)).
+
+<Viz id="lab01-forward-backward" client:visible />
 
 ## 전체 코드
 

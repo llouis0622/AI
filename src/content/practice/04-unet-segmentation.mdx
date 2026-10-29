@@ -4,13 +4,34 @@ lab: 4
 track: "B. 컴퓨터 비전"
 builds: "U-Net을 밑바닥부터 구현해 Oxford-IIIT Pet 데이터셋에서 \"픽셀마다\" 반려동물/배경/경계를 분할한다."
 chapters: [14, 13]
+summary:
+  - icon: "🐱"
+    title: "픽셀마다 정답"
+    text: "사진 한 장에 답 하나가 아니라, **모든 픽셀**에 '반려동물/배경/경계' 중 하나를 맞혀요."
+    visual: "float"
+  - icon: "⬇️"
+    title: "내려가며 요약"
+    text: "인코더는 해상도를 절반씩 줄이고 채널을 두 배씩 늘려 **'무엇이 있는지'**를 압축해요."
+    visual: "slide"
+  - icon: "🌉"
+    title: "스킵 연결로 다시 선명하게"
+    text: "디코더가 올라올 때 같은 높이의 인코더 특징을 **이어붙여** 잃었던 '어디'를 되살려요."
+    visual: "orbit"
+  - icon: "🎯"
+    title: "CE + Dice 손실"
+    text: "넓은 배경에 묻히지 않게 **겹침 비율(Dice)**을 함께 줄여요. 15 에포크면 mIoU 약 0.80!"
+    visual: "pulse"
 ---
+
+import Viz from '@/components/viz/Viz.tsx';
 
 **만드는 것**: U-Net을 밑바닥부터 구현해 Oxford-IIIT Pet 데이터셋에서 "픽셀마다" 반려동물/배경/경계를 분할한다.
 
 **핵심 개념**: 분류는 이미지 → 레이블 하나지만, 세그멘테이션은 이미지 → 같은 크기의 레이블 맵이다. 공간 정보를 잃지 않으면서 넓은 문맥을 보는 것이 과제이고, U-Net의 인코더-디코더 + 스킵 연결이 그 답이다.
 
 **선행 지식**: [세그멘테이션 이론](/book/14-vision-tasks), [합성곱 연산](/book/13-cnn)
+
+<Viz id="lab04-unet" client:visible />
 
 ## 전체 코드
 

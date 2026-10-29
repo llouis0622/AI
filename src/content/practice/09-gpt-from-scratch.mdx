@@ -4,11 +4,32 @@ lab: 9
 track: "C. NLP와 LLM"
 builds: "디코더 전용(decoder-only) GPT를 구현해 텍스트 코퍼스로 학습하고, 온도·top-k 샘플링으로 생성하고, KV 캐시로 추론을 가속한다. 모든 현대 LLM의 최소 완전체다."
 chapters: [18, 21]
+summary:
+  - icon: "➡️"
+    title: "한 칸 민 것이 정답"
+    text: "글자를 번호로 바꾸고, 입력을 **한 칸 밀어 놓은 것**을 정답으로 삼아 다음 글자를 맞혀요."
+    visual: "slide"
+  - icon: "🙈"
+    title: "과거만 본다"
+    text: "인과 마스크 덕분에 각 자리는 **자기와 앞쪽 글자만** 봐요. 미래를 엿보면 반칙!"
+    visual: "shake"
+  - icon: "🎲"
+    title: "온도·top-k 샘플링"
+    text: "온도로 분포를 날카롭게 하고, **상위 k개**만 남겨 주사위를 굴려 다음 글자를 뽑아요."
+    visual: "spin"
+  - icon: "⚡"
+    title: "KV 캐시로 빠르게"
+    text: "프롬프트는 한 번에, 그다음은 **새 글자 하나씩만** 계산해요. 지난 K·V는 저장해 두고 재사용!"
+    visual: "pulse"
 ---
+
+import Viz from '@/components/viz/Viz.tsx';
 
 **만드는 것**: 디코더 전용(decoder-only) GPT를 구현해 텍스트 코퍼스로 학습하고, 온도·top-k 샘플링으로 생성하고, KV 캐시로 추론을 가속한다. 모든 현대 LLM의 최소 완전체다.
 
 **선행 지식**: [GPT와 인과 언어 모델링](/book/18-transformer), [LLM의 본질](/book/21-llm-pretraining), [08. Transformer](/practice/08-transformer-from-scratch)
+
+<Viz id="lab09-gpt" client:visible />
 
 ## 전체 코드
 
@@ -155,6 +176,8 @@ if __name__ == "__main__":
 ```
 
 GPU에서 5000 스텝 ~10분. 한국어 소설을 넣으면 그럴듯한 한국어 문체가, 코드를 넣으면 들여쓰기와 문법 구조가 나오기 시작한다. **이 작은 모델이 하는 일과 최신 LLM이 하는 일은 스케일만 다르고 본질이 같다.**
+
+<Viz id="next-token" client:visible />
 
 ## 반드시 이해할 세 지점
 

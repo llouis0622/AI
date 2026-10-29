@@ -4,13 +4,34 @@ lab: 6
 track: "B. 컴퓨터 비전"
 builds: "Vision Transformer를 밑바닥부터 구현해 CIFAR-10을 학습한다. 여기서 짠 Multi-Head Attention은 [08. Transformer](/practice/08-transformer-from-scratch)와 [09. GPT](/practice/09-gpt-from-scratch)에서 그대로 재사용된다 — \"어텐션은 하나다\"를 몸으로 확인한다."
 chapters: [14, 17]
+summary:
+  - icon: "🧩"
+    title: "사진을 조각으로"
+    text: "32×32 사진을 4×4 패치 **64개**로 잘라, 문장 속 단어처럼 한 줄로 세워요."
+    visual: "float"
+  - icon: "⭐"
+    title: "[CLS] + 자리 번호"
+    text: "맨 앞에 요약 담당 **[CLS] 토큰**을 붙이고, 패치마다 위치 임베딩을 더해 자리를 알려 줘요."
+    visual: "orbit"
+  - icon: "👀"
+    title: "어텐션으로 전체를 본다"
+    text: "블록 6개를 지나며 모든 패치가 **서로를 바라보고** 정보를 섞어요. 분류는 [CLS] 하나로!"
+    visual: "pulse"
+  - icon: "⚖️"
+    title: "데이터가 적으면 CNN 승"
+    text: "지역성 힌트가 없어 CIFAR-10에선 **~85%**(ResNet ~93%). 큰 데이터로 사전학습하면 역전돼요."
+    visual: "grow"
 ---
+
+import Viz from '@/components/viz/Viz.tsx';
 
 **만드는 것**: Vision Transformer를 밑바닥부터 구현해 CIFAR-10을 학습한다. 여기서 짠 Multi-Head Attention은 [08. Transformer](/practice/08-transformer-from-scratch)와 [09. GPT](/practice/09-gpt-from-scratch)에서 그대로 재사용된다 — "어텐션은 하나다"를 몸으로 확인한다.
 
 **핵심 아이디어**: 이미지를 16×16(여기서는 4×4) 패치로 잘라 "단어"처럼 취급하면, 이미지 분류가 시퀀스 분류 문제가 된다. 합성곱의 귀납 편향(지역성, 평행이동 등변성)을 버리는 대신, 데이터가 충분하면 어텐션이 전역 관계를 직접 학습한다.
 
 **선행 지식**: [ViT와 Swin](/book/14-vision-tasks), [Multi-Head Attention](/book/17-rnn-to-attention)
+
+<Viz id="lab06-vit" client:visible />
 
 ## 전체 코드
 

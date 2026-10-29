@@ -4,7 +4,26 @@ lab: 7
 track: "C. NLP와 LLM"
 builds: "GPT 계열이 쓰는 Byte Pair Encoding 토크나이저를 밑바닥부터 — 학습(merge 규칙 추출), 인코딩, 디코딩까지 구현하고, Hugging Face `tokenizers`로 실전 학습법을 잇는다."
 chapters: [16]
+summary:
+  - icon: "🔤"
+    title: "바이트에서 출발"
+    text: "어떤 글자든 UTF-8 **바이트(0~255)**로 쪼개면, 시작 어휘 256개로 모든 글을 쓸 수 있어요."
+    visual: "float"
+  - icon: "🤝"
+    title: "흔한 쌍을 합친다"
+    text: "가장 자주 붙어 다니는 **이웃 쌍**을 새 토큰 하나로 합치기를 반복해 어휘를 키워요."
+    visual: "grow"
+  - icon: "📜"
+    title: "배운 순서대로 적용"
+    text: "인코딩할 때는 병합 규칙을 **학습한 순서 그대로** 적용해야 같은 조각이 나와요."
+    visual: "slide"
+  - icon: "♻️"
+    title: "잃는 것 없이 복원"
+    text: "바이트 수준이라 decode(encode(s))가 **항상** 원문 s와 똑같아요. 사라지는 글자가 없어요."
+    visual: "spin"
 ---
+
+import Viz from '@/components/viz/Viz.tsx';
 
 **만드는 것**: GPT 계열이 쓰는 Byte Pair Encoding 토크나이저를 밑바닥부터 — 학습(merge 규칙 추출), 인코딩, 디코딩까지 구현하고, Hugging Face `tokenizers`로 실전 학습법을 잇는다.
 
@@ -15,6 +34,8 @@ chapters: [16]
 ## BPE의 아이디어
 
 문자(또는 바이트) 단위에서 시작해, **가장 자주 등장하는 인접 쌍을 병합**하는 규칙을 원하는 어휘 크기가 될 때까지 반복 학습한다. 자주 쓰는 단어는 통째로 한 토큰이 되고, 처음 보는 단어도 서브워드 조각으로 항상 표현 가능하다 — OOV(어휘 밖 단어) 문제가 사라진다.
+
+<Viz id="lab07-bpe-train" client:visible />
 
 ## 전체 코드
 
@@ -91,6 +112,8 @@ if __name__ == "__main__":
 1. **무손실**: `decode(encode(s)) == s`가 항상 성립한다(바이트 수준이므로).
 2. **압축**: 학습 코퍼스와 비슷한 텍스트일수록 토큰 수가 준다. 코퍼스에 없던 언어는 거의 바이트 단위로 쪼개진다 — 한국어 성능이 토크나이저 학습 데이터에 좌우되는 이유다.
 3. **인코딩 순서**: merge는 학습된 순서대로 적용해야 한다. 순서를 무시하면 학습 때와 다른 분할이 나온다.
+
+<Viz id="tokenizer-bpe" client:visible />
 
 ## 실전에서는: Hugging Face tokenizers
 
