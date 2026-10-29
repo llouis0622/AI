@@ -105,7 +105,9 @@ const currentPart = book.find((e) => e.id === current)?.data.part ?? 1;
   }
   paint();
   onProgress(paint);
-  document.querySelector('.doc-sidebar .side-link.current')?.scrollIntoView({ block: 'center' });
+  const current = document.querySelector<HTMLElement>('.doc-sidebar .side-link.current');
+  const box = current?.closest<HTMLElement>('.doc-sticky');
+  if (current && box) box.scrollTop = current.offsetTop - box.clientHeight / 2;
 </script>
 
 <style is:global>

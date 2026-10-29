@@ -57,7 +57,7 @@
   min-width: 0;
 }
 
-.vz-title {
+.vz-frame .vz-head .vz-title {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -69,7 +69,7 @@
   line-height: 1.35;
 }
 
-.vz-tagline {
+.vz-frame .vz-head .vz-tagline {
   margin: 2px 0 0;
   font-size: 13.5px;
   color: var(--text-2);
@@ -261,6 +261,67 @@
 .vz-frame.is-expanded .vz-body {
   flex: 1;
   overflow: auto;
+}
+
+/* Visualizations sit inside .prose on chapter pages; keep article typography out
+   so a viz looks the same there and on its standalone playground page. */
+.vz-frame p,
+.prose .vz-frame p {
+  margin: 0;
+}
+
+.prose .vz-frame :is(h2, h3, h4) {
+  margin: 0;
+  padding: 0;
+  font-size: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+}
+
+.prose .vz-frame h2::before {
+  content: none;
+}
+
+.prose .vz-frame strong {
+  background: none;
+  padding: 0;
+}
+
+.prose .vz-frame :is(ul, ol) {
+  margin: 0;
+  padding-left: 1.2em;
+}
+
+.prose .vz-frame li {
+  margin: 0;
+}
+
+.prose .vz-frame blockquote {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: inherit;
+}
+
+.prose .vz-frame table {
+  display: table;
+  width: auto;
+  max-width: none;
+  margin: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.prose .vz-frame :is(th, td) {
+  padding: 4px 6px;
+  border: 0;
+  background: none;
+  white-space: normal;
 }
 
 /* ===== Inner layout ===== */
