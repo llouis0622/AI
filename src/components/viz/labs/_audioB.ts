@@ -179,7 +179,7 @@ export function heatmapURL(key: string, mat: number[][], color: (v: number) => [
 }
 
 /** #rgb or #rrggbb → [r, g, b] (built CSS shortens colors like #ffffff to #fff). */
-export function hexToRgb(hex: string, fallback: [number, number, number] = [124, 108, 246]): [number, number, number] {
+export function hexToRgb(hex: string, fallback: [number, number, number] = [134, 168, 245]): [number, number, number] {
   const m = hex.trim().match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
   if (!m) return fallback;
   let s = m[1];

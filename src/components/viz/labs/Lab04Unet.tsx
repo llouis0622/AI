@@ -146,7 +146,7 @@ const steps: StoryStep[] = [
     title: '목표: 픽셀 하나하나에 정답 달기',
     text: (
       <>
-        분류는 사진 한 장에 답 하나지만, 세그멘테이션은 <strong>픽셀마다</strong> "반려동물 / 배경 / 경계" 중 하나를 맞혀요. 정답 마스크를 줄일 땐 반드시 <strong>최근접 보간</strong>! 쌍선형 보간은 레이블 1과 2를 섞어 1.5 같은 엉뚱한 값을 만들어요.
+        분류는 사진 한 장에 답 하나지만, 세그멘테이션은 <strong>픽셀마다</strong> "반려동물 / 배경 / 경계" 중 하나를 맞혀요. 정답 마스크를 줄일 때는 반드시 최근접 보간을 써야 해요. 쌍선형 보간은 레이블 1과 2를 섞어 1.5 같은 엉뚱한 값을 만들어요.
       </>
     ),
     code: `img = v2.functional.resize(img, [IMG_SIZE, IMG_SIZE])
@@ -179,12 +179,12 @@ mask = v2.functional.resize(mask, [IMG_SIZE, IMG_SIZE],
           <g opacity={seg(t, 0.6, 0.85)}>
             <Chip x={290} y={214} text="전경" w={52} h={24} fs={12} color={c.series[0]} active c={c} />
             <Chip x={350} y={214} text="경계" w={52} h={24} fs={12} color={c.series[2]} active c={c} />
-            <Chip x={410} y={214} text="배경" w={52} h={24} fs={12} color="#9aa0b4" c={c} />
+            <Chip x={410} y={214} text="배경" w={52} h={24} fs={12} color={c.text} c={c} />
           </g>
           <g opacity={seg(t, 0.75, 1)}>
             <rect x={40} y={242} width={400} height={44} rx={14} fill={soft(c.series[4], 0.12)} stroke={soft(c.series[4], 0.6)} />
             <Txt x={240} y={262} size={12.5} weight={800}>
-              레이블 1, 2 사이를 쌍선형 보간 → 1.5 ✗ · 최근접 → 1 또는 2 ✓
+              쌍선형 보간 → 1.5 (없는 레이블) · 최근접 → 1 또는 2
             </Txt>
             <Txt x={240} y={279} size={11.5} weight={650} color="var(--text-2)">
               그리고 저장된 값 1~3을 0~2로 바꿔(-1) 클래스 번호로 써요
@@ -231,7 +231,7 @@ b = self.bottleneck(self.pool(s3))            # (B, 256, 16, 16)`,
     title: '디코더 + 스킵 연결: "어디"를 되살린다',
     text: (
       <>
-        디코더는 <code>ConvTranspose2d</code>로 해상도를 다시 두 배씩 키워요. 핵심은 <code>torch.cat</code> — 같은 해상도의 인코더 특징을 <strong>그대로 이어붙여(스킵 연결)</strong> 잃어버린 위치 정보를 되살려요. 이 세 줄을 지우면 경계가 뭉개진답니다.
+        디코더는 <code>ConvTranspose2d</code>로 해상도를 다시 두 배씩 키워요. 핵심은 <code>torch.cat</code>이에요. 같은 해상도의 인코더 특징을 <strong>그대로 이어붙여(스킵 연결)</strong> 잃어버린 위치 정보를 되살려요. 이 세 줄을 지우면 경계가 뭉개져요.
       </>
     ),
     code: `d3 = self.dec3(torch.cat([self.up3(b), s3], dim=1))
@@ -279,14 +279,14 @@ pred = model(x.to(device)).argmax(1).cpu()`,
             ].some(([rr, kk]) => PIX[rr]?.[kk] !== '#');
           const order = (r * PIX[0].length + k) / (PIX.length * PIX[0].length);
           const on = fill > order;
-          const col = edge ? c.series[2] : inside ? c.series[0] : '#9aa0b4';
+          const col = edge ? c.series[2] : inside ? c.series[0] : c.text;
           cells.push(
             <rect key={`${r}-${k}`} x={gx + k * (cell + 2)} y={gy + r * (cell + 2)} width={cell} height={cell} rx={4} fill={on ? (inside ? col : 'var(--surface-3)') : 'var(--surface-2)'} stroke="var(--border)" />
           );
         }
       const scores = [2.1, 0.3, -0.5];
       const names = ['전경', '배경', '경계'];
-      const cols = [c.series[0], '#9aa0b4', c.series[2]];
+      const cols = [c.series[0], c.text, c.series[2]];
       return (
         <g>
           <Defs />
@@ -309,7 +309,7 @@ pred = model(x.to(device)).argmax(1).cpu()`,
             );
           })}
           <Txt x={110} y={180} size={12.5} weight={850} opacity={seg(t, 0.3, 0.45)}>
-            argmax → "전경"!
+            argmax → "전경"
           </Txt>
           <Arrow x1={186} y1={128} x2={240} y2={128} color={c.series[3]} t={seg(t, 0.35, 0.5)} label="모든 픽셀" flow />
           {cells}
@@ -375,7 +375,7 @@ loss = F.cross_entropy(logits, y) + dice_loss(logits, y)`,
             </Txt>
           </g>
           <Txt x={240} y={262} size={12.5} weight={700} color="var(--text-2)" opacity={seg(t, 0.7, 1)}>
-            주황색 = 겹친 부분 A∩B · 많이 겹칠수록 Dice → 1
+            진하게 칠한 곳 = 겹친 부분 A∩B · 많이 겹칠수록 Dice → 1
           </Txt>
         </g>
       );

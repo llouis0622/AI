@@ -1,6 +1,6 @@
 import { CodeStory, type StoryStep } from '../core/story';
 import type { VizColors } from '../core/colors';
-import { Arrow, Box, Defs, Emoji, Txt, VB, mix, seg, soft } from './_labsA';
+import { Arrow, Box, Defs, Glyph, Txt, VB, mix, seg, soft } from './_labsA';
 
 type B4 = [number, number, number, number];
 
@@ -56,9 +56,7 @@ function Street({ c, t = 1 }: { c: VizColors; t?: number }) {
       <rect x={14} y={232} width={290} height={38} fill={soft(c.series[1], 0.18)} />
       <Person x={91} c={c} />
       <Person x={211} c={c} />
-      <Emoji x={272} y={74} size={22}>
-        🌳
-      </Emoji>
+      <Glyph name="tree" x={272} y={64} size={26} color={c.series[5]} />
     </g>
   );
 }
@@ -70,7 +68,7 @@ function BoxRect({ b, color, label, opacity = 1, width = 2.5, dashed = false }: 
       {label && (
         <g>
           <rect x={b[0]} y={b[1] - 17} width={label.length * 7.4 + 10} height={16} rx={4} fill={color} />
-          <text x={b[0] + 5} y={b[1] - 5} style={{ fontSize: 11.5, fontWeight: 800, fill: '#fff', fontFamily: 'var(--font-sans)' }}>
+          <text x={b[0] + 5} y={b[1] - 5} style={{ fontSize: 11.5, fontWeight: 800, fill: 'var(--accent-ink)', fontFamily: 'var(--font-sans)' }}>
             {label}
           </text>
         </g>
@@ -137,7 +135,7 @@ return inter / (area1[:, None] + area2[None, :] - inter + 1e-7)`,
             </Txt>
           </g>
           <Txt x={411} y={160} size={12} weight={700} color="var(--text-2)">
-            {v > 0.5 ? '0.5 넘음 → 같은 물체!' : v > 0 ? '조금 겹침' : '안 겹침 = 0'}
+            {v > 0.5 ? '0.5 넘음 → 같은 물체' : v > 0 ? '조금 겹침' : '안 겹침 = 0'}
           </Txt>
         </g>
       );
@@ -183,7 +181,7 @@ return inter / (area1[:, None] + area2[None, :] - inter + 1e-7)`,
     title: 'NMS: 최고 점수는 남기고, 많이 겹치는 후보는 지운다',
     text: (
       <>
-        1등 박스를 채택하고, 그 박스와 <strong>IoU가 0.5를 넘는 후보는 "같은 사람"</strong>으로 보고 지워요. 남은 것 중 다시 1등을 채택… 후보가 없어질 때까지 반복해요. 겹치지 않는 박스는 점수가 낮아도 살아남으니, 나중에 점수 기준(0.8)으로 한 번 더 걸러요.
+        1등 박스를 채택하고, 그 박스와 <strong>IoU가 0.5를 넘는 후보는 "같은 사람"</strong>으로 보고 지워요. 남은 것 중에서 다시 1등을 채택하고, 후보가 없어질 때까지 반복해요. 겹치지 않는 박스는 점수가 낮아도 살아남으니, 나중에 점수 기준(0.8)으로 한 번 더 걸러요.
       </>
     ),
     code: `while order.numel() > 0:
@@ -212,13 +210,13 @@ return inter / (area1[:, None] + area2[None, :] - inter + 1e-7)`,
             const s = state.get(d.id) ?? {};
             const kept = (s.kept ?? 0) > 0.3;
             const gone = s.removed ?? 0;
-            const color = kept ? (d.score < 0.8 ? '#9aa0b4' : c.pos) : c.series[2];
+            const color = kept ? (d.score < 0.8 ? c.text : c.pos) : c.series[2];
             return (
               <g key={d.id}>
                 <BoxRect b={d.box} color={color} opacity={1 - gone * 0.85} width={kept ? 3.5 : 2} dashed={gone > 0.4} label={kept ? `${d.id} ${d.score.toFixed(2)}` : undefined} />
                 {gone > 0.3 && gone < 1 && s.iou !== undefined && (
                   <Txt x={(d.box[0] + d.box[2]) / 2} y={d.box[3] + 16} size={11.5} weight={850} color={c.neg} opacity={1 - gone}>
-                    IoU {s.iou.toFixed(2)} ✗
+                    IoU {s.iou.toFixed(2)} 제거
                   </Txt>
                 )}
               </g>
@@ -230,8 +228,8 @@ return inter / (area1[:, None] + area2[None, :] - inter + 1e-7)`,
             </Txt>
             {keptIds.map((id, i) => (
               <g key={id}>
-                <rect x={340 + (i % 3) * 38} y={64} width={32} height={30} rx={8} fill={CANDS.find((d) => d.id === id)!.score < 0.8 ? '#9aa0b4' : c.pos} />
-                <Txt x={356 + (i % 3) * 38} y={84} size={14} weight={900} color="#fff">
+                <rect x={340 + (i % 3) * 38} y={64} width={32} height={30} rx={8} fill={CANDS.find((d) => d.id === id)!.score < 0.8 ? c.text : c.pos} />
+                <Txt x={356 + (i % 3) * 38} y={84} size={14} weight={900} color="var(--accent-ink)">
                   {id}
                 </Txt>
               </g>
@@ -286,7 +284,7 @@ model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes=2)`,
             <Box x={388} y={96} w={84} h={58} label="91 클래스" sub="COCO" subFs={11} fs={13} color={c.neg} c={c} />
           </g>
           <g opacity={swap} transform={`translate(0 ${(1 - swap) * 30})`}>
-            <Box x={388} y={96} w={84} h={58} label="2 클래스" sub="배경·사람" subFs={11} fs={13} color={c.pos} glow={swap >= 1} c={c} />
+            <Box x={388} y={96} w={84} h={58} label="2 클래스" sub="배경·사람" subFs={11} fs={13} color={c.pos} ring={swap >= 1} c={c} />
           </g>
           <Txt x={430} y={84} size={11.5} weight={800} color="var(--text-2)">
             box_predictor
@@ -301,7 +299,7 @@ model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes=2)`,
             </Txt>
           </g>
           <Txt x={240} y={284} size={12.5} weight={800} opacity={seg(t, 0.85, 1)}>
-            몸통의 사전학습 지식은 그대로, 마지막 분류 칸만 우리 문제에 맞게!
+            몸통의 사전학습 지식은 그대로 두고, 마지막 분류 칸만 우리 문제에 맞춰요
           </Txt>
         </g>
       );
@@ -311,7 +309,7 @@ model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes=2)`,
     title: '학습: 손실이 딕셔너리로 나온다',
     text: (
       <>
-        학습 모드의 탐지 모델은 예측 대신 <strong>손실 4가지가 든 딕셔너리</strong>를 돌려줘요 — RPN의 "물체냐/아니냐"와 박스 위치, ROI 헤드의 클래스와 박스 위치. 이걸 <strong>모두 더해</strong> 한 번에 역전파해요.
+        학습 모드의 탐지 모델은 예측 대신 <strong>손실 4가지가 든 딕셔너리</strong>를 돌려줘요. RPN의 "물체인가 아닌가"와 박스 위치, ROI 헤드의 클래스와 박스 위치예요. 이 넷을 모두 더해 한 번에 역전파해요.
       </>
     ),
     code: `loss_dict = model(imgs, targets)
@@ -371,7 +369,7 @@ opt.step()`,
     title: '추론: 박스·라벨·점수, 그리고 YOLO',
     text: (
       <>
-        <code>eval()</code> 모드에서는 이미지만 넣으면 <strong>boxes · labels · scores</strong>가 나와요. 점수 0.8 이상만 남기면 두 사람이 깔끔하게 잡혀요. 빠른 실무용으로는 ultralytics YOLO가 사실상 표준 — 추론이 <code>model("street.jpg")</code> 한 줄이에요.
+        <code>eval()</code> 모드에서는 이미지만 넣으면 <strong>boxes · labels · scores</strong>가 나와요. 점수 0.8 이상만 남기면 두 사람이 깔끔하게 잡혀요. 빠른 실무용으로는 ultralytics YOLO가 사실상 표준이고, 추론은 <code>model("street.jpg")</code> 한 줄이에요.
       </>
     ),
     code: `model.eval()
@@ -390,7 +388,7 @@ keep = pred["scores"] > 0.8`,
           {kept.map((d, i) => (
             <BoxRect key={d.id} b={d.box} color={c.pos} width={3.5} label={`사람 ${d.score.toFixed(2)}`} opacity={seg(t, 0.1 + i * 0.15, 0.3 + i * 0.15)} />
           ))}
-          <BoxRect b={stray.box} color="#9aa0b4" dashed opacity={1 - seg(t, 0.4, 0.7) * 0.6} />
+          <BoxRect b={stray.box} color={c.text} dashed opacity={1 - seg(t, 0.4, 0.7) * 0.6} />
           {t > 0.4 && (
             <g opacity={seg(t, 0.4, 0.6)} stroke={c.neg} strokeWidth={3} strokeLinecap="round">
               <line x1={stray.box[0] + 4} y1={stray.box[1] + 4} x2={stray.box[2] - 4} y2={stray.box[3] - 4} />
@@ -406,7 +404,7 @@ keep = pred["scores"] > 0.8`,
           <g opacity={seg(t, 0.6, 0.9)}>
             <rect x={318} y={60} width={150} height={150} rx={16} fill={soft(c.series[3], 0.1)} stroke={soft(c.series[3], 0.6)} />
             <Txt x={393} y={88} size={13.5} weight={850}>
-              YOLO 한 줄 ⚡
+              YOLO 한 줄
             </Txt>
             <Txt x={393} y={118} size={11.5} weight={750} mono>
               model = YOLO(...)

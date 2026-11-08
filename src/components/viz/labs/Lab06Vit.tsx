@@ -1,7 +1,7 @@
 import { CodeStory, type StoryStep } from '../core/story';
 import type { VizColors } from '../core/colors';
 import { rng, softmax } from '../core/math';
-import { Arrow, Bars, Box, Defs, Emoji, Txt, VB, mix, seg, soft } from './_labsA';
+import { Arrow, Bars, Box, Defs, Glyph, Txt, VB, mix, seg, soft } from './_labsA';
 
 /* A 16×16 pixel-art bird on a branch (each drawn pixel stands for 2×2 real pixels of the 32×32 image). */
 const ART = [
@@ -23,22 +23,24 @@ const ART = [
   '................'
 ];
 
+/** Palette for the pixel art, from the theme: the eye stays light and the pupil dark in both themes. */
 function pixColor(ch: string, c: VizColors) {
+  const dark = c.theme === 'dark';
   switch (ch) {
     case 'r':
-      return c.theme === 'dark' ? '#ff4d6d' : '#f2626b';
+      return c.series[3];
     case 'y':
-      return c.theme === 'dark' ? '#ffd23f' : '#f5b925';
+      return c.series[1];
     case 'w':
-      return '#ffffff';
+      return dark ? c.ink : c.bg;
     case 'k':
-      return '#2a2540';
+      return dark ? c.bg : c.ink;
     case 'b':
-      return c.theme === 'dark' ? '#b07a4a' : '#9a6b43';
+      return c.series[5];
     case 'g':
-      return c.theme === 'dark' ? '#2ef2c0' : '#5fb336';
+      return c.series[2];
     default:
-      return c.theme === 'dark' ? '#1b3a8f' : '#cfe7ff';
+      return c.low;
   }
 }
 
@@ -64,7 +66,7 @@ const steps: StoryStep[] = [
     title: '사진을 4×4 조각(패치) 64개로 자른다',
     text: (
       <>
-        ViT는 사진을 <strong>겹치지 않는 4×4 조각</strong>으로 잘라요. 32×32 사진이면 8×8 = <strong>64개 패치</strong>. 신기하게도 <code>kernel = stride = 4</code>인 Conv2d 하나가 "자르기 + 선형 변환"을 한 번에 해 줘요.
+        ViT는 사진을 <strong>겹치지 않는 4×4 조각</strong>으로 잘라요. 32×32 사진이면 8×8 = 64개 패치가 나와요. <code>kernel = stride = 4</code>인 Conv2d 하나가 "자르기 + 선형 변환"을 한 번에 처리해요.
       </>
     ),
     code: `class PatchEmbed(nn.Module):
@@ -186,7 +188,7 @@ const steps: StoryStep[] = [
     title: '[CLS] 토큰을 붙이고 위치를 더한다',
     text: (
       <>
-        맨 앞에 학습 가능한 특별 토큰 <strong>[CLS]</strong>를 붙여요 — 나중에 "사진 전체 요약"을 담는 자리예요. 어텐션은 순서를 모르니, 각 자리에 <strong>위치 임베딩</strong>을 더해 "몇 번째 패치인지" 알려 줘요. 그래서 65개 토큰이 돼요.
+        맨 앞에 학습 가능한 특별 토큰 <strong>[CLS]</strong>를 붙여요. 나중에 "사진 전체 요약"을 담는 자리예요. 어텐션은 순서를 모르니, 각 자리에 <strong>위치 임베딩</strong>을 더해 몇 번째 패치인지 알려 줘요. 그래서 토큰은 65개가 돼요.
       </>
     ),
     code: `x = self.patch(x)                                  # (B, 64, D)
@@ -219,9 +221,7 @@ x = torch.cat([cls, x], dim=1) + self.pos          # (B, 65, D)`,
           })}
           <g transform={`translate(${mix(-60, 0, slide)} 0)`} opacity={slide}>
             <rect x={30} y={92} width={30} height={30} rx={6} fill={c.series[3]} />
-            <Txt x={45} y={112} size={14} weight={900} color="#fff">
-              ★
-            </Txt>
+            <Glyph name="star" x={45} y={107} size={16} color="var(--accent-ink)" />
             {VEC[8].map((v, j) => (
               <rect key={j} x={34} y={132 + j * 9} width={22} height={7} rx={2} fill={soft(c.series[3], 0.2 + 0.7 * v)} />
             ))}
@@ -257,7 +257,7 @@ x = torch.cat([cls, x], dim=1) + self.pos          # (B, 65, D)`,
     title: 'Transformer 블록 ×6: 패치끼리 서로 바라본다',
     text: (
       <>
-        블록마다 <strong>어텐션</strong>으로 모든 패치가 다른 모든 패치를 참고해요 — 멀리 떨어진 날개와 부리도 한 번에 연결돼요. Pre-LN 구조라 <strong>LayerNorm을 먼저</strong> 통과시키고, 결과를 원래 값에 <strong>더하는(잔차)</strong> 길이 기울기의 고속도로가 돼요.
+        블록마다 <strong>어텐션</strong>으로 모든 패치가 다른 모든 패치를 참고해요. 멀리 떨어진 날개와 부리도 한 번에 연결돼요. Pre-LN 구조라 LayerNorm을 먼저 통과시키고, 결과를 원래 값에 <strong>더하는(잔차)</strong> 길이 기울기의 고속도로 역할을 해요.
       </>
     ),
     code: `def forward(self, x):
@@ -351,9 +351,7 @@ return self.head(self.ln(x[:, 0]))                 # CLS 토큰만 분류에 사
       <g>
         <Defs />
         <rect x={24} y={60} width={40} height={40} rx={8} fill={c.series[3]} />
-        <Txt x={44} y={86} size={16} weight={900} color="#fff">
-          ★
-        </Txt>
+        <Glyph name="star" x={44} y={80} size={20} color="var(--accent-ink)" />
         <Txt x={44} y={124} size={12} weight={850} color={c.series[3]}>
           [CLS]
         </Txt>
@@ -384,11 +382,9 @@ return self.head(self.ln(x[:, 0]))                 # CLS 토큰만 분류에 사
           valueText={(v, i) => (i === 2 ? `${Math.round(v * 100)}%` : '')}
         />
         <g opacity={seg(t, 0.8, 1)}>
-          <Emoji x={360} y={92} size={30}>
-            🐦
-          </Emoji>
-          <Txt x={410} y={88} size={14} weight={850} anchor="start">
-            "새!"
+          <Glyph name="bird" x={372} y={82} size={28} color={c.ink} />
+          <Txt x={402} y={88} size={14} weight={850} anchor="start">
+            "새"
           </Txt>
         </g>
       </g>
@@ -398,7 +394,7 @@ return self.head(self.ln(x[:, 0]))                 # CLS 토큰만 분류에 사
     title: '작은 데이터에서는 왜 CNN이 이길까?',
     text: (
       <>
-        30 에포크 뒤 ViT는 약 <strong>85%</strong>, 같은 조건의 ResNet은 약 <strong>93%</strong>. ViT에는 "가까운 픽셀끼리 관련 있다"는 귀띔(지역성 편향)이 없어서 그것까지 데이터로 배워야 하거든요. 대신 아주 큰 데이터로 사전학습하면 역전돼요. 그리고 ViT는 <strong>AdamW + 웜업</strong>이 사실상 필수예요.
+        30 에포크 뒤 ViT는 약 85%, 같은 조건의 ResNet은 약 93%예요. ViT에는 "가까운 픽셀끼리 관련 있다"는 귀띔(지역성 편향)이 없어서 그것까지 데이터로 배워야 하기 때문이에요. 대신 아주 큰 데이터로 사전학습하면 순위가 뒤집혀요. 그리고 ViT는 <strong>AdamW + 웜업</strong>이 사실상 필수예요.
       </>
     ),
     code: `opt = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=0.05)
@@ -435,17 +431,13 @@ crit = nn.CrossEntropyLoss(label_smoothing=0.1)`,
           <Txt x={368} y={78} size={13} weight={850}>
             거대 데이터로 사전학습하면
           </Txt>
-          <Emoji x={320} y={136} size={34}>
-            🧱
-          </Emoji>
+          <Glyph name="brick" x={320} y={124} size={30} color={c.series[1]} />
           <Txt x={320} y={166} size={11.5} weight={750} color="var(--text-2)">
             CNN: 편향 내장
           </Txt>
-          <Emoji x={416} y={136} size={34} className="labA-bob">
-            🚀
-          </Emoji>
+          <Glyph name="trend-up" x={416} y={124} size={30} color={c.series[0]} />
           <Txt x={416} y={166} size={11.5} weight={750} color="var(--text-2)">
-            ViT: 역전!
+            ViT: 역전
           </Txt>
           <Txt x={368} y={204} size={12} weight={800} color={c.series[0]}>
             귀납 편향 ↔ 데이터 양의 거래

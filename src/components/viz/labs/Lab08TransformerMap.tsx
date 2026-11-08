@@ -7,7 +7,7 @@ const TGT_IN = ['BOS', 'o', 'l', 'l', 'e', 'h'];
 const TGT_OUT = ['o', 'l', 'l', 'e', 'h', 'EOS'];
 
 function Tok({ x, y, s, c, t = 1, kind = 'src', w }: { x: number; y: number; s: string; c: VizColors; t?: number; kind?: 'src' | 'tgt' | 'out' | 'pad'; w?: number }) {
-  const col = kind === 'src' ? c.series[0] : kind === 'tgt' ? c.series[3] : kind === 'out' ? c.series[2] : '#9aa0b4';
+  const col = kind === 'src' ? c.series[0] : kind === 'tgt' ? c.series[3] : kind === 'out' ? c.series[2] : c.text;
   const special = s === 'BOS' || s === 'EOS' || s === 'PAD';
   return <Chip x={x} y={y} text={s} w={w ?? (special ? 40 : 28)} h={26} fs={special ? 11 : 14} mono color={col} t={t} c={c} dim={kind === 'pad'} />;
 }
@@ -128,7 +128,7 @@ const steps: StoryStep[] = [
     title: '과제: 문자열 뒤집기 + teacher forcing',
     text: (
       <>
-        무작위 문자열을 넣으면 거꾸로 뒤집어 내는 장난감 과제예요. 학습 때 디코더 입력은 <code>[BOS, 정답…]</code>, 맞힐 목표는 <code>[정답…, EOS]</code>로 <strong>한 칸씩 밀려</strong> 있어요. 각 자리가 "다음 토큰"을 맞히는 거죠 (teacher forcing).
+        무작위 문자열을 넣으면 거꾸로 뒤집어 내는 장난감 과제예요. 학습 때 디코더 입력은 <code>[BOS, 정답…]</code>, 맞힐 목표는 <code>[정답…, EOS]</code>로 <strong>한 칸씩 밀려</strong> 있어요. 각 자리가 "다음 토큰"을 맞히는 방식이에요(teacher forcing).
       </>
     ),
     code: `s = torch.randint(3, VOCAB, (L,))                # 특수 토큰 제외
@@ -149,7 +149,7 @@ tgt_out.append(torch.cat([r, torch.tensor([EOS]), torch.zeros(pad, dtype=torch.l
           <Tok key={i} x={120 + i * 44} y={46} s={s} c={c} t={seg(t, i * 0.04, 0.15 + i * 0.04)} />
         ))}
         <Txt x={360} y={52} size={11.5} weight={700} anchor="start" color="var(--text-2)" opacity={seg(t, 0.2, 0.35)}>
-          ↩ 뒤집으면
+          뒤집으면
         </Txt>
         <Txt x={84} y={142} size={12.5} weight={850} anchor="end" color={c.series[3]}>
           tgt_in
@@ -173,7 +173,7 @@ tgt_out.append(torch.cat([r, torch.tensor([EOS]), torch.zeros(pad, dtype=torch.l
           "다음 토큰"
         </Txt>
         <Txt x={240} y={284} size={11.5} weight={700} color="var(--text-2)" opacity={seg(t, 0.85, 1)}>
-          (실제 데이터는 무작위 문자 id예요 — 그림은 알아보기 쉽게 글자로)
+          (실제 데이터는 무작위 문자 id예요. 그림은 알아보기 쉽게 글자로 그렸어요)
         </Txt>
       </g>
     )
@@ -210,7 +210,7 @@ return x + self.ff(self.ln2(x))`,
           <g opacity={seg(t, 0.6, 0.85)}>
             <rect x={251} y={44} width={63} height={212} rx={8} fill="none" stroke={c.neg} strokeWidth={2} strokeDasharray="5 4" />
             <Txt x={282} y={274} size={12} weight={850} color={c.neg}>
-              PAD 열 ✗
+              PAD 열 가림
             </Txt>
           </g>
           <g opacity={seg(t, 0.75, 1)}>
@@ -238,7 +238,7 @@ return x + self.ff(self.ln2(x))`,
     title: '디코더 self-attn: 미래는 못 본다',
     text: (
       <>
-        디코더가 학습 중에 정답의 뒷부분을 훔쳐보면 안 되겠죠? <code>torch.tril</code>로 만든 <strong>아래 삼각형 마스크</strong> 덕분에 각 자리는 자기와 그 앞만 볼 수 있어요. 그래서 모든 자리를 한 번에 병렬로 학습할 수 있어요.
+        디코더가 학습 중에 정답의 뒷부분을 미리 보면 안 돼요. <code>torch.tril</code>로 만든 <strong>아래 삼각형 마스크</strong> 덕분에 각 자리는 자기와 그 앞만 볼 수 있어요. 그래서 모든 자리를 한 번에 병렬로 학습할 수 있어요.
       </>
     ),
     code: `tgt_pad = (tgt != PAD)[:, None, None, :]
@@ -275,7 +275,7 @@ return src_mask, tgt_pad & causal                # (B,1,L,L)`,
             그래서 모든 자리를
           </Txt>
           <Txt x={390} y={222} size={11.5} weight={700} color="var(--text-2)">
-            한 번에 병렬 학습!
+            한 번에 병렬로 학습해요
           </Txt>
         </g>
       </g>
@@ -315,7 +315,7 @@ return src_mask, tgt_pad & causal                # (B,1,L,L)`,
         <g opacity={seg(t, 0.75, 1)}>
           <path d="M 271 69 L 139 201" stroke={c.series[2]} strokeWidth={2} strokeDasharray="5 5" fill="none" />
           <Txt x={390} y={124} size={13} weight={850}>
-            역대각선 = 뒤집기!
+            역대각선 = 뒤집기
           </Txt>
           <Txt x={390} y={150} size={11.5} weight={700} color="var(--text-2)">
             복사 과제라면 대각선이
@@ -331,7 +331,7 @@ return src_mask, tgt_pad & causal                # (B,1,L,L)`,
     title: '생성: 한 토큰씩, 가장 확률 높은 것으로',
     text: (
       <>
-        추론 때는 정답이 없으니 <strong>BOS 하나로 시작</strong>해 매번 마지막 자리의 로짓에서 <code>argmax</code>로 다음 토큰을 골라 이어 붙여요(greedy). EOS가 나오면 멈춰요. 학습은 병렬, 추론은 한 글자씩 — 이 비대칭이 LLM 서빙 문제의 뿌리예요.
+        추론 때는 정답이 없으니 <strong>BOS 하나로 시작</strong>해 매번 마지막 자리의 로짓에서 <code>argmax</code>로 다음 토큰을 골라 이어 붙여요(greedy). EOS가 나오면 멈춰요. 학습은 병렬로, 추론은 한 글자씩 하는 이 비대칭이 LLM 서빙 문제의 뿌리예요.
       </>
     ),
     code: `ys = torch.full((src.shape[0], 1), BOS, dtype=torch.long, device=src.device)
@@ -374,7 +374,7 @@ return ys`,
           <g opacity={n >= out.length ? 1 : 0}>
             <rect x={130} y={226} width={220} height={40} rx={14} fill={soft(c.pos, 0.14)} stroke={c.pos} />
             <Txt x={240} y={252} size={14} weight={850}>
-              EOS → 멈춤! "olleh" 완성
+              EOS에서 멈춤, "olleh" 완성
             </Txt>
           </g>
         </g>

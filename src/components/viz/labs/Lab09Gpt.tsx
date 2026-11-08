@@ -1,6 +1,6 @@
 import { CodeStory, type StoryStep } from '../core/story';
 import { softmax } from '../core/math';
-import { Arrow, Cells, Chip, Curve, Defs, Emoji, Txt, VB, mix, seg, soft } from './_labsA';
+import { Arrow, Cells, Chip, Curve, Defs, Glyph, Txt, VB, mix, seg, soft } from './_labsA';
 
 const SAMPLE = '안녕하세요.반가워';
 const CHARS = [...new Set(SAMPLE)].sort();
@@ -70,7 +70,7 @@ y = torch.stack([d[i + 1 : i + CTX + 1] for i in ix])   # 한 칸 민 것이 정
             <Arrow key={i} x1={cx(i) + 4} y1={164} x2={cx(i + 1) - 4} y2={204} color={c.series[2]} width={2} t={seg(t, 0.65 + i * 0.05, 0.8 + i * 0.05)} />
           ))}
           <Txt x={240} y={276} size={12} weight={750} color="var(--text-2)" opacity={seg(t, 0.85, 1)}>
-            "안" 다음은 "녕", "안녕" 다음은 "하"… 5문제를 한 번에! (실제 CTX = 256)
+            "안" 다음은 "녕", "안녕" 다음은 "하"… 5문제를 한 번에 풀어요 (실제 CTX = 256)
           </Txt>
         </g>
       );
@@ -130,7 +130,7 @@ y = F.scaled_dot_product_attention(q, k, v, is_causal=(kv_cache is None))`,
             </Txt>
             <Cells x={330} y={52} rows={5} cols={5} cell={22} gap={3} color={c.series[3]} t={seg(t, 0.4, 0.9)} order="diag" value={(r, k) => (k <= r ? 0.75 : 0)} hidden={(r, k) => k > r} />
             <Txt x={392} y={196} size={11.5} weight={700} color="var(--text-2)">
-              위쪽 삼각형 = 미래 ✗
+              위쪽 삼각형 = 미래 (가림)
             </Txt>
           </g>
         </g>
@@ -173,7 +173,7 @@ self.head.weight = self.tok.weight               # 가중치 공유(weight tying
           ))}
           <g opacity={seg(t, 0.05, 0.4)}>
             <Txt x={70} y={90} size={12.5} weight={850} color={c.series[0]}>
-              ① 입력: "{CHARS[hi]}"
+              1. 입력: "{CHARS[hi]}"
             </Txt>
             <Arrow x1={110} y1={my + hi * rowH + 9} x2={mx - 26} y2={my + hi * rowH + 9} color={c.series[0]} t={seg(t, 0.1, 0.35)} label="행 꺼내기" labelDy={-8} />
             <Txt x={70} y={150} size={11.5} weight={700} color="var(--text-2)">
@@ -182,7 +182,7 @@ self.head.weight = self.tok.weight               # 가중치 공유(weight tying
           </g>
           <g opacity={seg(t, 0.45, 0.8)}>
             <Txt x={402} y={70} size={12.5} weight={850} color={c.series[2]}>
-              ② 출력: 마지막 벡터 h
+              2. 출력: 마지막 벡터 h
             </Txt>
             <rect x={372} y={82} width={60} height={14} rx={4} fill={soft(c.series[2], 0.6)} />
             {Array.from({ length: rows }, (_, r) => (
@@ -198,7 +198,7 @@ self.head.weight = self.tok.weight               # 가중치 공유(weight tying
           <g opacity={seg(t, 0.8, 1)}>
             <rect x={60} y={232} width={360} height={46} rx={14} fill={soft(c.series[1], 0.12)} stroke={soft(c.series[1], 0.6)} />
             <Txt x={240} y={254} size={13} weight={850}>
-              같은 표를 앞에서 한 번, 뒤에서 한 번!
+              같은 표를 앞에서 한 번, 뒤에서 한 번 써요
             </Txt>
             <Txt x={240} y={272} size={11.5} weight={700} color="var(--text-2)">
               어휘 5만 × 4096이라면 2억 개 파라미터 절약
@@ -253,16 +253,12 @@ idx = torch.cat([idx, nxt], dim=1)`,
                     {Math.round(probs[i] * 100)}%
                   </Txt>
                 )}
-                {removed && (
-                  <Txt x={x + 17} y={base - 8} size={14} weight={900} color={c.neg}>
-                    ✗
-                  </Txt>
-                )}
+                {removed && <Glyph name="close" x={x + 17} y={base - 13} size={14} color={c.neg} strokeWidth={2.25} />}
               </g>
             );
           })}
           <Txt x={240} y={236} size={12.5} weight={850} color={prob > 0 ? c.series[3] : cut > 0 ? c.neg : c.series[0]} opacity={seg(t, 0.12, 0.2)}>
-            {prob > 0 ? '③ 남은 5개로 확률 만들기 (softmax)' : cut > 0 ? '② top-5 밖은 지우기 (-inf)' : '① 점수 ÷ 온도 0.8 → 1등이 더 뚜렷'}
+            {prob > 0 ? '3단계: 남은 5개로 확률 만들기 (softmax)' : cut > 0 ? '2단계: top-5 밖은 지우기 (-inf)' : '1단계: 점수 ÷ 온도 0.8 → 1등이 더 뚜렷'}
           </Txt>
           <g opacity={seg(t, 0.4, 0.6)}>
             <rect x={40 + TOPK * 52 - 9} y={50} width={2} height={150} fill={c.neg} opacity={0.6} />
@@ -271,9 +267,7 @@ idx = torch.cat([idx, nxt], dim=1)`,
             </Txt>
           </g>
           <g opacity={seg(t, 0.85, 1)}>
-            <Emoji x={140} y={270} size={22} className="labA-bob">
-              🎲
-            </Emoji>
+            <Glyph name="dice" x={146} y={263} size={20} color={c.ink} />
             <Txt x={166} y={268} size={13.5} weight={850} anchor="start">
               multinomial → "요" (가장 흔하지만, 매번은 아니에요)
             </Txt>
@@ -307,7 +301,7 @@ logits, caches = self(nxt, caches, pos_offset=idx.shape[1] - 1)`,
         <g>
           <Defs />
           <Txt x={110} y={30} size={12.5} weight={850} color="var(--text-2)">
-            {stage === 0 ? '① 프리필: 프롬프트 전체를 한 번에' : `② 디코드 ${stage}: 새 글자 하나만`}
+            {stage === 0 ? '1단계 프리필: 프롬프트 전체를 한 번에' : `2단계 디코드 (${stage}번째): 새 글자 하나만`}
           </Txt>
           {[...prompt, ...gen].map((ch, i) => {
             const isNew = i === cols - 1 && stage > 0;
@@ -368,7 +362,7 @@ logits, caches = self(nxt, caches, pos_offset=idx.shape[1] - 1)`,
     title: '손실 읽기: ln(어휘)에서 1.5까지',
     text: (
       <>
-        처음 손실은 <strong>ln(어휘 수)</strong> 근처예요 — 글자 65종이면 약 4.2(아무거나 찍는 수준). 학습 후 손실 1.5는 퍼플렉시티 <strong>e^1.5 ≈ 4.5</strong>, 즉 "다음 글자 후보를 평균 4~5개로 좁혔다"는 뜻이에요. val이 train과 벌어지기 시작하면 과적합의 신호예요.
+        처음 손실은 <strong>ln(어휘 수)</strong> 근처예요. 글자가 65종이면 약 4.2로, 아무거나 찍는 수준이에요. 학습 후 손실 1.5는 퍼플렉시티 <strong>e^1.5 ≈ 4.5</strong>, 즉 다음 글자 후보를 평균 4~5개로 좁혔다는 뜻이에요. val이 train과 벌어지기 시작하면 과적합의 신호예요.
       </>
     ),
     code: `logits, _ = model(x)

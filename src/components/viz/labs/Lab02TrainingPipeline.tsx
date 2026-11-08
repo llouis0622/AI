@@ -1,6 +1,6 @@
 import { CodeStory, type StoryStep } from '../core/story';
 import type { VizColors } from '../core/colors';
-import { Arrow, Box, Chip, Curve, Defs, Emoji, Tensor, Txt, VB, mix, seg, soft } from './_labsA';
+import { Arrow, Box, Chip, Curve, Defs, Glyph, Tensor, Txt, VB, mix, seg, soft } from './_labsA';
 
 /** A tiny cartoon "car" photo (CIFAR-10 style thumbnail). */
 function CarPhoto({ x, y, s = 1, flip = 0, shift = 0, c }: { x: number; y: number; s?: number; flip?: number; shift?: number; c: VizColors }) {
@@ -57,12 +57,12 @@ test_tf = transforms.Compose([
         <g>
           <Defs />
           <Txt x={18} y={40} size={14} weight={850} anchor="start" color={c.series[0]}>
-            🏋️ 훈련
+            훈련
           </Txt>
           <CarPhoto x={22} y={52} flip={flip > 0.5 ? 1 : 0} shift={shift} s={1} c={c} />
           <rect x={18} y={48} width={72} height={72} rx={10} fill="none" stroke={c.series[0]} strokeDasharray="4 4" opacity={seg(t, 0.05, 0.2)} />
           <Txt x={56} y={140} size={12} weight={700} color="var(--text-2)">
-            {flip > 0.5 ? '좌우 뒤집기!' : '살짝 잘라내기'}
+            {flip > 0.5 ? '좌우 뒤집기' : '살짝 잘라내기'}
           </Txt>
           <Arrow x1={98} y1={86} x2={168} y2={86} color={c.series[0]} t={seg(t, 0.3, 0.5)} flow />
           <Box x={174} y={64} w={104} h={44} label="ToTensor" sub="+ Normalize" subFs={11.5} fs={14} color={c.series[1]} t={seg(t, 0.35, 0.55)} c={c} />
@@ -75,7 +75,7 @@ test_tf = transforms.Compose([
           <line x1={18} x2={462} y1={170} y2={170} stroke="var(--border)" strokeWidth={1.5} strokeDasharray="4 6" />
 
           <Txt x={18} y={200} size={14} weight={850} anchor="start" color={c.series[3]}>
-            🧪 검증
+            검증
           </Txt>
           <CarPhoto x={22} y={210} c={c} />
           <Txt x={56} y={292} size={12} weight={700} color="var(--text-2)">
@@ -118,7 +118,7 @@ return m`,
             <Box x={100} y={46} w={64} h={46} label="maxpool" fs={12.5} color={c.neg} c={c} />
           </g>
           <g opacity={swap} transform={`translate(0 ${(1 - swap) * 18})`}>
-            <Box x={14} y={46} w={78} h={46} label="3×3 conv" sub="stride 1" subFs={11} fs={13} color={c.pos} glow={swap >= 1} c={c} />
+            <Box x={14} y={46} w={78} h={46} label="3×3 conv" sub="stride 1" subFs={11} fs={13} color={c.pos} ring={swap >= 1} c={c} />
             <Box x={100} y={46} w={64} h={46} label="Identity" fs={12.5} color="var(--viz-axis)" dashed c={c} />
           </g>
           {stages.map((s, i) => {
@@ -144,10 +144,10 @@ return m`,
           <g opacity={seg(t, 0.65, 0.9)}>
             <rect x={40} y={204} width={400} height={66} rx={16} fill={soft(swap > 0.5 ? c.pos : c.neg, 0.12)} stroke={soft(swap > 0.5 ? c.pos : c.neg, 0.6)} />
             <Txt x={240} y={231} size={14.5} weight={800}>
-              32×32 사진이 layer1에서도 32×32 그대로!
+              32×32 사진이 layer1에서도 32×32를 유지해요
             </Txt>
             <Txt x={240} y={254} size={12.5} weight={650} color="var(--text-2)">
-              (원래 구조였다면 layer1부터 8×8 — 디테일이 사라져요)
+              (원래 구조라면 layer1부터 8×8이 되어 디테일이 사라져요)
             </Txt>
           </g>
         </g>
@@ -158,7 +158,7 @@ return m`,
     title: '한 스텝의 순서: scale → backward → unscale → clip → step',
     text: (
       <>
-        AMP(혼합 정밀도)는 순전파를 fp16으로 돌려 메모리를 절반으로 줄여요. 대신 작은 기울기가 0으로 사라질 수 있어 <strong>손실을 키워서(scale) 역전파</strong>한 뒤, 클리핑 전에 <strong>원래 크기로 되돌려야(unscale)</strong> 해요. 순서가 바뀌면 클리핑 기준(5.0)이 엉망이 돼요.
+        AMP(혼합 정밀도)는 순전파를 fp16으로 돌려 메모리를 절반으로 줄여요. 대신 작은 기울기가 0으로 사라질 수 있어서 <strong>손실을 키워(scale) 역전파</strong>한 뒤, 클리핑 전에 <strong>원래 크기로 되돌려야(unscale)</strong> 해요. 순서가 바뀌면 클리핑 기준(5.0)이 제 의미를 잃어요.
       </>
     ),
     code: `optimizer.zero_grad(set_to_none=True)
@@ -206,7 +206,7 @@ scheduler.step()                                 # OneCycle은 스텝 단위`,
             const on = i === active;
             return (
               <g key={it.label}>
-                <Box x={p.x} y={p.y} w={100} h={44} label={it.label} fs={it.label.length > 11 ? 11.5 : 12.5} color={it.col} t={seg(t, i * 0.11, i * 0.11 + 0.1)} glow={on && t < 0.999} c={c} />
+                <Box x={p.x} y={p.y} w={100} h={44} label={it.label} fs={it.label.length > 11 ? 11.5 : 12.5} color={it.col} t={seg(t, i * 0.11, i * 0.11 + 0.1)} ring={on && t < 0.999} c={c} />
                 <Txt x={p.x + 8} y={p.y - 6} size={11} weight={800} anchor="start" color="var(--text-2)" opacity={seg(t, i * 0.11, i * 0.11 + 0.1)}>
                   {i + 1}
                 </Txt>
@@ -224,7 +224,7 @@ scheduler.step()                                 # OneCycle은 스텝 단위`,
               4 키워서 역전파 → 5 되돌리고 → 6 자르고 → 7 한 걸음
             </Txt>
             <Txt x={240} y={262} size={12.5} weight={650} color="var(--text-2)">
-              OneCycle 스케줄러는 에포크가 아니라 스텝마다 한 번씩!
+              OneCycle 스케줄러는 에포크가 아니라 스텝마다 한 번씩 호출해요
             </Txt>
           </g>
         </g>
@@ -346,7 +346,7 @@ scheduler = torch.optim.lr_scheduler.OneCycleLR(
           </g>
           <Curve x={268} y={40} w={190} h={170} fn={(e) => ACC[Math.min(19, Math.max(0, Math.round(e)))]} xDomain={[0, 19]} yDomain={[0.5, 1]} t={seg(t, 0.45, 0.95)} color={c.series[3]} xLabel="에포크" yLabel="테스트 정확도" n={19} marker={19} markerLabel="92%" markerAnchor="end" />
           <Txt x={240} y={270} size={12.5} weight={700} color="var(--text-2)" opacity={seg(t, 0.85, 1)}>
-            두 스위치는 따로따로! 하나만 켜면 결과가 틀리거나 메모리를 낭비해요
+            두 스위치는 별개예요. 하나만 켜면 결과가 틀리거나 메모리를 낭비해요
           </Txt>
         </g>
       );
@@ -356,7 +356,7 @@ scheduler = torch.optim.lr_scheduler.OneCycleLR(
     title: '체크포인트: 최고 기록일 때만 저장',
     text: (
       <>
-        마지막 에포크가 최고 성능이라는 보장은 없어요. 그래서 <strong>지금까지의 최고 기록을 넘을 때만</strong> 저장해요 — 사실상의 조기 종료죠. 가중치만이 아니라 <strong>정확도·에포크·설정(CFG)</strong>까지 함께 저장해야 3주 뒤에도 무슨 모델인지 알 수 있어요.
+        마지막 에포크가 최고 성능이라는 보장은 없어요. 그래서 <strong>지금까지의 최고 기록을 넘을 때만</strong> 저장해요. 사실상 조기 종료와 같은 효과예요. 가중치뿐 아니라 정확도·에포크·설정(CFG)까지 함께 저장해야 3주 뒤에도 어떤 모델인지 알 수 있어요.
       </>
     ),
     code: `if acc > best_acc:                                   # 최고 성능만 저장
@@ -383,11 +383,7 @@ scheduler = torch.optim.lr_scheduler.OneCycleLR(
             return (
               <g key={i}>
                 <rect x={x} y={base - h} width={bw} height={h} rx={4} fill={isBest ? c.series[1] : soft(c.series[1], 0.35)} />
-                {isBest && (
-                  <Emoji x={x + bw / 2} y={base - h - 8} size={14}>
-                    💾
-                  </Emoji>
-                )}
+                {isBest && <Glyph name="download" x={x + bw / 2} y={base - h - 12} size={13} color={c.series[1]} />}
               </g>
             );
           })}

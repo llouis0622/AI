@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { CodeStory, type StoryStep } from '../core/story';
 import type { VizColors } from '../core/colors';
-import { Arrow, Chip, Curve, Defs, Txt, VB, mix, seg, soft } from './_labsA';
+import { Arrow, Chip, Curve, Defs, Glyph, Txt, VB, mix, seg, soft } from './_labsA';
 
 /* ---------- the lab's BPE, run for real on a toy corpus ---------- */
 
@@ -149,7 +149,7 @@ const steps: StoryStep[] = [
     title: '바이트에서 시작: 어떤 글자든 0~255',
     text: (
       <>
-        텍스트를 <code>utf-8</code>로 인코딩하면 어떤 언어든 <strong>0~255 사이 숫자(바이트)</strong>가 돼요. 영어 글자는 1바이트, 한글 한 글자는 <strong>3바이트</strong>예요. 그래서 처음 어휘는 바이트 256개 — 처음 보는 글자가 와도 절대 막히지 않아요.
+        텍스트를 <code>utf-8</code>로 인코딩하면 어떤 언어든 <strong>0~255 사이 숫자(바이트)</strong>가 돼요. 영어 글자는 1바이트, 한글 한 글자는 3바이트예요. 그래서 처음 어휘는 바이트 256개이고, 처음 보는 글자가 와도 막히지 않아요.
       </>
     ),
     code: `# 바이트 수준에서 시작: 유니코드 무엇이 와도 0~255로 표현된다.
@@ -193,7 +193,7 @@ self.vocab = {i: bytes([i]) for i in range(256)}`,
           <g opacity={seg(t, 0.85, 1)}>
             <rect x={60} y={236} width={360} height={40} rx={14} fill={soft(c.series[1], 0.12)} stroke={soft(c.series[1], 0.6)} />
             <Txt x={240} y={261} size={13} weight={800}>
-              처음 어휘 = 바이트 256개 (모르는 글자 없음!)
+              처음 어휘 = 바이트 256개 (모르는 글자가 없어요)
             </Txt>
           </g>
         </g>
@@ -298,7 +298,7 @@ def _merge(ids: list[int], pair: tuple[int, int], new_id: int) -> list[int]:
     title: '반복하면 어휘가 자란다',
     text: (
       <>
-        같은 일을 원하는 어휘 크기가 될 때까지 반복해요. <code>lo → low</code>, <code>es → est</code>처럼 조각이 점점 단어다워져요. 그런데 <strong>"est␣"</strong>처럼 공백까지 붙은 조각도 생겨요 — 실전 토크나이저가 먼저 단어 단위로 나누는(사전분할) 이유예요.
+        같은 일을 원하는 어휘 크기가 될 때까지 반복해요. <code>lo → low</code>, <code>es → est</code>처럼 조각이 점점 단어다워져요. 그런데 <strong>"est␣"</strong>처럼 공백까지 붙은 조각도 생겨요. 실전 토크나이저가 먼저 단어 단위로 나누는(사전분할) 것도 이 때문이에요.
       </>
     ),
     code: `for new_id in range(256, vocab_size):
@@ -316,7 +316,7 @@ def _merge(ids: list[int], pair: tuple[int, int], new_id: int) -> list[int]:
         <g>
           <Defs />
           <Txt x={16} y={26} size={12.5} weight={800} anchor="start" color="var(--text-2)">
-            배운 병합 규칙 (순서가 중요!)
+            배운 병합 규칙 (순서가 중요해요)
           </Txt>
           {T.merges.map((m, i) => {
             const on = seg(t, 0.05 + i * 0.08, 0.15 + i * 0.08);
@@ -404,7 +404,7 @@ def _merge(ids: list[int], pair: tuple[int, int], new_id: int) -> list[int]:
         })}
         <g opacity={seg(t, 0.85, 1)}>
           <Txt x={420} y={64 + (LOWEST.length - 1) * 44} size={13} weight={900} color={c.series[2]}>
-            토큰 {LOWEST[LOWEST.length - 1].length}개!
+            토큰 {LOWEST[LOWEST.length - 1].length}개
           </Txt>
         </g>
       </g>
@@ -447,9 +447,10 @@ def _merge(ids: list[int], pair: tuple[int, int], new_id: int) -> list[int]:
           <Arrow x1={240} y1={188} x2={240} y2={218} color={c.series[0]} t={seg(t, 0.6, 0.75)} />
           <g opacity={seg(t, 0.75, 0.95)}>
             <rect x={150} y={226} width={180} height={44} rx={14} fill={soft(c.pos, 0.14)} stroke={c.pos} />
-            <Txt x={240} y={254} size={18} weight={900} mono>
-              "lowest" ✓
+            <Txt x={232} y={254} size={18} weight={900} mono>
+              "lowest"
             </Txt>
+            <Glyph name="check" x={293} y={248} size={18} color={c.pos} strokeWidth={2.25} />
           </g>
         </g>
       );
