@@ -2,36 +2,28 @@
 title: "CLIP과 멀티모달"
 lab: 18
 track: "F. 멀티모달과 운영"
-builds: "CLIP으로 (1) 학습 없이 임의 클래스를 분류하는 제로샷 분류기, (2) 텍스트로 이미지를 찾는 시맨틱 이미지 검색을 구현하고, 대조 학습 손실을 미니 구현으로 확인한다. 이미지와 텍스트가 **같은 임베딩 공간**에 산다는 것이 멀티모달 AI의 출발점이다."
+builds: "CLIP으로 (1) 학습 없이 임의 클래스를 분류하는 제로샷 분류기와 (2) 텍스트로 이미지를 찾는 시맨틱 이미지 검색을 구현하고, 대조 학습 손실을 미니 구현으로 확인한다. 이미지와 텍스트가 같은 임베딩 공간에 산다는 점이 멀티모달 AI의 출발점이다."
 chapters: [14, 16]
 summary:
-  - icon: "🖼️"
-    title: "사진과 글을 한 지도에"
+  - title: "사진과 글을 한 지도에"
     text: "이미지 인코더와 텍스트 인코더가 **같은 공간**에 좌표를 찍어요. 강아지 사진과 '강아지'라는 글이 가까이 놓여요."
-    visual: "orbit"
-  - icon: "🏷️"
-    title: "학습 없이 분류하기"
-    text: "'a photo of a ○○' 문장들과 사진의 **가까움**을 비교하면 따로 학습하지 않아도 분류돼요(제로샷)."
-    visual: "pulse"
-  - icon: "🔍"
-    title: "글로 사진 찾기"
-    text: "검색어를 좌표로 바꾸고 **가장 가까운 사진**을 고르면 이미지 검색 완성!"
-    visual: "float"
-  - icon: "🤝"
-    title: "짝 맞추기로 배웠어요"
-    text: "한 묶음 안에서 **진짜 짝(대각선)**은 가깝게, 나머지는 멀게 당기며 학습했어요(대조 학습)."
-    visual: "grow"
+  - title: "학습 없이 분류하기"
+    text: "'a photo of a ○○' 문장들과 사진이 얼마나 가까운지 비교하면, 따로 학습하지 않아도 분류돼요(제로샷)."
+  - title: "글로 사진 찾기"
+    text: "검색어를 좌표로 바꾸고 가장 가까운 사진을 고르면 이미지 검색이 돼요."
+  - title: "짝 맞추기로 배웠어요"
+    text: "한 묶음 안에서 진짜 짝(대각선)은 가깝게 당기고 나머지는 멀리 밀며 학습했어요(대조 학습)."
 ---
 
 import Viz from '@/components/viz/Viz.tsx';
 
-**만드는 것**: CLIP으로 (1) 학습 없이 임의 클래스를 분류하는 제로샷 분류기, (2) 텍스트로 이미지를 찾는 시맨틱 이미지 검색을 구현하고, 대조 학습 손실을 미니 구현으로 확인한다. 이미지와 텍스트가 **같은 임베딩 공간**에 산다는 것이 멀티모달 AI의 출발점이다.
+**만드는 것**: CLIP으로 (1) 학습 없이 임의 클래스를 분류하는 제로샷 분류기와 (2) 텍스트로 이미지를 찾는 시맨틱 이미지 검색을 구현하고, 대조 학습 손실을 미니 구현으로 확인한다. 이미지와 텍스트가 같은 임베딩 공간에 산다는 점이 멀티모달 AI의 출발점이다.
 
 **선행 지식**: [자기지도 비전 학습](/book/14-vision-tasks), [임베딩의 기하학](/book/16-tokens-and-embeddings)
 
 ## CLIP의 원리 한 문단
 
-이미지 인코더와 텍스트 인코더를 (이미지, 캡션) 쌍 4억 개로 함께 학습한다. 배치 안에서 **짝인 쌍의 유사도는 높이고 나머지 조합은 낮추는** 대조(contrastive) 손실 — 그 결과 "강아지 사진"의 이미지 벡터와 "a photo of a dog"의 텍스트 벡터가 가까워진다. 분류 레이블이라는 고정 어휘에서 해방되어, 텍스트로 표현 가능한 무엇이든 시각 개념과 연결된다.
+이미지 인코더와 텍스트 인코더를 (이미지, 캡션) 쌍 4억 개로 함께 학습한다. 학습에는 배치 안에서 짝인 쌍의 유사도는 높이고 나머지 조합은 낮추는 대조(contrastive) 손실을 쓴다. 그 결과 강아지 사진의 이미지 벡터와 "a photo of a dog"의 텍스트 벡터가 가까워진다. 분류 레이블이라는 고정 어휘에서 벗어나, 텍스트로 표현할 수 있는 무엇이든 시각 개념과 연결된다.
 
 <Viz id="lab18-clip" client:visible />
 
@@ -72,7 +64,7 @@ for c, p in sorted(zip(classes, probs[0].tolist()), key=lambda x: -x[1]):
 
 ## 2. 텍스트로 이미지 검색
 
-이미지 폴더를 한 번 임베딩해 두면, 어떤 문장으로도 검색된다 — [RAG](/practice/12-rag-system)의 이미지판이다.
+이미지 폴더를 한 번 임베딩해 두면 어떤 문장으로도 검색된다. [RAG](/practice/12-rag-system)의 이미지판이다.
 
 ```python
 """시맨틱 이미지 검색: python search.py "노을 지는 바다" """
@@ -116,7 +108,7 @@ if __name__ == "__main__":
     search(sys.argv[1] if len(sys.argv) > 1 else "a dog running on grass", paths, feats)
 ```
 
-## 3. 대조 손실 미니 구현 — CLIP 학습의 핵심 20줄
+## 3. 대조 손실 미니 구현: CLIP 학습의 핵심 20줄
 
 CLIP 학습 자체를 재현할 수는 없지만(4억 쌍), 손실 함수는 완전히 이해할 수 있다.
 
@@ -135,19 +127,19 @@ def clip_loss(img_feat, txt_feat, temperature=0.07):
             F.cross_entropy(logits.T, labels)) / 2
 ```
 
-핵심 통찰: 배치 크기 B에서 정답 1개 대 오답 B−1개의 분류 문제다. **배치가 클수록 오답(negative)이 많아져 학습 신호가 좋아진다** — CLIP이 수만 단위 배치로 학습된 이유이고, 대조 학습 전반의 공통 원리다([SimCLR](/book/14-vision-tasks)과 같은 구조).
+배치 크기가 B이면 정답 1개 대 오답 B−1개의 분류 문제가 된다. 배치가 클수록 오답(negative)이 많아져 학습 신호가 좋아진다. CLIP이 수만 단위 배치로 학습된 이유이고, 대조 학습 전반에 통하는 원리다([SimCLR](/book/14-vision-tasks)과 같은 구조).
 
-## 멀티모달의 다음 단계 — VLM
+## 멀티모달의 다음 단계, VLM
 
-CLIP은 이해(정렬)까지다. 이미지에 대해 "대화"하는 VLM(GPT-4V, Claude, LLaVA)은 대체로: 비전 인코더(CLIP 계열) → 프로젝션 층 → LLM의 토큰 공간으로 이미지 특징을 주입하는 구조다. LLaVA의 레시피가 대표적이다 — CLIP 인코더는 동결하고, 프로젝션과 LLM을 (이미지, 지시, 응답) 데이터로 파인튜닝한다. [11. LoRA](/practice/11-lora-finetuning)의 기법이 그대로 쓰인다.
+CLIP은 이해(정렬)까지만 한다. 이미지를 두고 대화하는 VLM(GPT-4V, Claude, LLaVA)은 대체로 비전 인코더(CLIP 계열) → 프로젝션 층 → LLM의 토큰 공간으로 이미지 특징을 주입하는 구조다. 대표적인 예가 LLaVA의 레시피로, CLIP 인코더는 동결하고 프로젝션과 LLM을 (이미지, 지시, 응답) 데이터로 파인튜닝한다. 여기에 [11. LoRA](/practice/11-lora-finetuning)의 기법이 그대로 쓰인다.
 
 ## 확장 과제
 
-1. **프롬프트 앙상블** — "a photo of X", "a blurry photo of X" 등 템플릿 7개의 텍스트 임베딩을 평균해 제로샷 정확도가 오르는지 CIFAR-10으로 측정하라(CLIP 논문의 실제 기법).
-2. **CIFAR-10 제로샷 벤치마크** — 학습 없이 CLIP 제로샷으로 CIFAR-10 정확도를 재고, [02에서 학습한 ResNet](/practice/02-pytorch-training-pipeline)과 비교하라.
-3. **선형 프로브** — CLIP 이미지 특징 위에 로지스틱 회귀만 학습해(=[03의 선형 프로브](/practice/03-transfer-learning)) 제로샷과 비교하라. 몇 장의 레이블이면 제로샷을 넘는가?
-4. **미니 CLIP 학습** — MNIST 이미지와 "a photo of the digit three" 텍스트로 위 `clip_loss`를 써서 장난감 CLIP을 학습시켜 보라. 인코더는 [06의 ViT](/practice/06-vit-from-scratch)와 작은 텍스트 Transformer면 된다.
+1. 프롬프트 앙상블: "a photo of X", "a blurry photo of X" 같은 템플릿 7개의 텍스트 임베딩을 평균해, 제로샷 정확도가 오르는지 CIFAR-10으로 측정하라(CLIP 논문이 실제로 쓴 기법).
+2. CIFAR-10 제로샷 벤치마크: 학습 없이 CLIP 제로샷으로 CIFAR-10 정확도를 재고, [02에서 학습한 ResNet](/practice/02-pytorch-training-pipeline)과 비교하라.
+3. 선형 프로브: CLIP 이미지 특징 위에 로지스틱 회귀만 학습해(=[03의 선형 프로브](/practice/03-transfer-learning)) 제로샷과 비교하라. 레이블이 몇 장 있으면 제로샷을 넘는가?
+4. 미니 CLIP 학습: MNIST 이미지와 "a photo of the digit three" 같은 텍스트로, 위의 `clip_loss`를 써서 장난감 CLIP을 학습시켜 보라. 인코더는 [06의 ViT](/practice/06-vit-from-scratch)와 작은 텍스트 Transformer면 된다.
 
 ## 다음
 
-이미지 다음은 소리 — 오디오 모달리티 → [19. 음성 인식과 오디오](/practice/19-whisper-audio)
+이미지 다음은 소리, 오디오 모달리티 → [19. 음성 인식과 오디오](/practice/19-whisper-audio)
