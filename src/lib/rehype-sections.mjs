@@ -2,9 +2,9 @@ import { MDX_NODE_TYPES, el, filePath, text } from './hast-walk.mjs';
 
 /** Recurring end-of-chapter sections that get their own card treatment. */
 const KINDS = [
-  { match: /^핵심 요약/, kind: 'summary', icon: '📌' },
-  { match: /^스스로 점검/, kind: 'selfcheck', icon: '✍️' },
-  { match: /^다음 장에서/, kind: 'next', icon: '🔭' }
+  { match: /^핵심 요약/, kind: 'summary' },
+  { match: /^스스로 점검/, kind: 'selfcheck' },
+  { match: /^다음 장에서/, kind: 'next' }
 ];
 
 const textOf = (node) =>
@@ -36,7 +36,7 @@ export default function rehypeSections() {
         j++;
       }
       if (spec.kind === 'selfcheck') markQuestions(body);
-      const head = el('div', { className: ['sec-head'] }, [el('span', { className: ['sec-icon'], ariaHidden: 'true' }, [text(spec.icon)]), node]);
+      const head = el('div', { className: ['sec-head'] }, [node]);
       out.push(el('section', { className: ['sec', `sec-${spec.kind}`], dataSec: spec.kind }, [head, ...body]));
       i = j;
     }
@@ -53,7 +53,7 @@ function markQuestions(nodes) {
       n += 1;
       li.properties = { ...li.properties, dataCheck: String(n) };
       li.children = [
-        el('button', { type: 'button', className: ['check-box'], ariaLabel: `${n}번 질문을 생각해 봤어요`, ariaPressed: 'false' }, [text(String(n))]),
+        el('button', { type: 'button', className: ['check-box'], ariaLabel: `${n}번 질문 확인`, ariaPressed: 'false' }, [text(String(n))]),
         ...li.children
       ];
     }

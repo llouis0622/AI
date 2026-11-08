@@ -1,17 +1,17 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import Algo from '@/components/mascot/Algo.tsx';
+import Icon from '@/components/layout/Icon.astro';
 import { url } from '@/data/curriculum';
 ---
-<BaseLayout title="길을 잃었어요">
+<BaseLayout title="페이지를 찾을 수 없어요">
   <main id="main" class="container nf">
-    <Algo mood="wow" size={150} body />
-    <h1>404 · 이 페이지는 아직 학습되지 않았어요</h1>
-    <p>주소가 바뀌었거나 없는 페이지예요. 경사하강법처럼 한 걸음씩 다시 찾아볼까요?</p>
+    <span class="nf-code">404</span>
+    <h1>페이지를 찾을 수 없어요</h1>
+    <p>주소가 바뀌었거나 없는 페이지입니다. 목차나 검색에서 찾아보세요.</p>
     <div class="nf-actions">
       <a class="btn btn-primary" href={url('/')}>홈으로</a>
       <a class="btn" href={url('/book/')}>책 목차</a>
-      <button class="btn" type="button" data-search-open>🔎 검색하기</button>
+      <button class="btn" type="button" data-search-open><Icon name="search" size={16} />검색</button>
     </div>
   </main>
 </BaseLayout>
@@ -22,18 +22,24 @@ import { url } from '@/data/curriculum';
     flex-direction: column;
     align-items: center;
     text-align: center;
-    padding-top: 64px;
+    padding-top: 96px;
+  }
+
+  .nf-code {
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 15px;
   }
 
   .nf h1 {
-    margin: 22px 0 10px;
-    font-size: clamp(24px, 4vw, 34px);
-    font-weight: 900;
-    letter-spacing: -0.04em;
+    margin: 10px 0 10px;
+    font-size: clamp(26px, 4vw, 34px);
+    font-weight: 700;
+    letter-spacing: -0.03em;
   }
 
   .nf p {
-    margin: 0 0 24px;
+    margin: 0 0 28px;
     color: var(--text-2);
   }
 
@@ -41,6 +47,6 @@ import { url } from '@/data/curriculum';
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 10px;
+    gap: 8px;
   }
 </style>

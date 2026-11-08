@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import Algo from '@/components/mascot/Algo.tsx';
+import Icon from '@/components/layout/Icon.astro';
 import { glossaryTerms } from '@/data/glossary';
 import { PARTS, partOf } from '@/data/curriculum';
 import { getBook, bookHref } from '@/lib/content';
@@ -12,42 +12,39 @@ const byPart = PARTS.map((p) => ({
   terms: glossaryTerms.filter((t) => partOf(t.chapter)?.part === p.part).sort((a, b) => a.chapter - b.chapter || a.term.localeCompare(b.term, 'ko'))
 })).filter((g) => g.terms.length);
 ---
-<BaseLayout title="용어 사전" description="AI를 공부하다 막히는 낱말을 중학생도 알 수 있는 말로 풀었어요.">
+<BaseLayout title="용어 사전" description="AI를 공부하다 막히는 용어를 쉬운 말로 풀어 둔 사전입니다.">
   <main id="main" class="container gl-page">
     <header class="gl-hero">
-      <div class="algo-say">
-        <Algo mood="smile" size={84} body />
-        <div class="algo-bubble">
-          <h1 class="gl-title">용어 사전 📚</h1>
-          <p>책에서 <span class="gl-sample">점선 밑줄</span>이 그어진 낱말을 누르면 여기 있는 설명이 바로 떠요. 모두 <strong>{glossaryTerms.length}개</strong>의 낱말을 쉬운 말로 풀었어요.</p>
-        </div>
-      </div>
+      <span class="eyebrow">용어 {glossaryTerms.length}개</span>
+      <h1 class="gl-title">용어 사전</h1>
+      <p>본문에서 <span class="gl-sample">점선 밑줄</span>이 그어진 용어를 누르면 여기 있는 설명이 바로 뜹니다. 용어는 처음 나오는 부 순서대로 모았어요.</p>
       <label class="gl-search">
-        <span aria-hidden="true">🔎</span>
-        <input type="search" placeholder="낱말 찾기 (예: 기울기, 어텐션)" data-gl-search autocomplete="off" />
+        <Icon name="search" size={16} />
+        <input type="search" placeholder="용어 찾기 (예: 기울기, 어텐션)" data-gl-search autocomplete="off" />
       </label>
       <nav class="gl-jump" aria-label="부별 바로가기">
-        {byPart.map(({ part }) => <a class="chip" href={`#gl-part-${part.part}`} data-part={part.part}>{part.emoji} {part.part}부</a>)}
+        {byPart.map(({ part }) => <a href={`#gl-part-${part.part}`}>{part.part}부</a>)}
       </nav>
     </header>
 
     <div data-pagefind-body data-pagefind-meta="title:용어 사전">
       {byPart.map(({ part, terms }) => (
-        <section class="gl-group" id={`gl-part-${part.part}`} data-part={part.part}>
-          <h2 class="gl-group-title">{part.emoji} {part.part}부 · {part.title}</h2>
-          <div class="gl-grid">
+        <section class="gl-group" id={`gl-part-${part.part}`}>
+          <h2 class="gl-group-title"><span class="gl-group-no">{part.part}부</span>{part.title}</h2>
+          <div class="gl-list">
             {terms.map((t) => {
               const slug = slugOf(t.chapter);
               return (
-                <article class="gl-card card" data-gl-term={`${t.term} ${(t.aliases ?? []).join(' ')} ${t.short}`.toLowerCase()}>
-                  <div class="gl-card-head">
-                    <span class="gl-emoji" aria-hidden="true">{t.emoji ?? '💡'}</span>
+                <article class="gl-item" data-gl-term={`${t.term} ${(t.aliases ?? []).join(' ')} ${t.short}`.toLowerCase()}>
+                  <div class="gl-item-head">
                     <h3 id={t.id}>{t.term}</h3>
-                    {t.aliases && t.aliases.length > 0 && <span class="gl-alias">{t.aliases.join(' · ')}</span>}
+                    {t.aliases && t.aliases.length > 0 && <span class="gl-alias">{t.aliases.join(', ')}</span>}
                   </div>
-                  <p class="gl-short">{t.short}</p>
-                  {t.long && <p class="gl-long">{t.long}</p>}
-                  {slug && <a class="gl-from" data-pagefind-ignore href={bookHref(slug)}>📖 {t.chapter}장에서 처음 나와요 →</a>}
+                  <div class="gl-item-body">
+                    <p class="gl-short">{t.short}</p>
+                    {t.long && <p class="gl-long">{t.long}</p>}
+                    {slug && <a class="gl-from" data-pagefind-ignore href={bookHref(slug)}>{t.chapter}장에서 처음 나와요</a>}
+                  </div>
                 </article>
               );
             })}
@@ -55,7 +52,7 @@ const byPart = PARTS.map((p) => ({
         </section>
       ))}
     </div>
-    <p class="gl-empty" hidden data-gl-empty>찾는 낱말이 없어요. 다른 말로 찾아볼까요?</p>
+    <p class="gl-empty" hidden data-gl-empty>찾는 용어가 없어요.</p>
   </main>
 </BaseLayout>
 
@@ -78,150 +75,171 @@ const byPart = PARTS.map((p) => ({
   });
   // Highlight the term targeted by #hash (coming from a tooltip link)
   const target = location.hash && document.getElementById(decodeURIComponent(location.hash.slice(1)));
-  if (target) target.closest('.gl-card')?.classList.add('is-target');
+  if (target) target.closest('.gl-item')?.classList.add('is-target');
 </script>
 
 <style>
   .gl-page {
-    padding-top: 28px;
-    max-width: 1100px;
+    padding-top: 40px;
+    max-width: 1000px;
+  }
+
+  .gl-hero {
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
   }
 
   .gl-title {
-    margin: 0 0 6px;
+    margin: 0 0 10px;
     font-size: clamp(28px, 4vw, 38px);
-    font-weight: 900;
-    letter-spacing: -0.04em;
+    font-weight: 700;
+    letter-spacing: -0.035em;
   }
 
   .gl-hero p {
     margin: 0;
+    max-width: 40em;
     color: var(--text-2);
   }
 
   .gl-sample {
-    border-bottom: 2px dotted var(--brand);
+    border-bottom: 1px dashed var(--text-3);
   }
 
   .gl-search {
     display: flex;
     align-items: center;
     gap: 10px;
+    max-width: 420px;
     margin-top: 22px;
-    padding: 0 16px;
-    height: 52px;
-    border-radius: 16px;
+    padding: 0 12px;
+    height: 40px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
     background: var(--surface);
-    border: 1.5px solid var(--border-strong);
-    box-shadow: var(--shadow-sm);
+    color: var(--text-3);
+  }
+
+  .gl-search:focus-within {
+    border-color: var(--accent);
   }
 
   .gl-search input {
     flex: 1;
+    min-width: 0;
     border: 0;
     outline: none;
     background: transparent;
-    font-size: 16.5px;
+    font-size: 15px;
+    color: var(--text);
   }
 
   .gl-jump {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 14px;
+    gap: 4px 14px;
+    margin-top: 16px;
+    font-size: 13.5px;
+  }
+
+  .gl-jump a {
+    color: var(--text-3);
+  }
+
+  .gl-jump a:hover {
+    color: var(--text);
   }
 
   .gl-group {
-    margin-top: 36px;
-    scroll-margin-top: calc(var(--header-h) + 16px);
-  }
-
-  .gl-group[hidden],
-  .gl-card[hidden] {
-    display: none;
+    margin-top: 44px;
+    scroll-margin-top: calc(var(--header-h) + 20px);
   }
 
   .gl-group-title {
-    margin: 0 0 14px;
-    font-size: 20px;
-    font-weight: 850;
-    letter-spacing: -0.03em;
-  }
-
-  .gl-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 14px;
-  }
-
-  .gl-card {
     display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 18px;
-    scroll-margin-top: calc(var(--header-h) + 24px);
-    transition: box-shadow 0.3s, border-color 0.3s;
-  }
-
-  .gl-card.is-target {
-    border-color: var(--brand);
-    box-shadow: var(--shadow-lg), 0 0 0 4px var(--brand-soft);
-  }
-
-  .gl-card-head {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .gl-card-head h3 {
-    scroll-margin-top: calc(var(--header-h) + 40px);
-    margin: 0;
+    align-items: baseline;
+    gap: 10px;
+    margin: 0 0 8px;
     font-size: 18px;
-    font-weight: 850;
+    font-weight: 650;
     letter-spacing: -0.02em;
   }
 
-  .gl-emoji {
+  .gl-group-no {
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .gl-list {
+    border-top: 1px solid var(--border);
+  }
+
+  .gl-item {
     display: grid;
-    place-items: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 12px;
-    background: var(--part-soft, var(--brand-soft));
-    font-size: 19px;
+    grid-template-columns: 200px minmax(0, 1fr);
+    gap: 8px 24px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border);
+    transition: background-color 0.3s;
+  }
+
+  .gl-item.is-target {
+    background: var(--accent-soft);
+  }
+
+  .gl-item[hidden] {
+    display: none;
+  }
+
+  .gl-item-head h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 650;
+    scroll-margin-top: calc(var(--header-h) + 24px);
   }
 
   .gl-alias {
-    font-size: 12.5px;
-    font-weight: 700;
+    display: block;
+    margin-top: 2px;
     color: var(--text-3);
+    font-size: 13px;
   }
 
   .gl-short {
     margin: 0;
-    font-weight: 650;
-    line-height: 1.65;
+    font-size: 15px;
+    line-height: 1.7;
   }
 
   .gl-long {
-    margin: 0;
-    font-size: 14px;
+    margin: 6px 0 0;
     color: var(--text-2);
+    font-size: 14.5px;
     line-height: 1.7;
   }
 
   .gl-from {
-    margin-top: auto;
+    display: inline-block;
+    margin-top: 6px;
+    color: var(--accent);
     font-size: 13px;
-    font-weight: 750;
-    color: var(--link);
+  }
+
+  .gl-from:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 
   .gl-empty {
-    margin-top: 40px;
-    text-align: center;
+    margin: 32px 0;
     color: var(--text-3);
+    text-align: center;
+  }
+
+  @media (max-width: 680px) {
+    .gl-item {
+      grid-template-columns: minmax(0, 1fr);
+    }
   }
 </style>

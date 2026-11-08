@@ -16,11 +16,8 @@ const { book, heading } = Astro.props;
       return (
         <article class="part-card card card-hover" id={`part-${p.part}`} data-part={p.part} data-reveal>
           <div class="part-top">
-            <span class="part-emoji" aria-hidden="true">{p.emoji}</span>
-            <div>
-              <span class="part-no">{p.part}부</span>
-              <h3 class="part-title">{p.title}</h3>
-            </div>
+            <span class="part-no">{p.part}부</span>
+            <h3 class="part-title">{p.title}</h3>
           </div>
           <p class="part-blurb">{p.blurb}</p>
           <ol class="part-chapters">
@@ -61,135 +58,98 @@ const { book, heading } = Astro.props;
 
   .parts-heading {
     margin: 0 0 16px;
-    font-size: 22px;
-    font-weight: 850;
-    letter-spacing: -0.03em;
+    font-size: 19px;
+    font-weight: 650;
+    letter-spacing: -0.02em;
   }
 
   .parts-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 16px;
-  }
-
-  .part-card {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 20px;
-    overflow: hidden;
-  }
-
-  .part-card::before {
-    content: '';
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: 5px;
-    background: var(--part);
-    opacity: 0.85;
-  }
-
-  :global(:root[data-theme='dark']) .part-card::before {
-    box-shadow: 0 0 16px var(--part);
-  }
-
-  .part-top {
-    display: flex;
-    align-items: center;
     gap: 12px;
   }
 
-  .part-emoji {
-    display: grid;
-    place-items: center;
-    width: 48px;
-    height: 48px;
-    border-radius: 16px;
-    background: var(--part-soft);
-    font-size: 26px;
-    flex: none;
+  .part-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 18px 18px 12px;
+    scroll-margin-top: calc(var(--header-h) + 20px);
+  }
+
+  .part-card:hover {
+    background: var(--surface);
   }
 
   .part-no {
+    display: block;
+    color: var(--accent);
     font-size: 12.5px;
-    font-weight: 800;
-    color: var(--part);
-  }
-
-  :global(:root:not([data-theme='dark'])) .part-no {
-    color: color-mix(in srgb, var(--part) 75%, #2a2540);
+    font-weight: 600;
   }
 
   .part-title {
-    margin: 0;
-    font-size: 18px;
-    font-weight: 850;
-    letter-spacing: -0.03em;
+    margin: 2px 0 0;
+    font-size: 16.5px;
+    font-weight: 650;
+    letter-spacing: -0.015em;
   }
 
   .part-blurb {
     margin: 0;
     color: var(--text-2);
-    font-size: 14px;
+    font-size: 13.5px;
     line-height: 1.65;
   }
 
   .part-chapters {
+    margin: 6px 0 0;
+    padding: 6px 0 0;
     list-style: none;
-    margin: 4px 0 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
+    border-top: 1px solid var(--border);
   }
 
   .part-chapters a {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 7px 8px;
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 600;
+    padding: 5px 0;
     color: var(--text-2);
-    transition: background-color 0.18s, color 0.18s;
+    font-size: 14px;
+    transition: color 0.15s;
   }
 
   .part-chapters a:hover {
-    background: var(--part-soft);
     color: var(--text);
   }
 
   .pc-num {
-    display: inline-grid;
-    place-items: center;
-    min-width: 24px;
-    height: 24px;
-    border-radius: 8px;
-    background: var(--surface-3);
+    min-width: 20px;
+    color: var(--text-3);
     font-size: 12px;
-    font-weight: 800;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
   }
 
   .pc-title {
     flex: 1;
+    min-width: 0;
   }
 
   .pc-dot {
-    width: 8px;
-    height: 8px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
-    border: 1.5px solid var(--border-strong);
+    border: 1px solid var(--border-strong);
+    flex: none;
   }
 
-  .part-chapters a.is-visited .pc-dot {
-    border-color: var(--part);
-    background: color-mix(in srgb, var(--part) 40%, transparent);
+  .is-visited .pc-dot {
+    border-color: var(--accent);
   }
 
-  .part-chapters a.is-done .pc-dot {
-    border-color: var(--ok);
-    background: var(--ok);
+  .is-done .pc-dot {
+    border-color: var(--accent);
+    background: var(--accent);
   }
 </style>

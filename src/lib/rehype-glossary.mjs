@@ -59,7 +59,6 @@ export default function rehypeGlossary({ terms = [], base = '' } = {}) {
               dataTerm: term.id,
               dataTitle: term.term,
               dataDef: term.short,
-              dataEmoji: term.emoji ?? '',
               dataHref: `${prefix}/glossary/#${term.id}`
             },
             [text(alias)]

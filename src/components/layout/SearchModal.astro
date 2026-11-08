@@ -6,11 +6,11 @@ import Icon from './Icon.astro';
   <div class="search-panel">
     <div class="search-field">
       <Icon name="search" size={20} />
-      <input id="search-input" type="search" placeholder="궁금한 개념을 검색해 보세요 (예: 경사하강법, 어텐션)" autocomplete="off" spellcheck="false" />
+      <input id="search-input" type="search" placeholder="개념이나 용어를 검색하세요 (예: 경사하강법, 어텐션)" autocomplete="off" spellcheck="false" />
       <button class="search-esc" type="button" data-search-close aria-label="검색 닫기">ESC</button>
     </div>
     <div class="search-results" id="search-results" aria-live="polite">
-      <p class="search-empty">책 · 코드랩 · 퀴즈 · 용어 사전 전체에서 찾아요.</p>
+      <p class="search-empty">책, 코드랩, 퀴즈, 용어 사전에서 찾아요.</p>
     </div>
     <div class="search-foot">
       <span><kbd>↑</kbd><kbd>↓</kbd> 이동</span>
@@ -69,18 +69,18 @@ import Icon from './Icon.astro';
 
   async function run(q: string) {
     if (!q.trim()) {
-      results.innerHTML = '<p class="search-empty">책 · 코드랩 · 퀴즈 · 용어 사전 전체에서 찾아요.</p>';
+      results.innerHTML = '<p class="search-empty">책, 코드랩, 퀴즈, 용어 사전에서 찾아요.</p>';
       return;
     }
     const pf = await loadPagefind();
     if (!pf) {
-      results.innerHTML = '<p class="search-empty">검색 색인은 사이트를 빌드하면 만들어져요. (개발 모드에서는 동작하지 않아요)</p>';
+      results.innerHTML = '<p class="search-empty">검색은 빌드한 사이트에서만 동작해요.</p>';
       return;
     }
     const res = await pf.search(q);
     const data = await Promise.all(res.results.slice(0, 12).map((r) => r.data()));
     if (!data.length) {
-      results.innerHTML = `<p class="search-empty">"${q.replace(/</g, '&lt;')}"에 대한 결과가 없어요. 다른 단어로 찾아볼까요?</p>`;
+      results.innerHTML = `<p class="search-empty">"${q.replace(/</g, '&lt;')}"에 대한 결과가 없어요.</p>`;
       return;
     }
     results.innerHTML = data
@@ -145,8 +145,7 @@ import Icon from './Icon.astro';
     position: absolute;
     inset: 0;
     background: var(--overlay);
-    backdrop-filter: blur(6px);
-    animation: fade-in 0.2s ease-out;
+    animation: fade-in 0.15s ease-out;
   }
 
   .search-panel {
@@ -155,12 +154,12 @@ import Icon from './Icon.astro';
     max-height: min(70vh, 640px);
     display: flex;
     flex-direction: column;
-    border-radius: var(--radius-lg);
-    background: var(--surface-solid);
+    border-radius: var(--radius);
+    background: var(--surface);
     border: 1px solid var(--border-strong);
     box-shadow: var(--shadow-lg);
     overflow: hidden;
-    animation: pop-in 0.28s var(--ease-spring);
+    animation: pop-in 0.18s var(--ease-out);
   }
 
   .search-field {
@@ -178,16 +177,16 @@ import Icon from './Icon.astro';
     border: 0;
     outline: none;
     background: transparent;
-    font-size: 17px;
+    font-size: 16px;
     color: var(--text);
   }
 
   .search-esc {
     padding: 3px 8px;
-    border-radius: 8px;
+    border-radius: 4px;
     border: 1px solid var(--border);
-    font-size: 12px;
-    font-weight: 700;
+    font-size: 11.5px;
+    font-weight: 600;
     color: var(--text-3);
   }
 
@@ -206,25 +205,25 @@ import Icon from './Icon.astro';
 
   .search-hit {
     display: block;
-    padding: 12px 14px;
-    border-radius: 14px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
     transition: background-color 0.15s;
   }
 
   .search-hit.is-active,
   .search-hit:hover {
-    background: var(--brand-soft);
+    background: var(--surface-2);
   }
 
   .search-hit-title {
     display: block;
-    font-weight: 750;
-    font-size: 15.5px;
-    margin-bottom: 4px;
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 3px;
   }
 
   .search-hit-sub {
-    font-weight: 650;
+    font-weight: 500;
     color: var(--text-2);
   }
 
@@ -274,7 +273,7 @@ import Icon from './Icon.astro';
   }
 
   @keyframes pop-in {
-    from { opacity: 0; transform: translateY(10px) scale(0.98); }
+    from { opacity: 0; transform: translateY(6px); }
     to { opacity: 1; transform: none; }
   }
 

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://llouis0622.github.io/AI/sitemap-index.xml

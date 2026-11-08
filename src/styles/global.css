@@ -1,11 +1,10 @@
 @import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css';
 @import './tokens.css';
 @import './prose.css';
-@import './mascot.css';
 @import './viz.css';
 @import './map.css';
 
-/* Smooth cross-fade between pages in browsers that support it (no JS). */
+/* Cross-fade between pages in browsers that support it (no JS). */
 @view-transition {
   navigation: auto;
 }
@@ -22,6 +21,7 @@ html {
   text-size-adjust: 100%;
   scroll-padding-top: calc(var(--header-h) + 20px);
   scroll-behavior: smooth;
+  background: var(--bg);
 }
 
 body {
@@ -29,10 +29,10 @@ body {
   min-height: 100dvh;
   font-family: var(--font-sans);
   font-size: 16px;
-  line-height: 1.65;
+  line-height: 1.7;
   color: var(--text);
   background: var(--bg);
-  font-feature-settings: 'ss05', 'tnum' 0;
+  font-feature-settings: 'ss05';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
@@ -46,6 +46,10 @@ canvas,
 video {
   display: block;
   max-width: 100%;
+}
+
+.icon {
+  flex: none;
 }
 
 button,
@@ -71,176 +75,87 @@ a {
 :focus-visible {
   outline: none;
   box-shadow: var(--focus);
-  border-radius: 8px;
+  border-radius: var(--radius-xs);
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--brand) 28%, transparent);
-}
-
-/* ---------- Sky background (blobs in light, stars + nebula in dark) ---------- */
-.sky {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.sky::before,
-.sky::after {
-  content: '';
-  position: absolute;
-  inset: -20%;
-}
-
-:root:not([data-theme='dark']) .sky::before {
-  background:
-    radial-gradient(38% 30% at 12% 8%, rgba(156, 232, 206, 0.45), transparent 70%),
-    radial-gradient(34% 28% at 88% 12%, rgba(196, 184, 255, 0.45), transparent 70%),
-    radial-gradient(40% 32% at 80% 92%, rgba(255, 200, 176, 0.42), transparent 70%),
-    radial-gradient(30% 26% at 6% 86%, rgba(255, 228, 160, 0.35), transparent 70%);
-  animation: sky-drift 40s ease-in-out infinite alternate;
-}
-
-:root:not([data-theme='dark']) .sky::after {
-  background-image: radial-gradient(rgba(42, 37, 64, 0.07) 1px, transparent 1.4px);
-  background-size: 26px 26px;
-  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.25));
-}
-
-:root[data-theme='dark'] .sky::before {
-  background:
-    radial-gradient(40% 32% at 15% 10%, rgba(34, 229, 255, 0.16), transparent 70%),
-    radial-gradient(36% 30% at 85% 18%, rgba(139, 92, 255, 0.2), transparent 70%),
-    radial-gradient(44% 34% at 70% 95%, rgba(255, 61, 203, 0.14), transparent 70%),
-    radial-gradient(30% 26% at 5% 80%, rgba(46, 242, 192, 0.1), transparent 70%);
-  animation: sky-drift 50s ease-in-out infinite alternate;
-}
-
-:root[data-theme='dark'] .sky::after {
-  inset: 0;
-  background-image:
-    radial-gradient(1.2px 1.2px at 20px 30px, #fff, transparent),
-    radial-gradient(1px 1px at 120px 80px, rgba(255, 255, 255, 0.8), transparent),
-    radial-gradient(1.4px 1.4px at 200px 160px, #bdf6ff, transparent),
-    radial-gradient(1px 1px at 300px 40px, rgba(255, 255, 255, 0.7), transparent),
-    radial-gradient(1.2px 1.2px at 340px 220px, #ffd6f6, transparent),
-    radial-gradient(1px 1px at 60px 260px, rgba(255, 255, 255, 0.6), transparent),
-    radial-gradient(1.6px 1.6px at 250px 300px, #fff, transparent);
-  background-size: 360px 340px;
-  opacity: 0.75;
-  animation: twinkle 6s ease-in-out infinite alternate;
-}
-
-.sky .stars-far {
-  position: absolute;
-  inset: 0;
-  display: none;
-  background-image:
-    radial-gradient(1px 1px at 40px 60px, rgba(255, 255, 255, 0.55), transparent),
-    radial-gradient(1px 1px at 170px 120px, rgba(189, 246, 255, 0.5), transparent),
-    radial-gradient(1px 1px at 90px 210px, rgba(255, 255, 255, 0.45), transparent),
-    radial-gradient(1px 1px at 230px 20px, rgba(255, 214, 246, 0.5), transparent);
-  background-size: 260px 250px;
-  animation: twinkle 9s ease-in-out infinite alternate-reverse;
-}
-
-:root[data-theme='dark'] .sky .stars-far {
-  display: block;
-}
-
-@keyframes sky-drift {
-  from { transform: translate3d(0, 0, 0) scale(1); }
-  to { transform: translate3d(2%, -2%, 0) scale(1.05); }
-}
-
-@keyframes twinkle {
-  from { opacity: 0.45; }
-  to { opacity: 0.9; }
+  background: color-mix(in srgb, var(--accent) 32%, transparent);
 }
 
 /* ---------- Buttons ---------- */
 .btn {
-  --btn-bg: var(--surface-solid);
-  --btn-fg: var(--text);
-  --btn-border: var(--border-strong);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 44px;
-  padding: 0 20px;
-  border-radius: var(--radius-pill);
-  border: 1px solid var(--btn-border);
-  background: var(--btn-bg);
-  color: var(--btn-fg);
-  font-weight: 650;
-  font-size: 15px;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  font-size: 14.5px;
   letter-spacing: -0.01em;
   white-space: nowrap;
-  transition: transform 0.25s var(--ease-spring), box-shadow 0.25s var(--ease-out),
-    background-color 0.2s, border-color 0.2s;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
 
 .btn:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow);
+  background: var(--surface-2);
+  border-color: var(--text-3);
 }
 
 .btn:active {
-  transform: translateY(0) scale(0.97);
+  background: var(--surface-3);
 }
 
 .btn-primary {
-  --btn-bg: var(--grad-btn);
-  --btn-fg: var(--btn-ink);
-  --btn-border: transparent;
-  background: var(--grad-btn);
-  box-shadow: 0 6px 18px color-mix(in srgb, var(--brand) 35%, transparent);
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
 }
 
-:root[data-theme='dark'] .btn-primary {
-  color: #041018;
-  box-shadow: var(--glow-strong);
+.btn-primary:hover {
+  background: color-mix(in srgb, var(--accent) 88%, var(--text));
+  border-color: transparent;
 }
 
 .btn-ghost {
-  --btn-bg: transparent;
-  --btn-border: transparent;
+  background: transparent;
+  border-color: transparent;
 }
 
 .btn-ghost:hover {
   background: var(--surface-2);
-  box-shadow: none;
+  border-color: transparent;
 }
 
 .btn-sm {
-  min-height: 36px;
-  padding: 0 14px;
-  font-size: 14px;
+  min-height: 34px;
+  padding: 0 12px;
+  font-size: 13.5px;
 }
 
 .btn-icon {
-  width: 40px;
-  min-height: 40px;
+  width: 38px;
+  min-height: 38px;
   padding: 0;
-  border-radius: 12px;
 }
 
-/* ---------- Chips & badges ---------- */
+/* ---------- Tags and labels ---------- */
 .chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 12px;
-  border-radius: var(--radius-pill);
+  padding: 3px 10px;
+  border-radius: var(--radius-xs);
   background: var(--surface-2);
   border: 1px solid var(--border);
   color: var(--text-2);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 550;
   line-height: 1.5;
   white-space: nowrap;
 }
@@ -254,50 +169,41 @@ a.chip:hover {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 12px;
-  border-radius: var(--radius-pill);
-  background: var(--part-soft);
-  color: var(--part);
+  color: var(--accent);
   font-size: 13px;
-  font-weight: 750;
-  letter-spacing: -0.01em;
+  font-weight: 650;
+  letter-spacing: 0.01em;
 }
 
-:root:not([data-theme='dark']) .part-badge {
-  color: color-mix(in srgb, var(--part) 78%, #2a2540);
+.eyebrow {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--text-3);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 /* ---------- Cards ---------- */
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-}
-
-:root[data-theme='dark'] .card {
-  backdrop-filter: blur(14px) saturate(130%);
-  -webkit-backdrop-filter: blur(14px) saturate(130%);
+  border-radius: var(--radius);
 }
 
 .card-hover {
-  transition: transform 0.35s var(--ease-spring), box-shadow 0.3s var(--ease-out), border-color 0.25s;
+  transition: border-color 0.15s, background-color 0.15s;
 }
 
 .card-hover:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
   border-color: var(--border-strong);
-}
-
-:root[data-theme='dark'] .card-hover:hover {
-  box-shadow: var(--shadow-lg), var(--glow);
+  background: var(--surface-2);
 }
 
 /* ---------- Layout helpers ---------- */
 .container {
   width: 100%;
-  max-width: 1200px;
+  max-width: 1160px;
   margin-inline: auto;
   padding-inline: var(--gutter);
 }
@@ -311,37 +217,28 @@ a.chip:hover {
   white-space: nowrap;
 }
 
-.gradient-text {
-  background: var(--grad-brand);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
 .section-title {
   margin: 0 0 8px;
-  font-size: clamp(24px, 3.4vw, 34px);
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 1.25;
+  font-size: clamp(22px, 3vw, 28px);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.3;
 }
 
 .section-sub {
   margin: 0 0 28px;
   color: var(--text-2);
-  font-size: 16px;
+  font-size: 15.5px;
 }
 
-/* Scroll-reveal: elements fade up when [data-reveal] enters the viewport. */
+/* Scroll-reveal: a short fade as [data-reveal] enters the viewport. */
 [data-reveal] {
   opacity: 0;
-  transform: translateY(18px);
-  transition: opacity 0.7s var(--ease-out), transform 0.7s var(--ease-out);
+  transition: opacity 0.5s var(--ease-out);
 }
 
 [data-reveal].is-visible {
   opacity: 1;
-  transform: none;
 }
 
 /* ---------- Scrollbars ---------- */
@@ -367,6 +264,5 @@ a.chip:hover {
   }
   [data-reveal] {
     opacity: 1;
-    transform: none;
   }
 }

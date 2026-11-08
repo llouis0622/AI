@@ -11,10 +11,11 @@ interface Props {
   section: 'book' | 'practice' | 'review';
   current?: string;
   headings?: MarkdownHeading[];
+  ogType?: 'website' | 'article';
 }
-const { title, description, section, current, headings = [] } = Astro.props;
+const { title, description, section, current, headings = [], ogType = 'article' } = Astro.props;
 ---
-<BaseLayout title={title} description={description} hasSidebar>
+<BaseLayout title={title} description={description} ogType={ogType} hasSidebar>
   <Sidebar slot="drawer" section={section} current={current} />
   <div class="doc-shell">
     <aside class="doc-sidebar">
@@ -38,7 +39,7 @@ const { title, description, section, current, headings = [] } = Astro.props;
   .doc-shell {
     display: grid;
     grid-template-columns: var(--sidebar-w) minmax(0, 1fr) var(--toc-w);
-    gap: 40px;
+    gap: 48px;
     max-width: 1440px;
     margin: 0 auto;
     padding: 0 var(--gutter);
@@ -55,6 +56,7 @@ const { title, description, section, current, headings = [] } = Astro.props;
 
   .doc-sidebar {
     padding-top: 28px;
+    border-right: 1px solid var(--border);
   }
 
   .doc-main {
@@ -62,11 +64,11 @@ const { title, description, section, current, headings = [] } = Astro.props;
     width: 100%;
     max-width: var(--content-w);
     margin: 0 auto;
-    padding-top: 32px;
+    padding-top: 40px;
   }
 
   .doc-toc {
-    padding-top: 36px;
+    padding-top: 44px;
   }
 
   @media (max-width: 1280px) {

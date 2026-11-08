@@ -58,7 +58,7 @@ function fold(kind, node) {
     el('summary', { className: ['fold-summary'] }, [
       el('span', { className: ['fold-icon'], ariaHidden: 'true' }, [text(isMath ? 'Σ' : '</>')]),
       el('span', { className: ['fold-label'] }, [text(label)]),
-      el('span', { className: ['fold-hint'] }, [text('눌러서 펼치기')])
+      el('span', { className: ['fold-hint'] }, [text('펼치기')])
     ]),
     el('div', { className: ['fold-body'] }, [node])
   ]);

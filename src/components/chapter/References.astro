@@ -1,0 +1,97 @@
+---
+/** "더 읽을거리": further reading at the end of a chapter or lab. */
+import Icon from '@/components/layout/Icon.astro';
+import { REF_KIND_LABEL, type Ref } from '@/data/references';
+
+interface Props {
+  refs: Ref[];
+}
+const { refs } = Astro.props;
+---
+{refs.length > 0 && (
+  <section class="refs" aria-labelledby="refs-title">
+    <h2 id="refs-title" class="refs-title">더 읽을거리</h2>
+    <ul class="refs-list">
+      {refs.map((r) => (
+        <li class="ref">
+          <span class="ref-kind">{REF_KIND_LABEL[r.kind]}</span>
+          <div class="ref-body">
+            <a class="ref-link" href={r.url} target="_blank" rel="noopener noreferrer">
+              {r.title}
+              <Icon name="external" size={13} class="ref-ext" />
+            </a>
+            {(r.by || r.year) && <span class="ref-meta">{[r.by, r.year].filter(Boolean).join(', ')}</span>}
+            {r.note && <p class="ref-note">{r.note}</p>}
+          </div>
+        </li>
+      ))}
+    </ul>
+  </section>
+)}
+
+<style>
+  .refs {
+    margin: 48px 0 0;
+  }
+
+  .refs-title {
+    margin: 0 0 12px;
+    font-size: 18px;
+    font-weight: 650;
+    letter-spacing: -0.015em;
+  }
+
+  .refs-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--border);
+  }
+
+  .ref {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .ref-kind {
+    padding-top: 2px;
+    color: var(--text-3);
+    font-size: 12.5px;
+    font-weight: 600;
+  }
+
+  .ref-link {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.5;
+    color: var(--text);
+  }
+
+  .ref-link:hover {
+    color: var(--accent);
+  }
+
+  .ref-link :global(.ref-ext) {
+    display: inline-block;
+    margin-left: 4px;
+    vertical-align: -1px;
+    color: var(--text-3);
+  }
+
+  .ref-meta {
+    display: block;
+    margin-top: 2px;
+    color: var(--text-3);
+    font-size: 13px;
+  }
+
+  .ref-note {
+    margin: 4px 0 0;
+    color: var(--text-2);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+</style>

@@ -2,6 +2,7 @@
 import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
 import mdx from '@astrojs/mdx';
+import sitemap from '@astrojs/sitemap';
 import { unified } from '@astrojs/markdown-remark';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
@@ -23,7 +24,7 @@ export default defineConfig({
   build: { format: 'directory' },
   // Fetch the next page while the reader hovers a link.
   prefetch: { prefetchAll: true, defaultStrategy: 'hover' },
-  integrations: [react(), mdx()],
+  integrations: [react(), mdx(), sitemap()],
   markdown: {
     processor: unified({
       remarkPlugins: [remarkMath],
@@ -36,7 +37,7 @@ export default defineConfig({
       ]
     }),
     shikiConfig: {
-      themes: { light: 'github-light', dark: 'tokyo-night' },
+      themes: { light: 'vitesse-light', dark: 'vitesse-dark' },
       wrap: false
     }
   },

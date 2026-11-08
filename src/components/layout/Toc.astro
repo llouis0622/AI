@@ -41,14 +41,13 @@ const items = Astro.props.headings.filter((h) => h.depth === 2 || h.depth === 3)
 
 <style is:global>
   .toc {
-    font-size: 13.5px;
+    font-size: 13px;
   }
 
   .toc-title {
     margin: 0 0 10px;
     font-size: 12.5px;
-    font-weight: 800;
-    letter-spacing: 0.02em;
+    font-weight: 600;
     color: var(--text-3);
   }
 
@@ -56,22 +55,21 @@ const items = Astro.props.headings.filter((h) => h.depth === 2 || h.depth === 3)
     list-style: none;
     margin: 0;
     padding: 0;
-    border-left: 2px solid var(--border);
+    border-left: 1px solid var(--border);
   }
 
   .toc li a {
     display: block;
-    margin-left: -2px;
-    padding: 5px 0 5px 14px;
-    border-left: 2px solid transparent;
+    margin-left: -1px;
+    padding: 4px 0 4px 14px;
+    border-left: 1px solid transparent;
     color: var(--text-3);
-    line-height: 1.45;
-    transition: color 0.2s, border-color 0.2s;
+    line-height: 1.5;
+    transition: color 0.15s, border-color 0.15s;
   }
 
   .toc li.toc-d3 a {
     padding-left: 26px;
-    font-size: 13px;
   }
 
   .toc li a:hover {
@@ -80,12 +78,6 @@ const items = Astro.props.headings.filter((h) => h.depth === 2 || h.depth === 3)
 
   .toc li a.active {
     color: var(--text);
-    font-weight: 700;
-    border-left-color: var(--brand);
-  }
-
-  :root[data-theme='dark'] .toc li a.active {
-    border-left-color: var(--brand);
-    text-shadow: 0 0 12px rgba(34, 229, 255, 0.35);
+    border-left-color: var(--accent);
   }
 </style>

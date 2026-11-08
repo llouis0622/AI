@@ -1,0 +1,47 @@
+---
+/** "이 페이지 고치기" and "오류 제보" links to the GitHub repository. */
+import Icon from '@/components/layout/Icon.astro';
+
+interface Props {
+  /** Source file relative to the repository root, e.g. src/content/book/02-….mdx */
+  path?: string;
+  /** Page title used in the prefilled issue. */
+  title: string;
+}
+const { path, title } = Astro.props;
+const repo = 'https://github.com/llouis0622/AI';
+const page = new URL(Astro.url.pathname, Astro.site).href;
+const issue = `${repo}/issues/new?title=${encodeURIComponent(`[오류] ${title}`)}&body=${encodeURIComponent(`페이지: ${page}\n\n어떤 부분이 이상한가요?\n\n`)}`;
+---
+<div class="edit-links" data-pagefind-ignore>
+  {path && (
+    <a href={`${repo}/edit/main/${path}`} target="_blank" rel="noopener noreferrer">
+      <Icon name="edit" size={15} />이 페이지 고치기
+    </a>
+  )}
+  <a href={issue} target="_blank" rel="noopener noreferrer">
+    <Icon name="message" size={15} />오류 제보
+  </a>
+</div>
+
+<style>
+  .edit-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 20px;
+    margin: 28px 0 0;
+    font-size: 13.5px;
+  }
+
+  .edit-links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-3);
+    transition: color 0.15s;
+  }
+
+  .edit-links a:hover {
+    color: var(--text);
+  }
+</style>
