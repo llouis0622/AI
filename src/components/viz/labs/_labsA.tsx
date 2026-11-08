@@ -3,6 +3,7 @@
  * Scenes use a 480×300 viewBox so labels stay readable on phones.
  */
 import type { ReactNode } from 'react';
+import Icon, { type IconName } from '@/components/ui/Icon';
 import { withAlpha, type VizColors } from '../core/colors';
 
 /** Progress of a sub-animation that runs while t goes from a to b (clamped 0..1). */
@@ -10,22 +11,19 @@ export const seg = (t: number, a: number, b: number) => Math.min(1, Math.max(0, 
 export const easeIO = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2);
 export const mix = (a: number, b: number, t: number) => a + (b - a) * t;
 
-const hex = (s: string) => (s.startsWith('#') ? s : '#7c6cf6');
+/** withAlpha needs hex; CSS variables (e.g. var(--viz-axis)) fall back to a neutral grey. */
+const hex = (s: string) => (s.startsWith('#') ? s : '#8b8984');
 export const soft = (color: string, a = 0.16) => withAlpha(hex(color), a);
 
 export const VB: [number, number] = [480, 300];
 
-/** Keyframes for flowing dashes / pulses (scoped names, reduced-motion aware). */
+/** Keyframes for flowing dashes (scoped name, reduced-motion aware). */
 export function Defs() {
   return (
     <style>{`
       .labA-flow { stroke-dasharray: 7 6; animation: labA-dash 1.1s linear infinite; }
-      .labA-pulse { animation: labA-pulse 1.6s ease-in-out infinite; }
-      .labA-bob { animation: labA-bob 2.4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
       @keyframes labA-dash { to { stroke-dashoffset: -26; } }
-      @keyframes labA-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
-      @keyframes labA-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
-      @media (prefers-reduced-motion: reduce) { .labA-flow, .labA-pulse, .labA-bob { animation: none; } }
+      @media (prefers-reduced-motion: reduce) { .labA-flow { animation: none; } }
     `}</style>
   );
 }
@@ -64,7 +62,7 @@ export function Txt({
   );
 }
 
-/** Labelled rounded box (a module, a tensor, a stage). */
+/** Labelled rounded box (a module, a tensor, a stage). `ring` adds a thin outline to mark the active box. */
 export function Box({
   x,
   y,
@@ -77,6 +75,7 @@ export function Box({
   fs = 16,
   subFs = 12.5,
   dim = false,
+  ring: ringProp = false,
   glow = false,
   dashed = false,
   c
@@ -92,10 +91,13 @@ export function Box({
   fs?: number;
   subFs?: number;
   dim?: boolean;
+  ring?: boolean;
+  /** @deprecated Temporary alias of `ring`, removed once labs 06–10 are updated. */
   glow?: boolean;
   dashed?: boolean;
   c: VizColors;
 }) {
+  const ring = ringProp || glow;
   const s = 0.82 + 0.18 * t;
   const dark = c.theme === 'dark';
   return (
@@ -103,7 +105,7 @@ export function Box({
       opacity={Math.min(1, t * 1.8) * (dim ? 0.38 : 1)}
       transform={`translate(${x + w / 2} ${y + h / 2}) scale(${s}) translate(${-w / 2} ${-h / 2})`}
     >
-      {glow && <rect x={-5} y={-5} width={w + 10} height={h + 10} rx={16} fill="none" stroke={color} strokeWidth={2} opacity={0.35} className="labA-pulse" />}
+      {ring && <rect x={-5} y={-5} width={w + 10} height={h + 10} rx={16} fill="none" stroke={color} strokeWidth={1.5} opacity={0.55} />}
       <rect
         width={w}
         height={h}
@@ -298,7 +300,7 @@ export function Chip({
         stroke={color}
         strokeWidth={active ? 0 : 1.5}
       />
-      <Txt x={0} y={fs * 0.36} size={fs} weight={800} mono={mono} color={active ? (dark ? '#041018' : '#ffffff') : 'var(--text)'}>
+      <Txt x={0} y={fs * 0.36} size={fs} weight={800} mono={mono} color={active ? 'var(--accent-ink)' : 'var(--text)'}>
         {text}
       </Txt>
     </g>
@@ -493,7 +495,26 @@ export function Cells({
   return <g>{out}</g>;
 }
 
-/** Emoji glyph as SVG text. */
+/** Line icon centred on (x, y), drawn in place of a pictorial emoji. */
+export function Glyph({
+  name,
+  x,
+  y,
+  size = 22,
+  color = 'var(--text)',
+  strokeWidth = 1.75
+}: {
+  name: IconName;
+  x: number;
+  y: number;
+  size?: number;
+  color?: string;
+  strokeWidth?: number;
+}) {
+  return <Icon name={name} x={x - size / 2} y={y - size / 2} size={size} strokeWidth={strokeWidth} style={{ color }} />;
+}
+
+/** @deprecated Temporary: removed once labs 06–10 use Glyph. */
 export function Emoji({ x, y, children, size = 26, className }: { x: number; y: number; children: ReactNode; size?: number; className?: string }) {
   return (
     <text x={x} y={y} textAnchor="middle" className={className} style={{ fontSize: size }}>

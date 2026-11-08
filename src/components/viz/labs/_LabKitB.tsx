@@ -14,8 +14,8 @@ export const FS = { h: 16, l: 14.5, s: 13, m: 12.5 };
 /** Progress of a sub-animation that starts at `a` and lasts `d` (t units, 0..1). */
 export const seg = (t: number, a: number, d = 0.35) => clamp((t - a) / d, 0, 1);
 
-/** withAlpha needs hex; theme series colors are hex, fall back if not. */
-export const hx = (s: string) => (s.startsWith('#') ? s : '#7c6cf6');
+/** withAlpha needs hex; theme series colors are hex, CSS variables fall back to a neutral grey. */
+export const hx = (s: string) => (s.startsWith('#') ? s : '#8b8984');
 export const alpha = (color: string, a: number) => withAlpha(hx(color), a);
 
 export const reducedMotion = () =>
@@ -134,7 +134,7 @@ export function Box({
           x={w / 2}
           y={sub ? h / 2 - 3 : h / 2 + labelSize * 0.36}
           textAnchor="middle"
-          style={{ fontSize: labelSize, fontWeight: 800, fill: solid ? '#fff' : 'var(--text)' }}
+          style={{ fontSize: labelSize, fontWeight: 800, fill: solid ? 'var(--accent-ink)' : 'var(--text)' }}
         >
           {label}
         </text>
@@ -224,7 +224,7 @@ export function Pill({
         x={0}
         y={size * 0.36}
         textAnchor="middle"
-        style={{ fontSize: size, fontWeight: 800, fill: solid ? '#fff' : 'var(--text)', fontFamily: mono ? 'var(--font-mono)' : undefined }}
+        style={{ fontSize: size, fontWeight: 800, fill: solid ? 'var(--accent-ink)' : 'var(--text)', fontFamily: mono ? 'var(--font-mono)' : undefined }}
       >
         {label}
       </text>
