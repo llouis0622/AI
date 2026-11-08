@@ -221,7 +221,7 @@ export function MiniChart({
           padding: 12
         }}
       >
-        ▶ 시작하면 여기에 그래프가 그려져요
+        시작하면 여기에 그래프가 그려져요
       </div>
     );
   }

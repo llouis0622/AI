@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { VizProps } from '../Viz';
-import { Button, Controls, Note, Segmented, Stat } from '../core/ui';
+import { Button, Controls, Icon, Note, Segmented, Stat } from '../core/ui';
 import { useElementSize, useInterval, usePrefersReducedMotion, useRafLoop } from '../core/hooks';
-import { mixHex, useVizColors, withAlpha } from '../core/colors';
+import { ramp, useVizColors, withAlpha } from '../core/colors';
 import { clamp } from '../core/math';
 import { drawHouse } from './_draw';
 
@@ -10,12 +10,12 @@ import { drawHouse } from './_draw';
 
 const SRC = 384;
 const STAGES: { label: string; short: string }[] = [
-  { label: '🖼️ 원본', short: '원본' },
-  { label: '✂️ 자르기', short: '자르기' },
-  { label: '🚂 줄 세우기', short: '줄 세우기' },
-  { label: '📏 펼치기', short: '펼치기' },
-  { label: '🔢 번호 붙이기', short: '번호' },
-  { label: '🤖 Transformer', short: 'Transformer' }
+  { label: '원본', short: '원본' },
+  { label: '자르기', short: '자르기' },
+  { label: '줄 세우기', short: '줄 세우기' },
+  { label: '펼치기', short: '펼치기' },
+  { label: '번호 붙이기', short: '번호' },
+  { label: 'Transformer', short: 'Transformer' }
 ];
 const STRIPE_CELLS = 12;
 const TOKEN_CELLS = 8;
@@ -191,8 +191,9 @@ export default function VitPatches(_props: VizProps) {
   const tokenColor = (pd: PatchData, k: number) => {
     const [r, gg, b] = pd.avg;
     const e = 0.5 + 0.5 * Math.sin(k * 2.1 + r * 4 + gg * 6.3 + b * 2.7 + k * r * 3);
-    return mixHex(c.surface, k % 2 ? c.series[0] : c.series[1], 0.2 + 0.8 * e);
+    return ramp(c, 0.12 + 0.88 * e);
   };
+  const hl = c.series[1];
 
   const settledOriginal = stage === 0 && p >= 1;
   const fa = formAt(prev);
@@ -234,9 +235,9 @@ export default function VitPatches(_props: VizProps) {
         {stage >= 5 && trA > 0.5 && i !== focus && (
           <rect x={x - 1.5} y={y - 1.5} width={geo.w + 3} height={geo.h + 3} rx={3} fill="none" stroke={c.brand} strokeWidth={2.2} opacity={attn[i] * trA} />
         )}
-        <rect x={x} y={y} width={geo.w} height={geo.h} rx={wTile > 0.5 ? 2 : 3} fill="none" stroke={on ? c.series[4] : withAlpha(c.ink, 0.25)} strokeWidth={on ? 3 : settledOriginal ? 0 : 0.8} />
+        <rect x={x} y={y} width={geo.w} height={geo.h} rx={wTile > 0.5 ? 2 : 3} fill="none" stroke={on ? hl : withAlpha(c.ink, 0.25)} strokeWidth={on ? 3 : settledOriginal ? 0 : 0.8} />
         {numA > 0.01 && (
-          <text x={geo.cx} y={geo.cy + geo.h / 2 + 10} textAnchor="middle" opacity={numA} style={{ fontSize: d.cell < 24 ? 7.5 : 9.5, fontWeight: 800, fill: on ? c.series[4] : 'var(--text-2)' }}>
+          <text x={geo.cx} y={geo.cy + geo.h / 2 + 10} textAnchor="middle" opacity={numA} style={{ fontSize: d.cell < 24 ? 7.5 : 9.5, fontWeight: 800, fill: on ? hl : 'var(--text-2)' }}>
             {i + 1}
           </text>
         )}
@@ -252,19 +253,18 @@ export default function VitPatches(_props: VizProps) {
   const last = STAGES.length - 1;
 
   const rawPerPatch = (96 / g) ** 2 * 3;
-  const notes: { text: ReactNode; mood: 'smile' | 'think' | 'wow' | 'happy' | 'cheer' }[] = [
-    { text: <>ViT는 사진을 "문장"으로 바꿔 읽어요. 아래 "다음 ▶"을 눌러 한 단계씩 따라가 봐요.</>, mood: 'smile' },
-    { text: <>✂️ 사진을 같은 크기의 조각(패치) {N}개로 잘라요. 진짜 ViT는 16×16 픽셀 조각을 써요.</>, mood: 'happy' },
-    { text: <>🚂 조각을 왼쪽 위부터 차례로 한 줄로 세워요. 이제 사진이 "조각 단어 {N}개짜리 문장"이 됐어요. 조각에 마우스를 올리면 원래 자리가 보여요.</>, mood: 'wow' },
-    { text: <>📏 조각 하나를 숫자 목록으로 쭉 펼쳐요. 이 그림에선 조각 하나가 {rawPerPatch.toLocaleString()}개 숫자(픽셀 × RGB 3)예요.</>, mood: 'think' },
-    { text: <>🔢 모든 조각을 같은 선형 층에 통과시켜 길이가 같은 벡터(토큰)로 만들고, 몇 번째 조각인지 위치 번호를 더해요. 맨 앞엔 요약 담당 [CLS] 토큰을 붙여요.</>, mood: 'happy' },
+  const notes: { text: ReactNode }[] = [
+    { text: <>ViT는 사진을 "문장"으로 바꿔 읽어요. 아래 "다음"을 눌러 한 단계씩 따라가 보세요.</> },
+    { text: <>사진을 같은 크기의 조각(패치) {N}개로 잘라요. 실제 ViT는 16×16 픽셀 조각을 써요.</> },
+    { text: <>조각을 왼쪽 위부터 차례로 한 줄로 세워요. 이제 사진이 "조각 단어 {N}개짜리 문장"이 됐어요. 조각에 마우스를 올리면 원래 자리가 보여요.</> },
+    { text: <>조각 하나를 숫자 목록으로 펼쳐요. 이 그림에서는 조각 하나가 숫자 {rawPerPatch.toLocaleString()}개(픽셀 × RGB 3)예요.</> },
+    { text: <>모든 조각을 같은 선형 층에 통과시켜 길이가 같은 벡터(토큰)로 만들고, 몇 번째 조각인지 위치 번호를 더해요. 맨 앞에는 요약을 맡는 [CLS] 토큰을 붙여요.</> },
     {
       text: (
         <>
-          🤖 Transformer는 첫 층부터 <b>모든 조각 쌍</b>을 한 번에 비교해요(어텐션). 합성곱처럼 "가까운 픽셀끼리"라는 규칙이 없어서, 그 상식까지 데이터로 배워야 해요. 조각에 마우스를 올려 보세요! (선은 색이 비슷한 조각끼리 이은 간이 그림이에요.)
+          Transformer는 첫 층부터 모든 조각 쌍을 한 번에 비교해요(어텐션). 합성곱처럼 "가까운 픽셀끼리"라는 규칙이 없어서, 그런 상식까지 데이터로 배워야 해요. 조각에 마우스를 올려 보세요. (선은 색이 비슷한 조각끼리 이은 간이 그림이에요.)
         </>
-      ),
-      mood: 'cheer'
+      )
     }
   ];
   const note = notes[stage];
@@ -302,7 +302,7 @@ export default function VitPatches(_props: VizProps) {
                     />
                   )
                 )}
-              <rect x={L.IX + (focus % g) * ps} y={L.IY + Math.floor(focus / g) * ps} width={ps} height={ps} fill={withAlpha(c.series[4], 0.25)} stroke={c.series[4]} strokeWidth={3} />
+              <rect x={L.IX + (focus % g) * ps} y={L.IY + Math.floor(focus / g) * ps} width={ps} height={ps} fill={withAlpha(hl, 0.25)} stroke={hl} strokeWidth={3} />
             </g>
           )}
 
@@ -315,28 +315,29 @@ export default function VitPatches(_props: VizProps) {
             <g opacity={trA}>
               <rect x={trBox.x} y={trBox.y} width={trBox.w} height={trBox.h} rx={16} fill={withAlpha(c.brand, 0.08)} stroke={c.brand} strokeWidth={2} />
               <text x={trBox.x + 12} y={trBox.y + 19} style={{ fontSize: 12.5, fontWeight: 900, fill: c.brand }}>
-                Transformer — 모든 토큰이 서로를 한 번에 봐요
+                Transformer: 모든 토큰이 서로를 한 번에 봐요
               </text>
             </g>
           )}
           {tiles}
           {clsA > 0.01 && (
             <g opacity={clsA}>
-              <rect x={cls.cx - cls.w / 2} y={cls.cy - cls.h / 2} width={cls.w} height={cls.h} rx={3} fill={withAlpha(c.series[4], 0.35)} stroke={c.series[4]} strokeWidth={2} />
-              <text x={cls.cx} y={cls.cy + 3.5} textAnchor="middle" style={{ fontSize: 10, fontWeight: 900 }}>
-                ★
-              </text>
-              <text x={cls.cx} y={cls.cy + cls.h / 2 + 10} textAnchor="middle" style={{ fontSize: d.cell < 24 ? 7 : 9, fontWeight: 900, fill: c.series[4] }}>
+              <rect x={cls.cx - cls.w / 2} y={cls.cy - cls.h / 2} width={cls.w} height={cls.h} rx={3} fill={withAlpha(hl, 0.35)} stroke={hl} strokeWidth={2} />
+              {(() => {
+                const sz = Math.min(12, cls.w * 0.8);
+                return <Icon name="star" x={cls.cx - sz / 2} y={cls.cy - sz / 2} size={sz} color={c.ink} strokeWidth={2} />;
+              })()}
+              <text x={cls.cx} y={cls.cy + cls.h / 2 + 10} textAnchor="middle" style={{ fontSize: d.cell < 24 ? 7 : 9, fontWeight: 900, fill: hl }}>
                 CLS
               </text>
             </g>
           )}
           {trA > 0.01 && (
             <g opacity={trA}>
-              <line x1={cls.cx} y1={trBox.y + trBox.h} x2={cls.cx} y2={trBox.y + trBox.h + 14} stroke={c.series[4]} strokeWidth={2.5} />
-              <rect x={cls.cx - 8} y={trBox.y + trBox.h + 14} width={170} height={24} rx={12} fill={c.series[4]} />
-              <text x={cls.cx + 4} y={trBox.y + trBox.h + 30} style={{ fontSize: 12, fontWeight: 900, fill: '#2a2540' }}>
-                [CLS] → 분류기 → 🏠 집!
+              <line x1={cls.cx} y1={trBox.y + trBox.h} x2={cls.cx} y2={trBox.y + trBox.h + 14} stroke={hl} strokeWidth={2.5} />
+              <rect x={cls.cx - 8} y={trBox.y + trBox.h + 14} width={150} height={24} rx={12} fill={hl} />
+              <text x={cls.cx + 4} y={trBox.y + trBox.h + 30} style={{ fontSize: 12, fontWeight: 900, fill: c.bg }}>
+                [CLS] → 분류기 → 집
               </text>
             </g>
           )}
@@ -378,7 +379,7 @@ export default function VitPatches(_props: VizProps) {
             }}
             disabled={stage === 0}
           >
-            ◀ 이전
+            <Icon name="chevron-left" size={16} />이전
           </Button>
           <Button
             variant="primary"
@@ -388,7 +389,8 @@ export default function VitPatches(_props: VizProps) {
             }}
             disabled={stage === last}
           >
-            다음 ▶
+            다음
+            <Icon name="chevron-right" size={16} />
           </Button>
           <Button
             variant="ghost"
@@ -402,7 +404,7 @@ export default function VitPatches(_props: VizProps) {
             }}
             disabled={auto}
           >
-            🎬 차례로 다 보기
+            <Icon name="play" size={16} />차례로 보기
           </Button>
         </div>
         <div className="vz-stats">
@@ -410,7 +412,7 @@ export default function VitPatches(_props: VizProps) {
           <Stat label="조각 하나의 숫자" value={rawPerPatch.toLocaleString()} sub="픽셀 × RGB" />
           <Stat label="어텐션이 비교할 짝" value={(N * N).toLocaleString()} sub="조각 수의 제곱" tone={N >= 64 ? 'warn' : undefined} />
         </div>
-        <Note mood={note.mood}>{note.text}</Note>
+        <Note>{note.text}</Note>
       </div>
 
       <Controls>

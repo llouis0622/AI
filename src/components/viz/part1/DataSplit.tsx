@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import type { VizProps } from '../Viz';
-import { Button, Controls, Note, Segmented, Slider, Stat } from '../core/ui';
+import { Button, Controls, Icon, Note, Segmented, Slider, Stat } from '../core/ui';
+import type { IconName } from '@/components/ui/Icon';
 import { useElementSize, useInterval } from '../core/hooks';
 import { useVizColors, withAlpha } from '../core/colors';
 import { rng } from '../core/math';
@@ -16,8 +17,8 @@ export default function DataSplit(_: VizProps) {
       <div style={{ padding: '12px 14px 0' }}>
         <Segmented
           options={[
-            { value: 'split', label: '🗂️ 셋으로 나누기' },
-            { value: 'cv', label: '🔁 교차검증' }
+            { value: 'split', label: '셋으로 나누기' },
+            { value: 'cv', label: '교차검증' }
           ]}
           value={mode}
           onChange={(v) => setMode(v as 'split' | 'cv')}
@@ -61,10 +62,10 @@ function Split() {
     : Math.ceil(N / 10);
   const H = Math.max(170, 54 + rowsNeeded * (cell + gap) + 18);
   // panel geometry when split
-  const panels: Record<Exclude<Bin, 'all'>, { x: number; w: number; label: string; emoji: string; color: string }> = {
-    train: { x: 0, w: W * 0.52, label: '훈련 — 교재', emoji: '📘', color: c.series[0] },
-    val: { x: W * 0.54, w: W * 0.22, label: '검증 — 모의고사', emoji: '📝', color: c.series[3] },
-    test: { x: W * 0.78, w: W * 0.22, label: '테스트 — 수능', emoji: '🎓', color: c.series[2] }
+  const panels: Record<Exclude<Bin, 'all'>, { x: number; w: number; label: string; icon: IconName; color: string }> = {
+    train: { x: 0, w: W * 0.52, label: '훈련 · 교재', icon: 'book', color: c.series[0] },
+    val: { x: W * 0.54, w: W * 0.22, label: '검증 · 모의고사', icon: 'edit', color: c.series[1] },
+    test: { x: W * 0.78, w: W * 0.22, label: '테스트 · 수능', icon: 'graduation', color: c.series[2] }
   };
   const posOf = (i: number) => {
     const b = binOf(i);
@@ -97,27 +98,28 @@ function Split() {
                   width: p.w,
                   height: H,
                   borderRadius: 16,
-                  border: `2px ${dirty ? 'dashed' : 'solid'} ${dirty ? c.neg : p.color}`,
-                  background: withAlpha(dirty ? c.neg : p.color, 0.08),
+                  border: dirty ? '1.5px dashed var(--bad)' : `1.5px solid ${p.color}`,
+                  background: withAlpha(p.color, dirty ? 0.03 : 0.08),
                   transition: 'all .4s'
                 }}
               >
                 <div style={{ padding: '8px 10px', fontSize: W < 420 ? 11.5 : 13, fontWeight: 850, lineHeight: 1.3 }}>
-                  {p.emoji} {p.label}
-                  <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-2)' }}>{dirty ? '⚠️ 오염됨!' : `${b === 'train' ? nTrain : b === 'val' ? nVal : N - nTrain - nVal}장`}</div>
+                  <Icon name={p.icon} size={14} color={p.color} style={{ verticalAlign: '-2px', marginRight: 5 }} />
+                  {p.label}
+                  <div style={{ fontSize: 11.5, fontWeight: 700, color: dirty ? 'var(--bad)' : 'var(--text-2)' }}>{dirty ? '오염됨' : `${b === 'train' ? nTrain : b === 'val' ? nVal : N - nTrain - nVal}장`}</div>
                 </div>
               </div>
             );
           })}
         {!split && (
           <div style={{ position: 'absolute', left: 0, right: 0, top: 10, textAlign: 'center', fontSize: 13.5, fontWeight: 800, color: 'var(--text-2)' }}>
-            가진 데이터 40장 — 아직 나누지 않았어요
+            가진 데이터 40장, 아직 나누지 않았어요
           </div>
         )}
         {Array.from({ length: N }, (_, i) => {
           const { x, y } = posOf(i);
           const b = binOf(i);
-          const col = b === 'all' ? c.series[4] : panels[b].color;
+          const col = b === 'all' ? c.text : panels[b].color;
           return (
             <div
               key={i}
@@ -141,40 +143,43 @@ function Split() {
       <div className="vz-pad" style={{ display: 'grid', gap: 12 }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 8 }}>
           {[
-            { e: '📘', t: '훈련', d: '모델이 공부하는 교재. 파라미터가 여기서 학습돼요.', col: c.series[0] },
-            { e: '📝', t: '검증', d: '모의고사. 어떤 모델이 나은지, 언제 멈출지 같은 결정을 여기 성적으로 해요.', col: c.series[3] },
-            { e: '🎓', t: '테스트', d: '수능. 모든 결정이 끝난 뒤 딱 한 번만 열어요.', col: c.series[2] }
+            { icon: 'book' as IconName, t: '훈련', d: '모델이 공부하는 교재. 파라미터가 여기서 학습돼요.', col: c.series[0] },
+            { icon: 'edit' as IconName, t: '검증', d: '모의고사. 어떤 모델이 나은지, 언제 멈출지 같은 결정을 여기 성적으로 해요.', col: c.series[1] },
+            { icon: 'graduation' as IconName, t: '테스트', d: '수능. 모든 결정이 끝난 뒤 딱 한 번만 열어요.', col: c.series[2] }
           ].map((s) => (
-            <div key={s.t} style={{ padding: '10px 12px', borderRadius: 14, borderLeft: `5px solid ${s.col}`, background: 'var(--surface-2)', fontSize: 13.5, lineHeight: 1.6 }}>
+            <div key={s.t} style={{ padding: '10px 12px', borderRadius: 14, borderLeft: `3px solid ${s.col}`, background: 'var(--surface-2)', fontSize: 13.5, lineHeight: 1.6 }}>
               <strong>
-                {s.e} {s.t}
+                <Icon name={s.icon} size={15} color={s.col} style={{ verticalAlign: '-2px', marginRight: 6 }} />
+                {s.t}
               </strong>
               <div style={{ color: 'var(--text-2)' }}>{s.d}</div>
             </div>
           ))}
         </div>
         {peeked ? (
-          <Note mood="wow" tone="bad">
-            테스트 점수를 보고 모델을 고쳤어요! 이제 이 테스트 세트는 더 이상 "처음 보는 문제"가 아니에요. 여기서 나온 점수는 실제보다 좋게 부풀려져요 — 진짜 실력을 재려면 새 테스트 데이터가 필요해요.
+          <Note tone="bad">
+            테스트 점수를 보고 모델을 고쳤어요. 이제 테스트 세트는 "처음 보는 문제"가 아니라서 점수가 실제보다 부풀려져요. 진짜 실력을 재려면 새 테스트 데이터가 필요해요.
           </Note>
         ) : split ? (
-          <Note mood="happy">
-            나눴어요! 훈련으로 공부하고, 검증으로 고르고, 테스트는 마지막에 한 번만. 훈련 성적은 좋은데 검증 성적이 나쁘면 과적합이에요.
+          <Note>
+            훈련으로 공부하고, 검증으로 고르고, 테스트는 마지막에 한 번만 써요. 훈련 성적은 좋은데 검증 성적이 나쁘면 과적합이에요.
           </Note>
         ) : (
-          <Note mood="smile">"🔀 섞어서 나누기"를 눌러 보세요. 섞지 않고 앞뒤로만 자르면 한쪽에 비슷한 데이터만 몰릴 수 있어요.</Note>
+          <Note>"섞어서 나누기"를 눌러 보세요. 섞지 않고 앞뒤로만 자르면 한쪽에 비슷한 데이터만 몰릴 수 있어요.</Note>
         )}
       </div>
       <Controls>
         <Button variant="primary" onClick={() => { setSeed((s) => s + 1); setSplit(true); setPeeked(false); }}>
-          🔀 섞어서 나누기
+          <Icon name="shuffle" size={16} />
+          섞어서 나누기
         </Button>
         <Slider label="훈련 비율" value={trainPct} min={50} max={80} step={5} onChange={setTrainPct} format={(v) => `${v}% / ${Math.round((100 - v) / 2)}% / ${Math.round((100 - v) / 2)}%`} />
         <Button variant="danger" onClick={() => setPeeked(true)} disabled={!split || peeked}>
-          🙈 테스트 점수 보고 모델 고치기
+          테스트 점수 보고 모델 고치기
         </Button>
         <Button variant="ghost" onClick={() => { setSplit(false); setPeeked(false); }}>
-          ↺ 처음으로
+          <Icon name="reset" size={16} />
+          처음으로
         </Button>
       </Controls>
     </div>
@@ -218,9 +223,9 @@ function CrossVal() {
                         placeItems: 'center',
                         fontSize: 11.5,
                         fontWeight: 800,
-                        color: isVal ? '#fff' : 'var(--text-2)',
-                        background: isVal ? c.series[3] : withAlpha(c.series[0], 0.25),
-                        boxShadow: active && isVal ? `0 0 0 3px ${withAlpha(c.series[3], 0.35)}` : 'none',
+                        color: isVal ? 'var(--accent-ink)' : 'var(--text-2)',
+                        background: isVal ? c.series[1] : withAlpha(c.series[0], 0.25),
+                        boxShadow: active && isVal ? `0 0 0 2px ${withAlpha(c.series[1], 0.4)}` : 'none',
                         transition: 'box-shadow .3s'
                       }}
                     >
@@ -229,7 +234,7 @@ function CrossVal() {
                   );
                 })}
               </div>
-              <span style={{ width: 54, textAlign: 'right', fontSize: 14, fontWeight: 900, color: c.series[3] }}>{r <= round ? FOLD_SCORES[r].toFixed(2) : ''}</span>
+              <span style={{ width: 54, textAlign: 'right', fontSize: 14, fontWeight: 800, color: c.series[1] }}>{r <= round ? FOLD_SCORES[r].toFixed(2) : ''}</span>
             </div>
           );
         })}
@@ -239,18 +244,20 @@ function CrossVal() {
           <Stat label="끝낸 라운드" value={`${done.length}/5`} />
           <Stat label="평균 점수" value={done.length ? avg.toFixed(3) : '—'} tone={done.length === 5 ? 'good' : 'brand'} sub={done.length > 1 ? `± ${sd.toFixed(3)} (흔들림)` : undefined} />
         </div>
-        <Note mood={done.length === 5 ? 'cheer' : 'smile'} tone={done.length === 5 ? 'good' : undefined}>
+        <Note tone={done.length === 5 ? 'good' : undefined}>
           {done.length === 5
-            ? `다섯 조각이 한 번씩 모의고사가 됐어요. 평균 ${avg.toFixed(2)}점 — 데이터를 버리지 않고도 공정하게 실력을 쟀어요. 점수가 라운드마다 조금씩 다른 것도 보이죠? 그래서 평균을 내요.`
-            : '데이터가 적을 땐 다섯 조각으로 나눠, 조각마다 한 번씩 모의고사로 쓰고 나머지로 공부해요. ▶를 눌러 보세요.'}
+            ? `다섯 조각이 한 번씩 모의고사가 됐고, 평균은 ${avg.toFixed(2)}점이에요. 데이터를 버리지 않고도 공정하게 실력을 쟀어요. 라운드마다 점수가 조금씩 달라서 평균을 내요.`
+            : '데이터가 적을 땐 다섯 조각으로 나눠, 조각마다 한 번씩 모의고사로 쓰고 나머지로 공부해요. "차례로 보기"를 눌러 보세요.'}
         </Note>
       </div>
       <Controls>
         <Button variant="primary" onClick={() => { if (round >= 4) setRound(-1); setPlaying((p) => !p); }}>
-          {playing ? '❚❚ 멈춤' : round >= 4 ? '↺ 다시 보기' : '▶ 차례로 보기'}
+          <Icon name={playing ? 'pause' : round >= 4 ? 'reset' : 'play'} size={16} />
+          {playing ? '멈춤' : round >= 4 ? '다시 보기' : '차례로 보기'}
         </Button>
         <Button onClick={() => setRound((r) => Math.min(4, r + 1))} disabled={playing || round >= 4}>
-          한 라운드 ⟶
+          <Icon name="step" size={16} />
+          한 라운드
         </Button>
       </Controls>
     </div>

@@ -1,6 +1,5 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import Algo from '@/components/mascot/Algo.tsx';
 import VizCard from '@/components/viz/VizCard.astro';
 import { allViz } from '@/data/viz';
 import { PARTS, TRACKS } from '@/data/curriculum';
@@ -11,30 +10,23 @@ const count3D = allViz.filter((v) => v.is3D).length;
 const groups = PARTS.map((p) => ({ part: p, items: bookViz.filter((v) => p.chapters.includes(v.chapter!)) })).filter((g) => g.items.length);
 const trackOf = (lab: number) => TRACKS.find((t) => t.labs.includes(lab));
 ---
-<BaseLayout title="시각화 실험실" description="경사하강법, 신경망, 어텐션, 확산 모델… AI의 핵심 개념을 3D와 애니메이션으로 직접 만져 보는 실험실.">
+<BaseLayout title="시각화 실험실" description="경사하강법, 신경망, 어텐션, 확산 모델까지. AI의 핵심 개념을 3D와 애니메이션으로 직접 움직여 보는 시각화 모음입니다.">
   <main id="main" class="container lab-page">
     <header class="lab-hero">
-      <div class="algo-say">
-        <Algo mood="cheer" size={96} body />
-        <div class="algo-bubble">
-          <h1 class="lab-title">시각화 실험실 <span class="gradient-text">🧪</span></h1>
-          <p>
-            글 대신 <strong>눈과 손</strong>으로 배우는 곳이에요. 슬라이더를 밀고, 점을 끌고, 3D를 돌려 보세요.
-            지금 <strong>{allViz.length}개</strong>의 실험이 있고, 그중 <strong>{count3D}개</strong>는 3D예요.
-          </p>
-        </div>
-      </div>
-      <div class="lab-filters" role="toolbar" aria-label="실험 거르기">
-        <button class="chip is-on" data-filter="all" type="button">전체</button>
-        <button class="chip" data-filter="3d" type="button">🧊 3D만</button>
-        <button class="chip" data-filter="todo" type="button">🌱 아직 안 해본 것</button>
-        {labViz.length > 0 && <button class="chip" data-filter="lab" type="button">💻 코드랩</button>}
+      <span class="eyebrow">시각화 {allViz.length}개 · 3D {count3D}개</span>
+      <h1 class="lab-title">시각화 실험실</h1>
+      <p>책의 각 장에 들어 있는 시각화를 한곳에 모았어요. 슬라이더를 밀고, 점을 끌고, 3D를 돌리며 개념을 직접 확인해 보세요.</p>
+      <div class="lab-filters" role="toolbar" aria-label="시각화 거르기">
+        <button class="lab-filter is-on" data-filter="all" type="button">전체</button>
+        <button class="lab-filter" data-filter="3d" type="button">3D</button>
+        <button class="lab-filter" data-filter="todo" type="button">아직 안 해 본 것</button>
+        {labViz.length > 0 && <button class="lab-filter" data-filter="lab" type="button">코드랩</button>}
       </div>
     </header>
 
     {groups.map(({ part, items }) => (
       <section class="lab-group" data-part={part.part}>
-        <h2 class="lab-group-title"><span>{part.emoji}</span>{part.part}부 · {part.title}</h2>
+        <h2 class="lab-group-title"><span class="lab-group-no">{part.part}부</span>{part.title}</h2>
         <div class="lab-grid">
           {items.map((v) => <VizCard meta={v} label={`${v.chapter}장`} />)}
         </div>
@@ -43,9 +35,9 @@ const trackOf = (lab: number) => TRACKS.find((t) => t.labs.includes(lab));
 
     {labViz.length > 0 && (
       <section class="lab-group" data-part="7" data-kind-group="lab">
-        <h2 class="lab-group-title"><span>💻</span>코드랩 미리보기</h2>
+        <h2 class="lab-group-title"><span class="lab-group-no">코드랩</span>코드랩 미리보기</h2>
         <div class="lab-grid">
-          {labViz.map((v) => <VizCard meta={v} label={`${trackOf(v.lab!)?.emoji ?? '💻'} 코드랩 ${String(v.lab).padStart(2, '0')}`} />)}
+          {labViz.map((v) => <VizCard meta={v} label={`코드랩 ${String(v.lab).padStart(2, '0')} · ${trackOf(v.lab!)?.title.replace(/^[A-F]\. /, '') ?? ''}`} />)}
         </div>
       </section>
     )}
@@ -85,66 +77,82 @@ const trackOf = (lab: number) => TRACKS.find((t) => t.labs.includes(lab));
 
 <style>
   .lab-page {
-    padding-top: 28px;
+    padding-top: 40px;
   }
 
   .lab-hero {
-    margin-bottom: 24px;
+    margin-bottom: 12px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
   }
 
   .lab-title {
-    margin: 0 0 6px;
-    font-size: clamp(28px, 4vw, 40px);
-    font-weight: 900;
-    letter-spacing: -0.04em;
+    margin: 0 0 10px;
+    font-size: clamp(28px, 4vw, 38px);
+    font-weight: 700;
+    letter-spacing: -0.035em;
   }
 
   .lab-hero p {
     margin: 0;
+    max-width: 40em;
     color: var(--text-2);
+    font-size: 16px;
   }
 
   .lab-filters {
-    display: flex;
+    display: inline-flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 20px;
+    gap: 2px;
+    margin-top: 22px;
+    padding: 2px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
   }
 
-  .lab-filters .chip {
-    cursor: pointer;
-    font-size: 14px;
-    padding: 7px 14px;
+  .lab-filter {
+    padding: 5px 12px;
+    border-radius: 6px;
+    color: var(--text-2);
+    font-size: 13.5px;
+    font-weight: 550;
+    transition: background-color 0.15s, color 0.15s;
   }
 
-  .lab-filters .chip.is-on {
-    background: var(--grad-btn);
-    color: var(--btn-ink);
-    border-color: transparent;
+  .lab-filter:hover {
+    color: var(--text);
   }
 
-  :global(:root[data-theme='dark']) .lab-filters .chip.is-on {
-    color: #041018;
+  .lab-filter.is-on {
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 0 0 0 1px var(--border-strong);
   }
 
   .lab-group {
-    margin-top: 36px;
+    margin-top: 40px;
   }
 
   .lab-group-title {
     display: flex;
-    align-items: center;
+    align-items: baseline;
     gap: 10px;
     margin: 0 0 14px;
-    font-size: 20px;
-    font-weight: 850;
-    letter-spacing: -0.03em;
+    font-size: 18px;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+  }
+
+  .lab-group-no {
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 600;
   }
 
   .lab-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 16px;
+    gap: 12px;
   }
-
 </style>

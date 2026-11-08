@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState, type ReactNode } from 'react';
 import type { VizProps } from '../Viz';
-import { Button, Controls, Legend, Note, Segmented, Slider, Stat, Toggle } from '../core/ui';
+import { Button, Controls, Icon, Legend, Note, Segmented, Slider, Stat, Toggle } from '../core/ui';
 import { MiniChart, Plot, linePath } from '../core/plot';
 import { useInterval } from '../core/hooks';
 import { useVizColors, withAlpha } from '../core/colors';
@@ -13,10 +13,23 @@ import { fmt, rng } from '../core/math';
  * gets pushed up — the classic high-variance case from the chapter.
  */
 const ARMS = [
-  { icon: '🍎', name: '사과 기계', mu: 4 },
-  { icon: '🍋', name: '레몬 기계', mu: 7 },
-  { icon: '🍇', name: '포도 기계', mu: 5.5 }
+  { name: '사과 기계', mu: 4 },
+  { name: '레몬 기계', mu: 7 },
+  { name: '포도 기계', mu: 5.5 }
 ];
+
+/** A slot machine in the same thin-line style as the site icons. */
+function SlotMachine({ color, size = 32 }: { color: string; size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3" y="4" width="14" height="17" rx="2" />
+      <rect x="5.5" y="8" width="9" height="6" rx="1" />
+      <path d="M8.5 8v6M11.5 8v6M7 17.5h6" />
+      <path d="M17 12.5h2a1 1 0 0 0 1-1V6.5" />
+      <circle cx="20" cy="5" r="1.5" />
+    </svg>
+  );
+}
 const BEST = 1;
 const SIGMA = 3;
 const SEEDS = 16;
@@ -74,8 +87,8 @@ export default function PolicyGradientBandit({ expanded }: VizProps) {
       <div className="vz-pad" style={{ paddingBottom: 0 }}>
         <Segmented
           options={[
-            { value: 'play', label: '🎰 직접 당겨 보기' },
-            { value: 'compare', label: '📊 기준선 비교 실험' }
+            { value: 'play', label: '직접 당겨 보기' },
+            { value: 'compare', label: '기준선 비교 실험' }
           ]}
           value={mode}
           onChange={(v) => setMode(v as 'play' | 'compare')}
@@ -129,25 +142,24 @@ function Play({ lr, setLr }: { lr: number; setLr: (v: number) => void }) {
     setAuto(0);
   };
 
-  let note: { t: ReactNode; mood: 'smile' | 'happy' | 'think' | 'wow' | 'cheer'; tone?: 'good' | 'warn' };
-  if (!last) note = { t: <>세 기계 중 어떤 게 제일 좋은지 아무도 안 알려 줘요. 정책은 확률대로 하나를 당기고, <strong>결과가 좋았던 행동의 확률을 결과만큼</strong> 올려요.</>, mood: 'smile' };
+  let note: { t: ReactNode; tone?: 'good' | 'warn' };
+  if (!last) note = { t: <>세 기계 중 어느 것이 가장 좋은지는 아무도 알려 주지 않아요. 정책은 확률대로 하나를 당기고, <strong>결과가 좋았던 행동의 확률을 결과만큼</strong> 올려요.</> };
   else if (last.b === null)
     note =
       last.g >= 0
-        ? { t: <>{ARMS[last.a].icon}에서 <strong>+{fmt(last.g, 1)}</strong>! 결과가 양수라서 이 기계 확률을 <strong>무조건 올렸어요</strong>. 그런데 모든 기계가 대체로 양수를 주니… 나쁜 기계도 늘 올라가요. 기준선을 켜 보세요.</>, mood: 'think', tone: 'warn' }
-        : { t: <>{ARMS[last.a].icon}에서 <strong>{fmt(last.g, 1)}</strong>. 이번엔 음수라서 내렸지만, 결과는 대부분 양수라 거의 늘 "올리기"만 해요. 그래서 진짜 좋은 기계를 가려내는 게 느리고 들쭉날쭉해요.</>, mood: 'think', tone: 'warn' };
+        ? { t: <>{ARMS[last.a].name}에서 <strong>+{fmt(last.g, 1)}점</strong>이 나왔어요. 결과가 양수라서 이 기계의 확률을 <strong>무조건 올렸어요</strong>. 그런데 모든 기계가 대체로 양수를 주기 때문에 나쁜 기계도 늘 올라가요. 기준선을 켜 보세요.</>, tone: 'warn' }
+        : { t: <>{ARMS[last.a].name}에서 <strong>{fmt(last.g, 1)}점</strong>이 나왔어요. 이번엔 음수라서 내렸지만, 결과는 대부분 양수라 거의 늘 올리기만 해요. 그래서 좋은 기계를 가려내는 일이 느리고 들쭉날쭉해요.</>, tone: 'warn' };
   else {
     const diff = last.g - last.b;
     note = {
       t: (
         <>
-          {ARMS[last.a].icon}에서 <strong>{fmt(last.g, 1)}</strong>. 평균(기준선) {fmt(last.b, 1)}보다 <strong>{diff >= 0 ? `${fmt(diff, 1)} 높아서 ↑` : `${fmt(-diff, 1)} 낮아서 ↓`}</strong> — 이 차이가 바로 <strong>이점(advantage)</strong>이에요.
+          {ARMS[last.a].name}에서 <strong>{fmt(last.g, 1)}점</strong>이 나왔어요. 평균(기준선) {fmt(last.b, 1)}보다 <strong>{diff >= 0 ? `${fmt(diff, 1)} 높아서 확률을 올려요` : `${fmt(-diff, 1)} 낮아서 확률을 내려요`}</strong>. 이 차이를 <strong>이점(advantage)</strong>이라고 해요.
         </>
-      ),
-      mood: diff >= 0 ? 'happy' : 'think'
+      )
     };
   }
-  if (pi[BEST] > 0.9) note = { t: <>🍋 레몬 기계가 가장 좋다는 걸 스스로 알아냈어요! 🎉 가치를 계산하지 않고, <strong>정책(확률) 자체</strong>를 보상의 기울기로 다듬었어요.</>, mood: 'cheer', tone: 'good' };
+  if (pi[BEST] > 0.9) note = { t: <>레몬 기계가 가장 좋다는 것을 스스로 알아냈어요. 가치를 계산하지 않고, <strong>정책(확률) 자체</strong>를 보상의 기울기로 다듬었어요.</>, tone: 'good' };
 
   return (
     <div>
@@ -165,23 +177,19 @@ function Play({ lr, setLr }: { lr: number; setLr: (v: number) => void }) {
                   gap: 4,
                   padding: '12px 8px',
                   borderRadius: 18,
-                  border: `2px solid ${chosen ? c.series[k] : 'var(--border)'}`,
-                  background: chosen ? withAlpha(c.series[k], dark ? 0.18 : 0.1) : 'var(--surface-solid)',
+                  border: `2px solid ${chosen ? c.series[0] : 'var(--border)'}`,
+                  background: chosen ? withAlpha(c.series[0], dark ? 0.14 : 0.08) : 'var(--surface-solid)',
                   transition: 'all .2s'
                 }}
               >
-                <span style={{ fontSize: 34 }} aria-hidden="true">
-                  🎰
-                </span>
-                <strong style={{ fontSize: 14 }}>
-                  {arm.icon} {arm.name}
-                </strong>
-                <span style={{ fontSize: 24, fontWeight: 900, fontVariantNumeric: 'tabular-nums' }}>{Math.round(pi[k] * 100)}%</span>
+                <SlotMachine color={chosen ? c.series[0] : c.text} />
+                <strong style={{ fontSize: 14 }}>{arm.name}</strong>
+                <span style={{ fontSize: 24, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{Math.round(pi[k] * 100)}%</span>
                 <span style={{ width: '100%', height: 10, borderRadius: 99, background: 'var(--surface-3)', overflow: 'hidden' }}>
-                  <span style={{ display: 'block', height: '100%', width: `${pi[k] * 100}%`, borderRadius: 99, background: c.series[k], transition: 'width .2s' }} />
+                  <span style={{ display: 'block', height: '100%', width: `${pi[k] * 100}%`, borderRadius: 99, background: c.series[0], transition: 'width .2s' }} />
                 </span>
                 {chosen && (
-                  <span key={pBest.length} style={{ fontSize: 13, fontWeight: 850, color: last!.dp >= 0 ? c.pos : c.neg, animation: 'vz-note-in .3s cubic-bezier(.34,1.56,.64,1)' }}>
+                  <span key={pBest.length} style={{ fontSize: 13, fontWeight: 800, color: last!.dp >= 0 ? c.pos : c.neg, animation: 'vz-note-in .3s ease-out' }}>
                     {last!.g >= 0 ? '+' : ''}{fmt(last!.g, 1)}점 · 확률 {last!.dp >= 0 ? '↑' : '↓'}
                   </span>
                 )}
@@ -190,28 +198,26 @@ function Play({ lr, setLr }: { lr: number; setLr: (v: number) => void }) {
             );
           })}
         </div>
-        <Note mood={note.mood} tone={note.tone}>
-          {note.t}
-        </Note>
+        <Note tone={note.tone}>{note.t}</Note>
         <div className="vz-stats">
           <Stat label="당긴 횟수" value={pBest.length - 1} />
           <Stat label="기준선 (평균 보상)" value={useB ? (baseline === null ? '—' : fmt(baseline, 2)) : '안 씀'} />
-          <Stat label="🍋 최고 기계 확률" value={`${Math.round(pi[BEST] * 100)}%`} tone={pi[BEST] > 0.8 ? 'good' : undefined} />
+          <Stat label="최고 기계(레몬) 확률" value={`${Math.round(pi[BEST] * 100)}%`} tone={pi[BEST] > 0.8 ? 'good' : undefined} />
         </div>
         <div>
-          <div className="vz-panel-title">🍋 레몬 기계를 고를 확률의 변화 (가로축: 당긴 횟수)</div>
-          <MiniChart series={[pBest.length > 1 ? pBest : [1 / 3, 1 / 3]]} colors={[c.series[1]]} height={120} yMin={0} yMax={1} />
+          <div className="vz-panel-title">레몬 기계를 고를 확률의 변화 (가로축: 당긴 횟수)</div>
+          <MiniChart series={[pBest.length > 1 ? pBest : [1 / 3, 1 / 3]]} colors={[c.series[0]]} height={120} yMin={0} yMax={1} />
         </div>
       </div>
       <Controls>
         <Button variant="primary" onClick={pull} disabled={auto > 0}>
-          🎲 정책대로 한 번 당기기
+          정책대로 한 번 당기기
         </Button>
         <Button onClick={() => setAuto(50)} disabled={auto > 0}>
-          ⏩ 50번 자동
+          <Icon name="fast" size={16} />50번 자동
         </Button>
         <Button variant="ghost" onClick={reset}>
-          ↺ 처음부터
+          <Icon name="reset" size={16} />처음부터
         </Button>
         <Toggle label="기준선 쓰기 (평균과 비교)" checked={useB} onChange={(v) => { setUseB(v); setBaseline(null); }} />
         <Toggle label="기계의 진짜 평균 보기" checked={reveal} onChange={setReveal} />
@@ -243,12 +249,12 @@ function Compare({ lr, setLr, expanded }: { lr: number; setLr: (v: number) => vo
     });
   }, [lr, seedBase]);
   const [noB, withB] = runs;
-  const cols = [c.series[2], c.series[0]];
+  const cols = [c.series[1], c.series[0]];
 
   return (
     <div>
       <div className="vz-pad" style={{ display: 'grid', gap: 12 }}>
-        <Plot xDomain={[0, STEPS - 1]} yDomain={[0, 1]} xLabel="당긴 횟수" yLabel="🍋 최고 기계 확률" aspect={expanded ? 2.3 : 1.7} maxHeight={expanded ? 480 : 340} yFormat={(v) => `${Math.round(v * 100)}%`} ariaLabel="기준선 유무에 따른 학습 곡선 비교">
+        <Plot xDomain={[0, STEPS - 1]} yDomain={[0, 1]} xLabel="당긴 횟수" yLabel="최고 기계(레몬) 확률" aspect={expanded ? 2.3 : 1.7} maxHeight={expanded ? 480 : 340} yFormat={(v) => `${Math.round(v * 100)}%`} ariaLabel="기준선 유무에 따른 학습 곡선 비교">
           {({ x, y, clip }) => (
             <g clipPath={clip}>
               {runs.map((r, i) => (
@@ -274,8 +280,8 @@ function Compare({ lr, setLr, expanded }: { lr: number; setLr: (v: number) => vo
             { color: cols[1], label: '기준선 있음 (평균과의 차이를 곱함)' }
           ]}
         />
-        <Note mood="happy" tone="good">
-          같은 기계, 같은 횟수로 {SEEDS}번씩 다시 해 봤어요. 진한 선은 평균, 옅은 띠는 운에 따라 갈린 범위예요. <strong>기준선이 있으면 띠가 좁아요</strong> — 운에 덜 휘둘린다(분산이 작다)는 뜻이에요.
+        <Note tone="good">
+          같은 기계, 같은 횟수로 {SEEDS}번씩 다시 해 봤어요. 진한 선은 평균, 옅은 띠는 운에 따라 갈린 범위예요. <strong>기준선이 있으면 띠가 좁아요</strong>. 운에 덜 휘둘린다(분산이 작다)는 뜻이에요.
         </Note>
         <div className="vz-stats">
           <Stat label="300번 뒤 평균 (기준선 없음)" value={`${Math.round(noB.finalMean * 100)}%`} sub={`흔들림 ±${Math.round(noB.finalSd * 100)}%p · 엉뚱한 기계 ${noB.wrong}번`} />
@@ -284,7 +290,7 @@ function Compare({ lr, setLr, expanded }: { lr: number; setLr: (v: number) => vo
       </div>
       <Controls>
         <Slider label="학습률" value={lr} min={0.01} max={0.2} step={0.01} onChange={setLr} format={(v) => v.toFixed(2)} />
-        <Button onClick={() => setSeedBase((s) => s + 1)}>🎲 다른 운으로 다시</Button>
+        <Button onClick={() => setSeedBase((s) => s + 1)}>다른 운으로 다시</Button>
       </Controls>
     </div>
   );

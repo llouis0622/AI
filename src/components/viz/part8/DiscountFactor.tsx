@@ -1,11 +1,25 @@
 import { useState, type ReactNode } from 'react';
 import type { VizProps } from '../Viz';
-import { Controls, Note, Slider, Stat } from '../core/ui';
+import { Controls, Icon, Note, Slider, Stat } from '../core/ui';
 import { useVizColors, withAlpha } from '../core/colors';
 import { useElementSize } from '../core/hooks';
 import { fmt } from '../core/math';
 
 const T_MAX = 20;
+/** Horizontal step between candies, in units of the candy size. */
+const CANDY_GAP = 1.15;
+
+/** A wrapped candy: a round sweet with a twisted wrapper end on each side. */
+function Candy({ x, y, r, color }: { x: number; y: number; r: number; color: string }) {
+  const w = r * 0.95;
+  return (
+    <g>
+      <path d={`M${x - r * 0.7} ${y}L${x - r - w} ${y - r * 0.62}L${x - r - w} ${y + r * 0.62}Z`} fill={color} opacity={0.55} />
+      <path d={`M${x + r * 0.7} ${y}L${x + r + w} ${y - r * 0.62}L${x + r + w} ${y + r * 0.62}Z`} fill={color} opacity={0.55} />
+      <circle cx={x} cy={y} r={r} fill={color} />
+    </g>
+  );
+}
 
 /** γ — how much a reward t steps away is worth today (γ^t). */
 export default function DiscountFactor(_: VizProps) {
@@ -21,7 +35,9 @@ export default function DiscountFactor(_: VizProps) {
   const tie = Math.abs(valueLater - valueNow) < 0.02;
   const threshold = Math.pow(1 / amount, 1 / delay); // γ above which waiting wins
   const forever = gamma < 1 ? 1 / (1 - gamma) : Infinity;
-  const persona = gamma < 0.5 ? '😋 지금 당장파' : gamma < 0.9 ? '🙂 적당히 참는 편' : '🧘 참을성 왕';
+  const persona = gamma < 0.5 ? '지금 당장파' : gamma < 0.9 ? '적당히 참는 편' : '끝까지 기다리는 편';
+  const colA = c.series[1];
+  const colB = c.series[0];
 
   // a narrower drawing on phones keeps every label at a readable size
   const [box, { width: boxW }] = useElementSize<HTMLDivElement>();
@@ -37,12 +53,13 @@ export default function DiscountFactor(_: VizProps) {
   const clampX = (x: number, half: number) => Math.min(W - half, Math.max(half, x));
   const candies = Math.min(amount, narrow ? 3 : 5);
   const candySize = 14 + 10 * Math.pow(gamma, delay);
+  const candyHalf = (((candies - 1) * CANDY_GAP + 1.1) * candySize) / 2;
   const bRow = xt(delay) - xt(0) < 80 ? 236 : 216;
 
-  let note: { t: ReactNode; mood: 'smile' | 'happy' | 'think' | 'wow' | 'cheer'; tone?: 'good' | 'warn' };
-  if (tie) note = { t: '두 선택의 가치가 거의 같아요! γ를 아주 조금만 바꿔도 마음이 바뀌어요.', mood: 'wow' };
-  else if (waits) note = { t: <><strong>기다리기</strong>를 골라요. {delay}걸음 뒤 사탕 {amount}개의 지금 가치({fmt(valueLater, 2)})가 지금 당장 사탕 1개보다 커요. γ가 {fmt(threshold, 3)}보다 크면 기다려요.</>, mood: 'happy', tone: 'good' };
-  else note = { t: <><strong>지금 당장</strong> 사탕 1개를 골라요. {delay}걸음 뒤의 사탕은 할인돼서 {fmt(valueLater, 2)}개 값어치밖에 안 되거든요. γ를 {fmt(threshold, 3)}보다 크게 올려 보세요.</>, mood: 'think' };
+  let note: { t: ReactNode; tone?: 'good' | 'warn' };
+  if (tie) note = { t: '두 선택의 가치가 거의 같아요. γ를 아주 조금만 바꿔도 선택이 바뀌어요.' };
+  else if (waits) note = { t: <><strong>기다리기</strong>를 골라요. {delay}걸음 뒤 사탕 {amount}개의 지금 가치({fmt(valueLater, 2)})가 지금 당장 사탕 1개보다 커요. γ가 {fmt(threshold, 3)}보다 크면 기다려요.</>, tone: 'good' };
+  else note = { t: <><strong>지금 당장</strong> 사탕 1개를 골라요. {delay}걸음 뒤의 사탕은 할인돼서 {fmt(valueLater, 2)}개 값어치밖에 안 되거든요. γ를 {fmt(threshold, 3)}보다 크게 올려 보세요.</> };
 
   return (
     <div>
@@ -64,7 +81,7 @@ export default function DiscountFactor(_: VizProps) {
                   width={bw}
                   height={Math.max(1, h)}
                   rx={narrow ? 3 : 5}
-                  fill={special ? (t === 0 ? c.series[3] : c.series[0]) : withAlpha(c.series[1], dark ? 0.6 : 0.45)}
+                  fill={special ? (t === 0 ? colA : colB) : withAlpha(c.text, dark ? 0.32 : 0.28)}
                   style={{ transition: 'all .25s' }}
                 />
                 {(t === delay || (t % 5 === 0 && Math.abs(t - delay) > 1)) && (
@@ -90,23 +107,21 @@ export default function DiscountFactor(_: VizProps) {
           <text x={x1 + 6} y={200} textAnchor="end" className="vz-axis-label">
             걸음 (시간) →
           </text>
-          <text x={xt(0)} y={156} textAnchor="middle" style={{ fontSize: 22 }}>
-            🤖
-          </text>
-          {/* option A: 1 candy now, option B: amount candies later — size shrinks with the discount */}
+          <Icon name="bot" x={xt(0) - 11} y={136} size={22} color={c.ink} />
+          {/* option A: 1 candy now, option B: amount candies later; their size shrinks with the discount */}
           <g transform={`translate(${clampX(xt(0), 34)} 216)`}>
-            <text textAnchor="middle" style={{ fontSize: 13, fontWeight: 850, fill: c.series[3] }}>
-              A: 🍬×1
+            <text textAnchor="middle" style={{ fontSize: 13, fontWeight: 800, fill: colA }}>
+              A: 사탕 1개
             </text>
           </g>
-          <g transform={`translate(${clampX(xt(delay), (candies * candySize) / 2 + 4)} 150)`} style={{ transition: 'transform .3s' }}>
-            <text textAnchor="middle" y={-2} style={{ fontSize: candySize }}>
-              {'🍬'.repeat(candies)}
-            </text>
+          <g transform={`translate(${clampX(xt(delay), candyHalf + 4)} 150)`} style={{ transition: 'transform .3s' }}>
+            {Array.from({ length: candies }, (_, k) => (
+              <Candy key={k} x={(k - (candies - 1) / 2) * CANDY_GAP * candySize} y={-2 - 0.42 * candySize} r={candySize * 0.28} color={colB} />
+            ))}
           </g>
-          <g transform={`translate(${clampX(xt(delay), 36)} ${bRow})`}>
-            <text textAnchor="middle" style={{ fontSize: 13, fontWeight: 850, fill: c.series[0] }}>
-              B: 🍬×{amount}
+          <g transform={`translate(${clampX(xt(delay), 40)} ${bRow})`}>
+            <text textAnchor="middle" style={{ fontSize: 13, fontWeight: 800, fill: colB }}>
+              B: 사탕 {amount}개
             </text>
           </g>
         </svg>
@@ -114,8 +129,8 @@ export default function DiscountFactor(_: VizProps) {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
           {[
-            { key: 'A', label: `A. 지금 당장 사탕 1개`, v: valueNow, color: c.series[3], win: !waits },
-            { key: 'B', label: `B. ${delay}걸음 뒤 사탕 ${amount}개`, v: valueLater, color: c.series[0], win: waits }
+            { key: 'A', label: `A. 지금 당장 사탕 1개`, v: valueNow, color: colA, win: !waits },
+            { key: 'B', label: `B. ${delay}걸음 뒤 사탕 ${amount}개`, v: valueLater, color: colB, win: waits }
           ].map((o) => (
             <div
               key={o.key}
@@ -127,17 +142,21 @@ export default function DiscountFactor(_: VizProps) {
                 transition: 'all .3s'
               }}
             >
-              <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-2)' }}>{o.label}</div>
-              <div style={{ fontSize: 22, fontWeight: 900, fontVariantNumeric: 'tabular-nums' }}>
-                지금 가치 {fmt(o.v, 2)} {o.win ? '👈 선택!' : ''}
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>{o.label}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 22, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>
+                지금 가치 {fmt(o.v, 2)}
+                {o.win && (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 13, fontWeight: 700, color: o.color }}>
+                    <Icon name="check" size={15} />
+                    선택
+                  </span>
+                )}
               </div>
             </div>
           ))}
         </div>
 
-        <Note mood={note.mood} tone={note.tone}>
-          {note.t}
-        </Note>
+        <Note tone={note.tone}>{note.t}</Note>
         <div className="vz-stats">
           <Stat label="성격" value={persona} />
           <Stat label="100걸음 뒤 보상의 무게" value={Math.pow(gamma, 100) >= 0.001 ? fmt(Math.pow(gamma, 100), 3) : '거의 0'} sub="γ¹⁰⁰ · γ가 0.99면 약 0.37" />
@@ -145,9 +164,9 @@ export default function DiscountFactor(_: VizProps) {
         </div>
       </div>
       <Controls>
-        <Slider label="할인율 γ (참을성)" value={gamma} min={0} max={0.999} step={0.001} onChange={setGamma} format={(v) => v.toFixed(3)} accent="var(--mint)" />
+        <Slider label="할인율 γ (참을성)" value={gamma} min={0} max={0.999} step={0.001} onChange={setGamma} format={(v) => v.toFixed(3)} />
         <Slider label="B를 받기까지 걸음 수" value={delay} min={1} max={T_MAX} step={1} onChange={setDelay} format={(v) => `${v}걸음`} />
-        <Slider label="B의 사탕 개수" value={amount} min={2} max={10} step={1} onChange={setAmount} format={(v) => `${v}개`} accent="var(--peach)" />
+        <Slider label="B의 사탕 개수" value={amount} min={2} max={10} step={1} onChange={setAmount} format={(v) => `${v}개`} />
       </Controls>
     </div>
   );

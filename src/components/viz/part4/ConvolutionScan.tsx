@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { VizProps } from '../Viz';
-import { Button, Controls, Note, PlayBar, Segmented } from '../core/ui';
+import { Button, Controls, Icon, Note, PlayBar, Segmented } from '../core/ui';
 import { useElementSize, useInterval } from '../core/hooks';
 import { mixHex, useVizColors, withAlpha } from '../core/colors';
 
@@ -119,11 +119,18 @@ export default function ConvolutionScan(_props: VizProps) {
   const cellOut = wide ? 21 : cellIn;
 
   // pixel value = brightness (0 dark, 1 bright), like a grayscale photo in both themes
-  const pixel = (v: number) => mixHex('#17142b', '#f7f7fb', Math.max(0, Math.min(1, v)));
+  const pixel = (v: number) => mixHex('#141414', '#f4f4f2', Math.max(0, Math.min(1, v)));
   const heat = (v: number) => {
     const t = Math.max(-1, Math.min(1, v / maxAbs));
-    return t >= 0 ? mixHex(c.surface, c.series[2], t) : mixHex(c.surface, c.series[0], -t);
+    return t >= 0 ? mixHex(c.surface, c.pos, t) : mixHex(c.surface, c.neg, -t);
   };
+  // scanning window: a neutral two-tone ring that reads on both dark and bright pixels
+  const ring = (x: number, y: number, s: number, fill: boolean) => (
+    <g pointerEvents="none">
+      <rect x={x} y={y} width={s} height={s} rx={4} fill="none" stroke={c.bg} strokeWidth={5} />
+      <rect x={x} y={y} width={s} height={s} rx={4} fill={fill ? withAlpha(c.ink, 0.08) : 'none'} stroke={c.ink} strokeWidth={2.5} />
+    </g>
+  );
 
   const paintAt = (x: number, y: number, first: boolean) => {
     setImg((im) => {
@@ -165,9 +172,7 @@ export default function ConvolutionScan(_props: VizProps) {
           />
         ))
       )}
-      {!done && (
-        <rect x={cx * cellIn - 1.5} y={cy * cellIn - 1.5} width={cellIn * 3 + 2} height={cellIn * 3 + 2} rx={4} fill={withAlpha(c.series[3], 0.12)} stroke={c.series[3]} strokeWidth={3} pointerEvents="none" />
-      )}
+      {!done && ring(cx * cellIn - 1.5, cy * cellIn - 1.5, cellIn * 3 + 2, true)}
     </svg>
   );
 
@@ -189,7 +194,7 @@ export default function ConvolutionScan(_props: VizProps) {
           );
         })
       )}
-      {!done && <rect x={cx * cellOut - 1.5} y={cy * cellOut - 1.5} width={cellOut + 2} height={cellOut + 2} rx={4} fill="none" stroke={c.series[3]} strokeWidth={3} />}
+      {!done && ring(cx * cellOut - 1.5, cy * cellOut - 1.5, cellOut + 2, false)}
     </svg>
   );
 
@@ -211,8 +216,8 @@ export default function ConvolutionScan(_props: VizProps) {
           style={{
             height: 44,
             borderRadius: 10,
-            border: `2px solid ${v > 0 ? c.series[2] : v < 0 ? c.series[0] : 'var(--border)'}`,
-            background: v > 0 ? withAlpha(c.series[2], 0.15) : v < 0 ? withAlpha(c.series[0], 0.15) : 'var(--surface-solid)',
+            border: `2px solid ${v > 0 ? c.pos : v < 0 ? c.neg : 'var(--border)'}`,
+            background: v > 0 ? withAlpha(c.pos, 0.15) : v < 0 ? withAlpha(c.neg, 0.15) : 'var(--surface-solid)',
             fontWeight: 850,
             fontSize: KERNELS[kKey].show ? 12 : 16,
             cursor: kKey === 'custom' ? 'pointer' : 'default',
@@ -240,21 +245,21 @@ export default function ConvolutionScan(_props: VizProps) {
     </div>
   );
 
-  let note: { text: React.ReactNode; mood: 'smile' | 'happy' | 'wow' | 'think' | 'cheer'; tone?: 'good' };
-  if (imgKey === 'draw') note = { text: '직접 그린 그림에 필터가 바로바로 반응해요! 필터를 바꿔 가며 어떤 무늬를 찾는지 보세요.', mood: 'wow' };
-  else if (!done && pos === 0) note = { text: '테두리 친 3×3 창(도장)이 그림 위를 훑으며, 칸마다 "그림 값 × 필터 값"을 모두 더해 특징 맵 한 칸을 채워요. ▶ 시작!', mood: 'smile' };
-  else if (done && kKey === 'vert' && imgKey === 'edge') note = { text: '어두움→밝음이 바뀌는 세로 경계에서만 값이 커지고, 고른 곳은 0이에요. 이 "세로 경계 지도"가 바로 특징 맵! 🎉', mood: 'cheer', tone: 'good' };
-  else if (done) note = { text: '같은 도장 하나(숫자 9개)로 그림 전체를 훑었어요. 그림이 커져도 필요한 숫자는 그대로 9개 — 이게 합성곱의 힘이에요.', mood: 'happy' };
-  else note = { text: `지금 창 위치의 계산: 9칸을 곱해서 더하면 ${r2(sum)} → 특징 맵의 테두리 친 칸에 들어가요.`, mood: 'think' };
+  let note: { text: React.ReactNode; tone?: 'good' };
+  if (imgKey === 'draw') note = { text: '직접 그린 그림에 필터가 바로 반응해요. 필터를 바꿔 가며 어떤 무늬를 찾는지 보세요.' };
+  else if (!done && pos === 0) note = { text: '테두리 친 3×3 창(도장)이 그림 위를 훑으며, 칸마다 "그림 값 × 필터 값"을 모두 더해 특징 맵 한 칸을 채워요. 시작을 눌러 보세요.' };
+  else if (done && kKey === 'vert' && imgKey === 'edge') note = { text: '어두운 곳에서 밝은 곳으로 바뀌는 세로 경계에서만 값이 커지고, 고른 곳은 0이에요. 이 "세로 경계 지도"가 특징 맵이에요.', tone: 'good' };
+  else if (done) note = { text: '같은 도장 하나(숫자 9개)로 그림 전체를 훑었어요. 그림이 커져도 필요한 숫자는 9개 그대로예요.' };
+  else note = { text: `지금 창 위치의 계산이에요. 9칸을 곱해서 더하면 ${r2(sum)}이고, 이 값이 특징 맵의 테두리 친 칸에 들어가요.` };
 
   return (
     <div ref={box}>
       <div className="vz-pad" style={{ display: 'grid', gridTemplateColumns: wide ? 'auto auto auto' : '1fr 1fr', justifyContent: 'center', alignItems: 'start', gap: wide ? 22 : 12 }}>
-        {panel('① 입력 그림 (눌러서 그리기)', inputSvg)}
-        {wide && panel('② 필터 (도장 3×3)', kernelGrid, kKey === 'custom' ? '칸을 눌러 값 바꾸기' : '학습되는 숫자 9개')}
-        {panel('③ 특징 맵', outputSvg, `${M}×${M}`)}
+        {panel('1. 입력 그림 (눌러서 그리기)', inputSvg)}
+        {wide && panel('2. 필터 (도장 3×3)', kernelGrid, kKey === 'custom' ? '칸을 눌러 값 바꾸기' : '학습되는 숫자 9개')}
+        {panel('3. 특징 맵', outputSvg, `${M}×${M}`)}
       </div>
-      {!wide && <div className="vz-pad" style={{ paddingTop: 0 }}>{panel('② 필터 (도장 3×3)', kernelGrid, kKey === 'custom' ? '칸을 눌러 값 바꾸기' : '학습되는 숫자 9개')}</div>}
+      {!wide && <div className="vz-pad" style={{ paddingTop: 0 }}>{panel('2. 필터 (도장 3×3)', kernelGrid, kKey === 'custom' ? '칸을 눌러 값 바꾸기' : '학습되는 숫자 9개')}</div>}
 
       <div className="vz-pad" style={{ display: 'grid', gap: 12, paddingTop: 0 }}>
         {!done && (
@@ -262,7 +267,7 @@ export default function ConvolutionScan(_props: VizProps) {
             {products.map((p, i) => (
               <span key={i} style={{ whiteSpace: 'nowrap' }}>
                 <span style={{ color: p.a > 0.5 ? 'var(--text)' : 'var(--text-3)' }}>{r2(p.a)}</span>×
-                <span style={{ color: p.k > 0 ? c.series[2] : p.k < 0 ? c.series[0] : 'var(--text-3)', fontWeight: 800 }}>{KERNELS[kKey].show ? '1/9' : r2(p.k)}</span>
+                <span style={{ color: p.k > 0 ? c.pos : p.k < 0 ? c.neg : 'var(--text-3)', fontWeight: 800 }}>{KERNELS[kKey].show ? '1/9' : r2(p.k)}</span>
                 {i < 8 ? ' + ' : ''}
               </span>
             ))}
@@ -284,19 +289,17 @@ export default function ConvolutionScan(_props: VizProps) {
           onSpeed={setSpeed}
           extra={
             <Button variant="ghost" onClick={() => { setPlaying(false); setPos(total); }}>
-              ⚡ 한 번에 다 찍기
+              <Icon name="fast" size={16} />한 번에 다 찍기
             </Button>
           }
         />
-        <Note mood={note.mood} tone={note.tone}>
-          {note.text}
-        </Note>
+        <Note tone={note.tone}>{note.text}</Note>
       </div>
 
       <Controls>
         <Segmented
           label="입력 그림"
-          options={[...Object.entries(IMAGES).map(([k, v]) => ({ value: k, label: v.label })), { value: 'draw', label: '✏️ 지우고 그리기' }]}
+          options={[...Object.entries(IMAGES).map(([k, v]) => ({ value: k, label: v.label })), { value: 'draw', label: '지우고 그리기' }]}
           value={imgKey}
           onChange={(v) => {
             setImgKey(v);

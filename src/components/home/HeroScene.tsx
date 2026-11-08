@@ -13,7 +13,7 @@ function canRun3D() {
 }
 
 /**
- * Home hero: a glowing ball keeps rolling down a loss landscape — "learning" in
+ * Home hero: a ball keeps rolling down a loss landscape, which is "learning" in
  * one picture. The WebGL chunk loads only after hydration; until then (and for
  * reduced-motion / no-WebGL visitors) a static illustration is shown.
  */
@@ -24,17 +24,11 @@ export default function HeroScene() {
     <div className="hero-scene" aria-hidden="true">
       <div className="hero-fallback">
         <svg viewBox="0 0 400 300" className="hero-fallback-svg">
-          <defs>
-            <linearGradient id="hf-g" x1="0" x2="1">
-              <stop offset="0" stopColor="var(--lav)" />
-              <stop offset="1" stopColor="var(--mint)" />
-            </linearGradient>
-          </defs>
           {[0, 1, 2, 3, 4, 5].map((k) => (
-            <ellipse key={k} cx="200" cy="190" rx={40 + k * 28} ry={16 + k * 11} fill="none" stroke="url(#hf-g)" strokeOpacity={0.75 - k * 0.1} strokeWidth="2" />
+            <ellipse key={k} cx="200" cy="190" rx={40 + k * 28} ry={16 + k * 11} fill="none" stroke="var(--accent)" strokeOpacity={0.7 - k * 0.1} strokeWidth="1.5" />
           ))}
-          <path d="M60 70 Q120 120 150 150 T200 190" fill="none" stroke="var(--peach)" strokeWidth="4" strokeDasharray="2 9" strokeLinecap="round" />
-          <circle cx="200" cy="190" r="11" fill="var(--brand)" />
+          <path d="M60 70 Q120 120 150 150 T200 190" fill="none" stroke="var(--accent-2)" strokeWidth="2.5" strokeDasharray="2 8" strokeLinecap="round" />
+          <circle cx="200" cy="190" r="9" fill="var(--accent-2)" />
         </svg>
       </div>
       {ok && (

@@ -366,7 +366,7 @@ export default function SkillTree({ expanded }: VizProps) {
           {TRACKS.map((t) => (
             <div key={t.id} style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
               <span style={{ fontSize: 13, fontWeight: 800, minWidth: 128 }}>
-                {t.emoji} {t.title}
+                {t.title}
               </span>
               {t.labs.map((n) => {
                 const d = labDone(n);

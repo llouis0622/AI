@@ -103,11 +103,11 @@ export default function OverfittingPoly({ expanded }: VizProps) {
           {({ x, y, clip }) => (
             <g>
               <g clipPath={clip}>
-                {showTruth && <path d={linePath(xs.map((v) => [x(v), y(truth(v))]))} fill="none" stroke={c.pos} strokeWidth={2.5} strokeDasharray="7 6" />}
-                <path d={linePath(xs.map((v) => [x(v), y(Math.max(-5, Math.min(5, evalPoly(w, v))))]))} fill="none" stroke={c.series[0]} strokeWidth={4} strokeLinejoin="round" />
+                {showTruth && <path d={linePath(xs.map((v) => [x(v), y(truth(v))]))} fill="none" stroke={c.ink} strokeWidth={1.75} strokeDasharray="7 6" />}
+                <path d={linePath(xs.map((v) => [x(v), y(Math.max(-5, Math.min(5, evalPoly(w, v))))]))} fill="none" stroke={c.series[0]} strokeWidth={3} strokeLinejoin="round" />
               </g>
               {val.map(([vx, vy], i) => (
-                <circle key={`v${i}`} cx={x(vx)} cy={y(vy)} r={4} fill="none" stroke={c.series[2]} strokeWidth={1.8} opacity={0.75} />
+                <circle key={`v${i}`} cx={x(vx)} cy={y(vy)} r={4} fill="none" stroke={c.text} strokeWidth={1.5} opacity={0.8} />
               ))}
               {train.map(([tx, ty], i) => (
                 <circle key={`t${i}`} cx={x(tx)} cy={y(ty)} r={6.5} fill={c.series[1]} stroke={c.surface} strokeWidth={2} />
@@ -118,9 +118,9 @@ export default function OverfittingPoly({ expanded }: VizProps) {
         <Legend
           items={[
             { color: c.series[1], label: '훈련 데이터 (공부한 문제)' },
-            { color: c.series[2], label: '검증 데이터 (처음 보는 문제)', dashed: true },
+            { color: c.text, label: '검증 데이터 (처음 보는 문제)', dashed: true },
             { color: c.series[0], label: `${deg}차 곡선 (모델)` },
-            ...(showTruth ? [{ color: c.pos, label: '진짜 규칙', dashed: true }] : [])
+            ...(showTruth ? [{ color: c.ink, label: '진짜 규칙', dashed: true }] : [])
           ]}
         />
       </div>
@@ -146,21 +146,21 @@ export default function OverfittingPoly({ expanded }: VizProps) {
               {({ x, y }) => (
                 <g>
                   <path d={linePath(curves.tr.map((v, d) => [x(d), y(logY(v))]))} fill="none" stroke={c.series[1]} strokeWidth={2.5} />
-                  <path d={linePath(curves.va.map((v, d) => [x(d), y(logY(v))]))} fill="none" stroke={c.series[2]} strokeWidth={2.5} strokeDasharray="6 4" />
+                  <path d={linePath(curves.va.map((v, d) => [x(d), y(logY(v))]))} fill="none" stroke={c.text} strokeWidth={2.5} strokeDasharray="6 4" />
                   <line x1={x(deg)} x2={x(deg)} y1={y(-3)} y2={y(2)} stroke={c.series[0]} strokeWidth={2} />
-                  <circle cx={x(deg)} cy={y(logY(vaE))} r={5} fill={c.series[2]} />
+                  <circle cx={x(deg)} cy={y(logY(vaE))} r={5} fill={c.text} />
                   <circle cx={x(best)} cy={y(logY(curves.va[best]))} r={4} fill="none" stroke={c.pos} strokeWidth={2} />
                 </g>
               )}
             </Plot>
           </div>
         </div>
-        <Note mood={status === 'good' ? 'happy' : status === 'under' ? 'think' : 'wow'} tone={status === 'good' ? 'good' : status === 'over' ? 'bad' : 'warn'}>
+        <Note tone={status === 'good' ? 'good' : status === 'over' ? 'bad' : 'warn'}>
           {status === 'under'
-            ? '과소적합! 😴 곡선이 너무 단순해서 공부한 점들조차 못 따라가요. 차수를 올려 보세요.'
+            ? '과소적합이에요. 곡선이 너무 단순해서 공부한 점들조차 못 따라가요. 차수를 올려 보세요.'
             : status === 'over'
-              ? `과적합! 😵 훈련 점은 거의 다 지나가지만(훈련 오차 ${fmt(trE, 3)}), 처음 보는 점에선 크게 빗나가요. 족보만 외운 학생이에요. 데이터를 늘리거나 벌점을 켜 보세요.`
-              : `딱 좋아요! 👍 훈련 오차와 검증 오차가 둘 다 작아요. 이번 데이터에선 ${best}차가 검증 오차가 가장 작아요.`}
+              ? `과적합이에요. 훈련 점은 거의 다 지나가지만(훈련 오차 ${fmt(trE, 3)}) 처음 보는 점에서는 크게 빗나가는, 족보만 외운 학생 같은 상태예요. 데이터를 늘리거나 벌점을 켜 보세요.`
+              : `훈련 오차와 검증 오차가 둘 다 작아요. 이번 데이터에서는 ${best}차일 때 검증 오차가 가장 작아요.`}
         </Note>
       </div>
 
@@ -176,7 +176,7 @@ export default function OverfittingPoly({ expanded }: VizProps) {
           value={nData}
           onChange={setNData}
         />
-        <Slider label="벌점 (L2 정규화)" value={lamIdx} min={0} max={LAMBDAS.length - 1} step={1} onChange={setLamIdx} format={(v) => LAMBDA_NAMES[v]} accent="var(--mint)" />
+        <Slider label="벌점 (L2 정규화)" value={lamIdx} min={0} max={LAMBDAS.length - 1} step={1} onChange={setLamIdx} format={(v) => LAMBDA_NAMES[v]} />
         <Toggle label="진짜 규칙 보기" checked={showTruth} onChange={setShowTruth} />
       </Controls>
     </div>

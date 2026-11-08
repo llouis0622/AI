@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
+import Icon from '@/components/ui/Icon';
 import { Button } from './ui';
 import { useElementSize, useRafLoop, usePrefersReducedMotion } from './hooks';
 import { useVizColors, withAlpha, type VizColors } from './colors';
@@ -95,7 +96,7 @@ export function CodeStory({
       </div>
       <div className="vz-controls" style={{ alignItems: 'center' }}>
         <Button onClick={() => setI(Math.max(0, i - 1))} disabled={i === 0}>
-          ← 이전
+          <Icon name="arrow-left" size={15} />이전
         </Button>
         <div style={{ display: 'flex', gap: 6, flex: 1, justifyContent: 'center', flexWrap: 'wrap' }} role="tablist" aria-label="단계">
           {steps.map((s, k) => (
@@ -120,10 +121,11 @@ export function CodeStory({
           ))}
         </div>
         <Button variant="ghost" onClick={() => setAuto((a) => !a)}>
-          {auto ? '❚❚ 멈춤' : '▶ 자동 재생'}
+          <Icon name={auto ? 'pause' : 'play'} size={15} />
+          {auto ? '멈춤' : '자동 재생'}
         </Button>
         <Button variant="primary" onClick={() => setI(Math.min(steps.length - 1, i + 1))} disabled={i === steps.length - 1}>
-          다음 →
+          다음<Icon name="arrow-right" size={15} />
         </Button>
       </div>
     </div>
@@ -131,7 +133,7 @@ export function CodeStory({
 }
 
 const easeOut = (t: number) => 1 - (1 - t) ** 3;
-const hexOr = (s: string) => (s.startsWith('#') ? s : '#7c6cf6');
+const hexOr = (s: string) => (s.startsWith('#') ? s : '#86a8f5');
 
 const KEYWORDS = /\b(def|return|for|in|if|else|elif|import|from|as|class|with|while|lambda|yield|True|False|None|and|or|not|self|async|await)\b/g;
 
@@ -140,10 +142,10 @@ export function CodeBlock({ code, highlight = [], c }: { code: string; highlight
   const lines = code.replace(/\n$/, '').split('\n');
   const dark = c.theme === 'dark';
   const colors = {
-    kw: dark ? '#ff7ad9' : '#c2185b',
-    str: dark ? '#b6ff3b' : '#2e7d32',
-    num: dark ? '#ffb020' : '#b45309',
-    com: dark ? '#6f7aa6' : '#9a94ad'
+    kw: dark ? '#86a8f5' : '#2856c8',
+    str: dark ? '#9fcf9a' : '#2e7a4f',
+    num: dark ? '#e8a85a' : '#b45f12',
+    com: dark ? '#7d7b76' : '#8a867e'
   };
   const paint = (line: string) => {
     const out: ReactNode[] = [];

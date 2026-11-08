@@ -68,19 +68,18 @@ const { prefix, total } = Astro.props;
     position: sticky;
     top: calc(var(--header-h) + 10px);
     z-index: 5;
-    margin: 18px 0 26px;
-    padding: 14px 16px;
-    border-radius: var(--radius-lg);
-    background: color-mix(in srgb, var(--surface-solid) 92%, transparent);
-    backdrop-filter: blur(10px);
+    margin: 18px 0 24px;
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    background: color-mix(in srgb, var(--surface) 94%, transparent);
+    backdrop-filter: blur(8px);
     border: 1px solid var(--border);
-    box-shadow: var(--shadow-sm);
   }
 
   .qprog-bar {
     position: relative;
     display: flex;
-    height: 10px;
+    height: 4px;
     border-radius: 99px;
     background: var(--surface-3);
     overflow: hidden;
@@ -89,15 +88,15 @@ const { prefix, total } = Astro.props;
   .qprog-fill {
     height: 100%;
     width: 0;
-    background: var(--grad-brand);
-    transition: width 0.5s var(--ease-out);
+    background: var(--accent);
+    transition: width 0.4s var(--ease-out);
   }
 
   .qprog-again {
     height: 100%;
     width: 0;
-    background: color-mix(in srgb, var(--warn) 70%, transparent);
-    transition: width 0.5s var(--ease-out);
+    background: var(--accent-2);
+    transition: width 0.4s var(--ease-out);
   }
 
   .qprog-text {
@@ -106,23 +105,24 @@ const { prefix, total } = Astro.props;
     align-items: center;
     gap: 6px;
     margin-top: 8px;
-    font-size: 14px;
+    font-size: 13.5px;
     color: var(--text-2);
   }
 
   .qprog strong {
-    background: none !important;
+    color: var(--text);
+    font-weight: 650;
   }
 
   .qprog-reset {
     margin-left: auto;
-    padding: 4px 10px !important;
+    padding: 3px 10px !important;
     font-size: 12.5px !important;
   }
 
   .qprog.is-perfect .qprog-text::after {
-    content: '🎉 전부 맞혔어요!';
-    font-weight: 800;
+    content: '모두 맞혔어요';
+    font-weight: 600;
     color: var(--ok);
   }
 </style>

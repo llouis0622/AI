@@ -1,24 +1,25 @@
 import { useMemo, useRef, useState, type ReactNode } from 'react';
 import type { VizProps } from '../Viz';
-import { Note, Segmented } from '../core/ui';
+import { Icon, Note, Segmented } from '../core/ui';
+import type { IconName } from '@/components/ui/Icon';
 import { useInView, usePrefersReducedMotion, useRafLoop } from '../core/hooks';
 import { useVizColors, withAlpha, type VizColors } from '../core/colors';
 import { clamp, rng } from '../core/math';
 
 type Kind = 'sup' | 'unsup' | 'rl' | 'self';
 
-const INFO: Record<Kind, { name: string; signal: string; emoji: string; text: string; examples: string }> = {
-  sup: { name: '지도학습', signal: '정답', emoji: '🏷️', text: '문제와 정답을 쌍으로 보여 줘요. "이건 고양이, 이건 개" 하고 이름표를 붙여 주면, 처음 보는 사진에도 이름표를 붙일 수 있게 돼요.', examples: '스팸 필터 · 집값 예측 · 사진 분류' },
-  unsup: { name: '비지도학습', signal: '데이터만', emoji: '🧺', text: '정답 없이 데이터만 줘요. 기계가 알아서 비슷한 것끼리 묶거나, 데이터의 모양을 찾아내요.', examples: '고객 무리 나누기 · 뉴스 주제 묶기' },
-  rl: { name: '강화학습', signal: '보상', emoji: '🍬', text: '정답 대신 결과에 대한 보상(당근)과 벌(채찍)만 줘요. 여러 번 해 보면서 보상을 많이 받는 행동을 스스로 익혀요.', examples: '바둑·게임 AI · 로봇 걷기 · 청소 경로' },
-  self: { name: '자기지도학습', signal: '가린 부분', emoji: '🙈', text: '데이터의 일부를 가리고 맞히게 해요. 정답이 원래 데이터 안에 있으니 사람이 이름표를 달 필요가 없어요. GPT의 학습법!', examples: '다음 단어 맞히기 · 사진 조각 채우기' }
+const INFO: Record<Kind, { name: string; signal: string; text: string; examples: string }> = {
+  sup: { name: '지도학습', signal: '정답', text: '문제와 정답을 쌍으로 보여 줘요. "이건 고양이, 이건 개" 하고 이름표를 붙여 주면, 처음 보는 사진에도 이름표를 붙일 수 있게 돼요.', examples: '스팸 필터 · 집값 예측 · 사진 분류' },
+  unsup: { name: '비지도학습', signal: '데이터만', text: '정답 없이 데이터만 줘요. 기계가 알아서 비슷한 것끼리 묶거나, 데이터의 모양을 찾아내요.', examples: '고객 무리 나누기 · 뉴스 주제 묶기' },
+  rl: { name: '강화학습', signal: '보상', text: '정답 대신 결과에 대한 보상(당근)과 벌(채찍)만 줘요. 여러 번 해 보면서 보상을 많이 받는 행동을 스스로 익혀요.', examples: '바둑·게임 AI · 로봇 걷기 · 청소 경로' },
+  self: { name: '자기지도학습', signal: '가린 부분', text: '데이터의 일부를 가리고 맞히게 해요. 정답이 원래 데이터 안에 있으니 사람이 이름표를 달 필요가 없어요. GPT도 이렇게 배워요.', examples: '다음 단어 맞히기 · 사진 조각 채우기' }
 };
 
 const QUIZ: { task: string; answer: Kind; why: string }[] = [
-  { task: '부동산 가격 예측', answer: 'sup', why: '과거 집들의 실제 가격(정답)을 보고 배우니까 지도학습 — 그중에서도 숫자를 맞히는 회귀예요.' },
+  { task: '부동산 가격 예측', answer: 'sup', why: '과거 집들의 실제 가격(정답)을 보고 배우니까 지도학습이고, 그중에서도 숫자를 맞히는 회귀예요.' },
   { task: '뉴스 기사를 비슷한 주제끼리 묶기', answer: 'unsup', why: '"이 기사는 몇 번 주제"라는 정답 없이 비슷한 것끼리 모으니까 비지도학습이에요.' },
   { task: '로봇 청소기가 청소 경로를 개선하기', answer: 'rl', why: '정답 경로는 아무도 몰라요. 잘 청소하면 보상을 받으며 시행착오로 익히니 강화학습이에요.' },
-  { task: '문장의 가려진 단어 맞추기', answer: 'self', why: '가린 단어가 곧 정답이라 사람이 정답을 달 필요가 없어요. 자기지도학습!' }
+  { task: '문장의 가려진 단어 맞추기', answer: 'self', why: '가린 단어가 곧 정답이라 사람이 정답을 달 필요가 없어요. 자기지도학습이에요.' }
 ];
 
 /** Each scene animates for ~6 s, then holds its final frame before looping. */
@@ -41,7 +42,7 @@ export default function LearningTypes(_: VizProps) {
     <div ref={box}>
       <div style={{ padding: '12px 14px 0' }}>
         <Segmented
-          options={(Object.keys(INFO) as Kind[]).map((k) => ({ value: k, label: `${INFO[k].emoji} ${INFO[k].name}` }))}
+          options={(Object.keys(INFO) as Kind[]).map((k) => ({ value: k, label: INFO[k].name }))}
           value={kind}
           onChange={(k) => {
             setKind(k);
@@ -67,7 +68,7 @@ export default function LearningTypes(_: VizProps) {
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
           <strong style={{ fontSize: 17 }}>{info.name}</strong>
           <span style={{ padding: '3px 10px', borderRadius: 99, background: withAlpha(c.series[0], 0.15), color: 'var(--text)', fontSize: 13, fontWeight: 800 }}>
-            주어지는 신호: {info.emoji} {info.signal}
+            주어지는 신호: {info.signal}
           </span>
         </div>
         <div style={{ fontSize: 14.5, lineHeight: 1.7 }}>{info.text}</div>
@@ -75,7 +76,7 @@ export default function LearningTypes(_: VizProps) {
 
         <div style={{ borderTop: '1px solid var(--border)', paddingTop: 12 }}>
           <div className="vz-panel-title" style={{ marginBottom: 8 }}>
-            맞혀 보기 — 어떤 배움일까요? ({score}/4)
+            맞혀 보기: 어떤 배움일까요? ({score}/4)
           </div>
           <div style={{ display: 'grid', gap: 8 }}>
             {QUIZ.map((q, i) => {
@@ -94,7 +95,8 @@ export default function LearningTypes(_: VizProps) {
                   </div>
                   {a && (
                     <span style={{ fontSize: 13, color: a === q.answer ? 'var(--text-2)' : c.neg, lineHeight: 1.55 }}>
-                      {a === q.answer ? `✓ ${q.why}` : '✗ 다시 생각해 볼까요? 무엇이 주어지는지(정답·데이터만·보상·가린 부분) 떠올려 보세요.'}
+                      <Icon name={a === q.answer ? 'check' : 'close'} size={14} style={{ verticalAlign: '-2px', marginRight: 5 }} />
+                      {a === q.answer ? q.why : '다시 생각해 볼까요? 무엇이 주어지는지(정답·데이터만·보상·가린 부분) 떠올려 보세요.'}
                     </span>
                   )}
                 </div>
@@ -103,8 +105,8 @@ export default function LearningTypes(_: VizProps) {
           </div>
         </div>
         {score === 4 && (
-          <Note mood="cheer" tone="good">
-            네 가지를 모두 구분했어요! 🎉 이 구분은 책 전체의 목차이기도 해요.
+          <Note tone="good">
+            네 가지를 모두 구분했어요. 이 구분은 책 전체의 목차이기도 해요.
           </Note>
         )}
       </div>
@@ -124,17 +126,15 @@ function Title({ children }: { children: ReactNode }) {
   );
 }
 
-function Card({ x, y, emoji, tag, tagColor, show = 1, tagShow = 1 }: { x: number; y: number; emoji: string; tag?: string; tagColor: string; show?: number; tagShow?: number }) {
+function Card({ x, y, icon, color, tag, tagColor, show = 1, tagShow = 1 }: { x: number; y: number; icon: IconName; color: string; tag?: string; tagColor: string; show?: number; tagShow?: number }) {
   return (
     <g transform={`translate(${x} ${y}) scale(${0.7 + 0.3 * ease(show)})`} opacity={ease(show)}>
       <rect x={-28} y={-28} width={56} height={56} rx={13} fill="var(--surface-solid)" stroke="var(--border-strong)" strokeWidth={1.5} />
-      <text y={10} textAnchor="middle" style={{ fontSize: 28 }}>
-        {emoji}
-      </text>
+      <Icon name={icon} x={-15} y={-15} size={30} color={color} strokeWidth={1.75} />
       {tag && (
         <g opacity={ease(tagShow)} transform={`translate(0 ${42 - 10 * (1 - ease(tagShow))})`}>
           <rect x={-30} y={-12} width={60} height={24} rx={12} fill={tagColor} />
-          <text y={5} textAnchor="middle" style={{ fontSize: 13, fontWeight: 900, fill: '#fff' }}>
+          <text y={5} textAnchor="middle" style={{ fontSize: 13, fontWeight: 800, fill: 'var(--accent-ink)' }}>
             {tag}
           </text>
         </g>
@@ -144,37 +144,35 @@ function Card({ x, y, emoji, tag, tagColor, show = 1, tagShow = 1 }: { x: number
 }
 
 function SupScene({ t, c }: { t: number; c: VizColors }) {
-  const ex = [
-    { e: '🐱', tag: '고양이' },
-    { e: '🐶', tag: '개' },
-    { e: '🐱', tag: '고양이' },
-    { e: '🐶', tag: '개' }
+  const ex: { icon: IconName; tag: string }[] = [
+    { icon: 'cat', tag: '고양이' },
+    { icon: 'dog', tag: '개' },
+    { icon: 'cat', tag: '고양이' },
+    { icon: 'dog', tag: '개' }
   ];
-  const col = (tag: string) => (tag === '고양이' ? c.series[0] : c.series[2]);
+  const col = (tag: string) => (tag === '고양이' ? c.series[0] : c.series[1]);
   const guessed = t > 5;
   return (
     <g>
-      <Title>👩‍🏫 선생님이 정답(이름표)을 붙여 줘요</Title>
+      <Title>선생님이 정답(이름표)을 붙여 줘요</Title>
       {ex.map((d, i) => (
-        <Card key={i} x={46 + i * 64} y={104} emoji={d.e} tag={d.tag} tagColor={col(d.tag)} show={(t - i * 0.55) / 0.4} tagShow={(t - i * 0.55 - 0.35) / 0.4} />
+        <Card key={i} x={46 + i * 64} y={104} icon={d.icon} color={c.ink} tag={d.tag} tagColor={col(d.tag)} show={(t - i * 0.55) / 0.4} tagShow={(t - i * 0.55 - 0.35) / 0.4} />
       ))}
       <g opacity={ease((t - 2.7) / 0.5)}>
-        <line x1={284} y1={104} x2={302} y2={104} stroke={c.series[1]} strokeWidth={3} />
-        <path d="M302 97 L313 104 L302 111 Z" fill={c.series[1]} />
-        <rect x={318} y={74} width={62} height={60} rx={15} fill={withAlpha(c.series[1], 0.18)} stroke={c.series[1]} strokeWidth={2} />
-        <text x={349} y={113} textAnchor="middle" style={{ fontSize: 28 }}>
-          🤖
-        </text>
-        <text x={349} y={154} textAnchor="middle" style={{ fontSize: 12.5, fontWeight: 850, fill: 'var(--text-2)' }}>
+        <line x1={284} y1={104} x2={302} y2={104} stroke={c.text} strokeWidth={2} />
+        <path d="M302 98 L312 104 L302 110 Z" fill={c.text} />
+        <rect x={318} y={74} width={62} height={60} rx={15} fill={withAlpha(c.text, 0.1)} stroke={c.text} strokeWidth={1.5} />
+        <Icon name="bot" x={335} y={90} size={28} color={c.ink} strokeWidth={1.75} />
+        <text x={349} y={154} textAnchor="middle" style={{ fontSize: 12.5, fontWeight: 750, fill: 'var(--text-2)' }}>
           규칙 찾는 중
         </text>
       </g>
-      <Card x={432} y={104} emoji="🐱" tag={guessed ? '고양이!' : '?'} tagColor={guessed ? c.pos : c.theme === 'dark' ? '#6f7aa6' : '#8c86a0'} show={(t - 3.8) / 0.5} tagShow={(t - 4.1) / 0.4} />
-      <text x={432} y={190} textAnchor="middle" opacity={ease((t - 5) / 0.4)} style={{ fontSize: 13, fontWeight: 850, fill: c.pos }}>
-        처음 본 사진도 척척
+      <Card x={432} y={104} icon="cat" color={c.ink} tag={guessed ? '고양이' : '?'} tagColor={guessed ? c.pos : c.text} show={(t - 3.8) / 0.5} tagShow={(t - 4.1) / 0.4} />
+      <text x={432} y={190} textAnchor="middle" opacity={ease((t - 5) / 0.4)} style={{ fontSize: 13, fontWeight: 750, fill: c.pos }}>
+        처음 본 사진도 맞혀요
       </text>
-      <text x={240} y={236} textAnchor="middle" opacity={ease((t - 5.4) / 0.5)} style={{ fontSize: 14, fontWeight: 800, fill: 'var(--text)' }}>
-        정답 달린 예시 → 규칙 → 새 문제에 답!
+      <text x={240} y={236} textAnchor="middle" opacity={ease((t - 5.4) / 0.5)} style={{ fontSize: 14, fontWeight: 750, fill: 'var(--text)' }}>
+        정답 달린 예시 → 규칙 → 새 문제의 답
       </text>
     </g>
   );
@@ -203,10 +201,10 @@ function UnsupScene({ t, c }: { t: number; c: VizColors }) {
   }, []);
   const p = ease((t - 1.2) / 2.4);
   const colorOn = ease((t - 3.4) / 0.9);
-  const base = c.theme === 'dark' ? '#6f7aa6' : '#b9b2c9';
+  const base = c.text;
   return (
     <g>
-      <Title>🧺 정답 없이, 비슷한 것끼리 모아요</Title>
+      <Title>정답 없이 비슷한 것끼리 모아요</Title>
       {pts.map((d, i) => (
         <circle
           key={i}
@@ -251,31 +249,28 @@ function RlScene({ t, c }: { t: number; c: VizColors }) {
   const rx = path[i0][0] + (path[i1][0] - path[i0][0]) * fr;
   const ry = path[i0][1] + (path[i1][1] - path[i0][1]) * fr;
   const done = f >= path.length - 1;
-  const result = ep === 0 ? { txt: '-1 아야!', col: c.neg } : { txt: '+1 보상!', col: c.pos };
+  const result = ep === 0 ? { txt: '-1 함정', col: c.neg } : { txt: '+1 보상', col: c.pos };
   const rewards = [-1, 1, 1].slice(0, ep + (done ? 1 : 0)).reduce((a, b) => a + b, 0);
   const mid = (gx: number, gy: number) => [ox + gx * cell + (cell - 4) / 2, oy + gy * cell + (cell - 4) / 2];
   return (
     <g>
-      <Title>🍬 결과에 보상 — 해 볼수록 길을 익혀요</Title>
+      <Title>결과에 보상을 주면, 해 볼수록 길을 익혀요</Title>
       {Array.from({ length: 3 }, (_, y) =>
         Array.from({ length: 6 }, (_, x) => (
           <rect key={`${x}-${y}`} x={ox + x * cell} y={oy + y * cell} width={cell - 4} height={cell - 4} rx={10} fill="var(--surface-solid)" stroke="var(--border)" />
         ))
       )}
-      <text x={mid(goal[0], goal[1])[0]} y={mid(goal[0], goal[1])[1] + 9} textAnchor="middle" style={{ fontSize: 26 }}>
-        ⭐
-      </text>
-      <text x={mid(trap[0], trap[1])[0]} y={mid(trap[0], trap[1])[1] + 9} textAnchor="middle" style={{ fontSize: 24 }}>
-        💥
-      </text>
+      <Icon name="star" x={mid(goal[0], goal[1])[0] - 13} y={mid(goal[0], goal[1])[1] - 13} size={26} color={c.pos} strokeWidth={1.75} />
+      <Icon name="warn" x={mid(trap[0], trap[1])[0] - 12} y={mid(trap[0], trap[1])[1] - 12} size={24} color={c.neg} strokeWidth={1.75} />
       {path.slice(0, i1 + 1).map((p, k) => (
         <circle key={k} cx={mid(p[0], p[1])[0]} cy={mid(p[0], p[1])[1]} r={4} fill={withAlpha(c.series[0], 0.7)} />
       ))}
-      <text x={ox + rx * cell + (cell - 4) / 2} y={oy + ry * cell + (cell - 4) / 2 + 9} textAnchor="middle" style={{ fontSize: 26 }}>
-        🤖
-      </text>
+      <g transform={`translate(${ox + rx * cell + (cell - 4) / 2} ${oy + ry * cell + (cell - 4) / 2})`}>
+        <circle r={17} fill={c.surface} stroke={c.series[0]} strokeWidth={1.5} />
+        <Icon name="bot" x={-11} y={-11} size={22} color={c.series[0]} strokeWidth={1.75} />
+      </g>
       {done && (
-        <text x={mid(path[path.length - 1][0], path[path.length - 1][1])[0]} y={oy - 8} textAnchor="middle" style={{ fontSize: 15, fontWeight: 900, fill: result.col }}>
+        <text x={mid(path[path.length - 1][0], path[path.length - 1][1])[0]} y={oy - 8} textAnchor="middle" style={{ fontSize: 15, fontWeight: 800, fill: result.col }}>
           {result.txt}
         </text>
       )}
@@ -288,8 +283,13 @@ function RlScene({ t, c }: { t: number; c: VizColors }) {
       <text x={18} y={156} style={{ fontSize: 26, fontWeight: 900, fill: rewards >= 0 ? c.pos : c.neg }}>
         {rewards > 0 ? `+${rewards}` : rewards}
       </text>
-      <text x={18} y={204} style={{ fontSize: 12.5, fontWeight: 750, fill: 'var(--text-3)' }}>
-        ⭐ +1 · 💥 -1
+      <Icon name="star" x={18} y={192} size={15} color={c.pos} strokeWidth={1.75} />
+      <text x={37} y={204} style={{ fontSize: 12.5, fontWeight: 750, fill: 'var(--text-3)' }}>
+        +1
+      </text>
+      <Icon name="warn" x={64} y={192} size={15} color={c.neg} strokeWidth={1.75} />
+      <text x={83} y={204} style={{ fontSize: 12.5, fontWeight: 750, fill: 'var(--text-3)' }}>
+        -1
       </text>
     </g>
   );
@@ -308,7 +308,7 @@ function SelfScene({ t, c }: { t: number; c: VizColors }) {
   const reveal = t > 4.6;
   return (
     <g>
-      <Title>🙈 문장 일부를 가리고 맞혀요</Title>
+      <Title>문장 일부를 가리고 맞혀요</Title>
       {words.map((w, i) => (
         <g key={w} transform={`translate(${12 + i * 82} 50)`}>
           <rect width={76} height={42} rx={12} fill="var(--surface-solid)" stroke="var(--border-strong)" />
@@ -324,8 +324,8 @@ function SelfScene({ t, c }: { t: number; c: VizColors }) {
         </text>
       </g>
       {reveal && (
-        <text x={405} y={112} textAnchor="middle" style={{ fontSize: 13.5, fontWeight: 900, fill: c.pos }}>
-          정답! 🎉
+        <text x={405} y={112} textAnchor="middle" style={{ fontSize: 13.5, fontWeight: 800, fill: c.pos }}>
+          정답
         </text>
       )}
       {cands.map((d, i) => {
@@ -336,7 +336,7 @@ function SelfScene({ t, c }: { t: number; c: VizColors }) {
               {d.w}
             </text>
             <rect x={122} y={y} width={300} height={20} rx={10} fill="var(--surface-3)" />
-            <rect x={122} y={y} width={300 * d.p * grow} height={20} rx={10} fill={i === 0 ? c.series[1] : c.series[3]} />
+            <rect x={122} y={y} width={300 * d.p * grow} height={20} rx={10} fill={i === 0 ? c.series[1] : withAlpha(c.text, 0.45)} />
             <text x={128 + 300 * d.p * grow} y={y + 15} style={{ fontSize: 13, fontWeight: 850, fill: 'var(--text-2)' }}>
               {Math.round(d.p * 100 * grow)}%
             </text>

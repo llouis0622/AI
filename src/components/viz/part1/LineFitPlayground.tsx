@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { VizProps } from '../Viz';
 import { Plot, linePath, type PlotScales } from '../core/plot';
-import { Button, Controls, Note, Slider, Stat, Toggle } from '../core/ui';
+import { Button, Controls, Icon, Note, Slider, Stat, Toggle } from '../core/ui';
 import { useInterval } from '../core/hooks';
 import { useVizColors, withAlpha } from '../core/colors';
 import { clamp, fmt } from '../core/math';
@@ -102,7 +102,7 @@ export default function LineFitPlayground({ expanded }: VizProps) {
                   }}
                 >
                   <circle cx={x(hx)} cy={y(clamp(yAt(hx), 0, 10))} r={20} fill="transparent" />
-                  <circle cx={x(hx)} cy={y(clamp(yAt(hx), 0, 10))} r={11} fill={c.surface} stroke={c.series[0]} strokeWidth={4} />
+                  <circle cx={x(hx)} cy={y(clamp(yAt(hx), 0, 10))} r={11} fill={c.surface} stroke={c.series[0]} strokeWidth={3} />
                 </g>
               );
             };
@@ -120,7 +120,7 @@ export default function LineFitPlayground({ expanded }: VizProps) {
                           y={top}
                           width={side}
                           height={side}
-                          fill={withAlpha(c.neg.startsWith('#') ? c.neg : '#f2626b', 0.16)}
+                          fill={withAlpha(c.neg, 0.14)}
                           stroke={c.neg}
                           strokeWidth={1.2}
                           rx={3}
@@ -130,20 +130,18 @@ export default function LineFitPlayground({ expanded }: VizProps) {
                   {SIZES.map((sx, i) => (
                     <line key={`r${sx}`} x1={x(sx)} x2={x(sx)} y1={y(PRICES[i])} y2={y(yAt(sx))} stroke={c.neg} strokeWidth={2} strokeDasharray="4 3" />
                   ))}
-                  <path d={linePath([[x(5), y(yAt(5))], [x(35), y(yAt(35))]])} stroke={c.series[0]} strokeWidth={4} strokeLinecap="round" />
+                  <path d={linePath([[x(5), y(yAt(5))], [x(35), y(yAt(35))]])} stroke={c.series[0]} strokeWidth={3} strokeLinecap="round" />
                   {/* 18평 prediction */}
-                  <line x1={x(18)} x2={x(18)} y1={y(0)} y2={y(clamp(pred18, 0, 10))} stroke={c.series[3]} strokeWidth={1.5} strokeDasharray="2 4" />
-                  <circle cx={x(18)} cy={y(clamp(pred18, 0, 10))} r={6} fill={c.series[3]} />
+                  <line x1={x(18)} x2={x(18)} y1={y(0)} y2={y(clamp(pred18, 0, 10))} stroke={c.text} strokeWidth={1.5} strokeDasharray="2 4" />
+                  <circle cx={x(18)} cy={y(clamp(pred18, 0, 10))} r={5.5} fill={c.ink} stroke={c.surface} strokeWidth={2} />
                 </g>
-                <text x={x(18) + 6} y={y(0) - 10} style={{ fontSize: 12.5, fontWeight: 800, fill: c.series[3] }}>
+                <text x={x(18) + 6} y={y(0) - 10} style={{ fontSize: 12.5, fontWeight: 750, fill: c.ink }}>
                   18평 → {fmt(pred18, 1)}억?
                 </text>
                 {SIZES.map((sx, i) => (
                   <g key={`p${sx}`}>
-                    <circle cx={x(sx)} cy={y(PRICES[i])} r={7.5} fill={c.series[1]} stroke={c.surface} strokeWidth={2.5} />
-                    <text x={x(sx) - 10} y={y(PRICES[i]) - 12} textAnchor="end" style={{ fontSize: 11, fontWeight: 700 }}>
-                      🏠
-                    </text>
+                    <circle cx={x(sx)} cy={y(PRICES[i])} r={7} fill={c.ink} stroke={c.surface} strokeWidth={2.5} />
+                    <Icon name="home" x={x(sx) - 23} y={y(PRICES[i]) - 25} size={13} color={c.text} strokeWidth={1.75} />
                   </g>
                 ))}
                 {handle('left')}
@@ -172,27 +170,28 @@ export default function LineFitPlayground({ expanded }: VizProps) {
           />
         </div>
         {auto ? (
-          <Note mood="happy">기계가 경사하강법으로 직선을 조금씩 옮기는 중… {auto.steps}걸음째!</Note>
+          <Note>경사하강법으로 직선을 조금씩 옮기고 있어요. {auto.steps}걸음째예요.</Note>
         ) : quality === 'good' ? (
-          <Note mood="cheer" tone="good">
-            거의 완벽해요! 🎉 지금 직선이 "한 평에 약 {fmt(w * 10000, 0)}만 원씩 오른다"는 규칙이에요. 기계가 찾는 답도 바로 이거예요.
+          <Note tone="good">
+            오차가 거의 최소예요. 지금 직선은 "한 평에 약 {fmt(w * 10000, 0)}만 원씩 오른다"는 규칙이고, 기계가 찾는 답도 이 직선이에요.
           </Note>
         ) : (
-          <Note mood="smile">
-            선 위 <strong>동그란 손잡이 두 개</strong>를 위아래로 끌어서 빨간 네모(오차²)가 최대한 작아지게 맞춰 보세요. 어렵다면 🤖 버튼!
+          <Note>
+            선 위의 동그란 손잡이 두 개를 위아래로 끌어 네모(오차²)가 최대한 작아지게 맞춰 보세요. 어렵다면 "기계에게 맡기기"를 눌러 보세요.
           </Note>
         )}
       </div>
 
       <Controls>
         <Slider label="w (기울기)" value={w} min={-0.1} max={0.5} step={0.001} onChange={(v) => { setAuto(null); setW(v); }} format={(v) => v.toFixed(3)} />
-        <Slider label="b (절편)" value={b} min={-3} max={8} step={0.01} onChange={(v) => { setAuto(null); setB(v); }} format={(v) => v.toFixed(2)} accent="var(--mint)" />
+        <Slider label="b (절편)" value={b} min={-3} max={8} step={0.01} onChange={(v) => { setAuto(null); setB(v); }} format={(v) => v.toFixed(2)} />
         <Toggle label="오차를 네모(제곱)로 보기" checked={squares} onChange={setSquares} />
         <Button variant="primary" onClick={() => setAuto({ steps: 0 })} disabled={!!auto}>
-          🤖 기계에게 맡기기
+          기계에게 맡기기
         </Button>
         <Button variant="ghost" onClick={() => { setAuto(null); setW(0.05); setB(4.2); setBest(Infinity); }}>
-          ↺ 처음으로
+          <Icon name="reset" size={16} />
+          처음으로
         </Button>
       </Controls>
     </div>

@@ -2,30 +2,22 @@
 title: "객체 탐지"
 lab: 5
 track: "B. 컴퓨터 비전"
-builds: "탐지의 핵심 연산(IoU, NMS)을 직접 구현해 원리를 확인한 뒤, torchvision Faster R-CNN을 커스텀 데이터에 파인튜닝하고, 실무 표준인 YOLO 사용법까지 잇는다."
+builds: "탐지의 핵심 연산(IoU, NMS)을 직접 구현해 원리를 확인한 뒤, torchvision Faster R-CNN을 커스텀 데이터에 파인튜닝하고, 실무 표준인 YOLO 사용법까지 다룬다."
 chapters: [14]
 summary:
-  - icon: "🟩"
-    title: "IoU: 얼마나 겹치나"
-    text: "두 박스의 **겹친 넓이 ÷ 합친 넓이**. 0.5를 넘으면 같은 물체를 가리킨다고 봐요."
-    visual: "pulse"
-  - icon: "🧹"
-    title: "NMS: 중복 박스 청소"
-    text: "점수 1등을 남기고, 그와 많이 겹치는 후보는 지우기를 **반복**하면 물체마다 박스 하나만 남아요."
-    visual: "shake"
-  - icon: "🔁"
-    title: "헤드만 바꿔 파인튜닝"
-    text: "COCO로 배운 Faster R-CNN의 마지막 칸을 **배경+사람 2클래스**로 바꿔 내 데이터에 맞춰요."
-    visual: "spin"
-  - icon: "⚡"
-    title: "실무는 YOLO 한 줄"
-    text: "추론, 학습, 평가, 내보내기까지 **한 줄씩**. 원리를 알고 쓰면 결과를 다룰 수 있어요."
-    visual: "bounce"
+  - title: "IoU: 얼마나 겹치나"
+    text: "IoU는 두 박스의 겹친 넓이 ÷ 합친 넓이예요. 0.5를 넘으면 같은 물체를 가리킨다고 봐요."
+  - title: "NMS: 중복 박스 청소"
+    text: "점수 1등을 남기고 그와 많이 겹치는 후보를 지우는 일을 반복하면, 물체마다 박스 하나만 남아요."
+  - title: "헤드만 바꿔 파인튜닝"
+    text: "COCO로 배운 Faster R-CNN의 마지막 칸을 배경+사람 2클래스로 바꿔 내 데이터에 맞춰요."
+  - title: "실무는 YOLO 한 줄"
+    text: "추론, 학습, 평가, 내보내기가 각각 한 줄이면 돼요. 원리를 알고 쓰면 결과를 다룰 수 있어요."
 ---
 
 import Viz from '@/components/viz/Viz.tsx';
 
-**만드는 것**: 탐지의 핵심 연산(IoU, NMS)을 직접 구현해 원리를 확인한 뒤, torchvision Faster R-CNN을 커스텀 데이터에 파인튜닝하고, 실무 표준인 YOLO 사용법까지 잇는다.
+**만드는 것**: 탐지의 핵심 연산(IoU, NMS)을 직접 구현해 원리를 확인한 뒤, torchvision Faster R-CNN을 커스텀 데이터에 파인튜닝하고, 실무 표준인 YOLO 사용법까지 다룬다.
 
 **선행 지식**: [IoU, NMS, 앵커, mAP](/book/14-vision-tasks), [탐지 아키텍처](/book/14-vision-tasks)
 
@@ -77,13 +69,13 @@ if __name__ == "__main__":
     print("torchvision 구현과 일치 ✓")
 ```
 
-NMS가 필요한 이유: 탐지 모델은 한 물체 주변에 수십 개의 중복 박스를 출력한다. "가장 자신 있는 박스를 남기고, 그와 많이 겹치는(같은 물체일) 후보를 지운다"가 NMS의 전부다.
+탐지 모델은 한 물체 주변에 수십 개의 중복 박스를 출력한다. 그래서 NMS가 필요하다. NMS는 가장 자신 있는 박스를 남기고, 그와 많이 겹치는(같은 물체일) 후보를 지우는 일만 한다.
 
 <Viz id="iou-nms" client:visible />
 
 ## 2. Faster R-CNN 파인튜닝
 
-torchvision의 사전학습 탐지 모델은 헤드만 갈아끼우면 커스텀 클래스에 바로 파인튜닝된다. 데이터셋은 `(image, target)` 쌍을 반환해야 하고, target은 `boxes (N,4)`와 `labels (N,)`를 가진 딕셔너리다.
+torchvision의 사전학습 탐지 모델은 헤드만 갈아끼우면 커스텀 클래스로 바로 파인튜닝할 수 있다. 데이터셋은 `(image, target)` 쌍을 반환해야 하고, target은 `boxes (N,4)`와 `labels (N,)`를 담은 딕셔너리다.
 
 ```python
 """Faster R-CNN 파인튜닝 — PennFudan 보행자 데이터셋 (2 클래스: 배경+사람)."""
@@ -170,7 +162,7 @@ if __name__ == "__main__":
     main()
 ```
 
-## 3. 실무에서는: YOLO
+## 3. 실무에서는 YOLO
 
 프로토타이핑과 배포 속도가 중요하면 ultralytics YOLO가 사실상 표준이다.
 
@@ -199,13 +191,13 @@ names:
   1: car
 ```
 
-레이블은 이미지당 `.txt` 하나, 한 줄에 `class cx cy w h`(0~1 정규화)다. 이 포맷(YOLO 포맷)은 레이블링 도구 대부분이 지원한다.
+레이블은 이미지마다 `.txt` 파일 하나이고, 한 줄에 `class cx cy w h`(0~1 정규화)를 적는다. 이 포맷(YOLO 포맷)은 레이블링 도구 대부분이 지원한다.
 
 ## 확장 과제
 
-1. **mAP 계산기 구현** — 예측 박스·점수와 GT로 AP@0.5를 계산하는 함수를 직접 짜고 `torchmetrics.detection.MeanAveragePrecision`과 대조하라. precision-recall 곡선을 그려 보면 mAP의 의미가 잡힌다.
-2. **혼동 사례 분석** — 검출 실패(미검출/오검출)를 20장 모아 보라. 원인이 데이터(레이블 누락)인가 모델(작은 물체)인가? 이 습관이 [실패 분석](/book/12-debugging-training)의 기본기다.
-3. **Soft-NMS** — 겹치는 박스를 제거하는 대신 점수를 감쇠시키는 Soft-NMS를 구현해, 겹친 물체가 많은 장면에서 비교하라.
+1. mAP 계산기 구현: 예측 박스·점수와 GT로 AP@0.5를 계산하는 함수를 직접 짜고 `torchmetrics.detection.MeanAveragePrecision`과 대조하라. precision-recall 곡선을 그려 보면 mAP의 의미가 잡힌다.
+2. 혼동 사례 분석: 검출 실패(미검출/오검출)를 20장 모아 보라. 원인이 데이터(레이블 누락)인가 모델(작은 물체)인가? 이 습관이 [실패 분석](/book/12-debugging-training)의 기본기다.
+3. Soft-NMS: 겹치는 박스를 제거하는 대신 점수를 감쇠시키는 Soft-NMS를 구현해, 겹친 물체가 많은 장면에서 비교하라.
 
 ## 다음
 

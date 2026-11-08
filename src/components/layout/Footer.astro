@@ -1,15 +1,11 @@
 ---
-import Algo from '@/components/mascot/Algo.tsx';
 import { url } from '@/data/curriculum';
 ---
 <footer class="site-footer" data-pagefind-ignore>
   <div class="container footer-inner">
     <div class="footer-brand">
-      <Algo size={46} mood="wink" />
-      <div>
-        <strong class="footer-title">AIology</strong>
-        <p>그림으로 보고, 손으로 만지며 배우는 인공지능 교과서.<br />직선 하나를 긋는 기계에서 GPT·확산 모델·에이전트까지.</p>
-      </div>
+      <a class="footer-title" href={url('/')}><span class="logo-ai">AI</span>ology</a>
+      <p>그림과 직접 만져 보는 시각화로 배우는 인공지능 교과서. 직선 하나로 배우는 기계에서 시작해 Transformer, 확산 모델, 에이전트까지 다룹니다.</p>
     </div>
     <nav class="footer-links" aria-label="바닥글 메뉴">
       <div>
@@ -20,26 +16,30 @@ import { url } from '@/data/curriculum';
       </div>
       <div>
         <span class="footer-head">연습하기</span>
-        <a href={url('/practice/')}>코드랩 (20편)</a>
+        <a href={url('/practice/')}>코드랩 (20개)</a>
         <a href={url('/review/')}>복습 퀴즈</a>
         <a href={url('/glossary/')}>용어 사전</a>
       </div>
       <div>
-        <span class="footer-head">만든 사람</span>
-        <a href="https://github.com/llouis0622" target="_blank" rel="noopener noreferrer">llouis0622</a>
+        <span class="footer-head">이 책에 대해</span>
+        <a href={url('/about/')}>소개와 읽는 법</a>
+        <a href="https://github.com/llouis0622/AI/issues/new" target="_blank" rel="noopener noreferrer">오류 제보</a>
         <a href="https://github.com/llouis0622/AI" target="_blank" rel="noopener noreferrer">GitHub 저장소</a>
       </div>
     </nav>
   </div>
-  <p class="footer-note">학습 기록은 이 브라우저에만 저장돼요 · © AIology</p>
+  <div class="container footer-bottom">
+    <span>학습 기록은 이 브라우저에만 저장됩니다.</span>
+    <span>© AIology · <a href="https://github.com/llouis0622" target="_blank" rel="noopener noreferrer">llouis0622</a></span>
+  </div>
 </footer>
 
 <style>
   .site-footer {
     margin-top: 96px;
-    padding: 48px 0 28px;
+    padding: 48px 0 24px;
     border-top: 1px solid var(--border);
-    background: color-mix(in srgb, var(--bg-2) 60%, transparent);
+    background: var(--bg-2);
   }
 
   .footer-inner {
@@ -50,26 +50,29 @@ import { url } from '@/data/curriculum';
   }
 
   .footer-brand {
-    display: flex;
-    gap: 14px;
-    max-width: 380px;
+    max-width: 360px;
   }
 
   .footer-brand p {
-    margin: 6px 0 0;
+    margin: 10px 0 0;
     color: var(--text-2);
     font-size: 14px;
     line-height: 1.7;
   }
 
   .footer-title {
-    font-size: 20px;
+    font-size: 18px;
+    font-weight: 700;
     letter-spacing: -0.03em;
+  }
+
+  .logo-ai {
+    color: var(--accent);
   }
 
   .footer-links {
     display: flex;
-    gap: 48px;
+    gap: 56px;
     flex-wrap: wrap;
   }
 
@@ -89,16 +92,25 @@ import { url } from '@/data/curriculum';
   }
 
   .footer-head {
-    font-weight: 800;
+    margin-bottom: 2px;
+    font-weight: 600;
     font-size: 13px;
     color: var(--text-3);
-    letter-spacing: 0.02em;
   }
 
-  .footer-note {
-    margin: 36px 0 0;
-    text-align: center;
+  .footer-bottom {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px 24px;
+    margin-top: 40px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
     color: var(--text-3);
     font-size: 13px;
+  }
+
+  .footer-bottom a:hover {
+    color: var(--text);
   }
 </style>

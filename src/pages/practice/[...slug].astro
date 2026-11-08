@@ -4,7 +4,10 @@ import DocLayout from '@/layouts/DocLayout.astro';
 import CompleteCard from '@/components/chapter/CompleteCard.astro';
 import PrevNext from '@/components/chapter/PrevNext.astro';
 import VisualSummary from '@/components/summary/VisualSummary.astro';
-import Algo from '@/components/mascot/Algo.tsx';
+import References from '@/components/chapter/References.astro';
+import EditLinks from '@/components/chapter/EditLinks.astro';
+import Icon from '@/components/layout/Icon.astro';
+import { labRefs } from '@/data/references';
 import { getLabs, getBook, labHref, bookHref, vizIdsIn, type LabEntry } from '@/lib/content';
 import { TRACKS } from '@/data/curriculum';
 
@@ -31,104 +34,114 @@ const track = TRACKS.find((t) => t.labs.includes(d.lab));
 const num = String(d.lab).padStart(2, '0');
 const link = (e?: LabEntry) => e && { href: labHref(e.id), label: e.data.lab === 0 ? '개요' : `코드랩 ${String(e.data.lab).padStart(2, '0')}`, title: e.data.title };
 const vizCount = vizIdsIn(entry.body).length;
+const pageTitle = isOverview ? '코드랩 개요와 환경 준비' : `코드랩 ${num}. ${d.title}`;
 ---
-<DocLayout title={isOverview ? '코드랩 개요 · 환경 준비' : `코드랩 ${num}. ${d.title}`} description={d.builds} section="practice" current={entry.id} headings={headings}>
-  <article class="lab" data-reading data-pagefind-body data-part="7" data-pagefind-meta={`title:${isOverview ? '코드랩 개요 · 환경 준비' : `코드랩 ${num}. ${d.title}`}`}>
+<DocLayout title={pageTitle} description={d.builds} section="practice" current={entry.id} headings={headings}>
+  <article class="lab" data-reading data-pagefind-body data-pagefind-meta={`title:${pageTitle}`}>
     <header class="lab-head">
-      <div class="lab-meta">
-        <span class="lab-adv">🧗 심화 트랙</span>
-        {track && <span class="chip">{track.emoji} {track.title}</span>}
-        {vizCount > 0 && <span class="chip">🎬 그림 미리보기 {vizCount}개</span>}
+      <div class="lab-eyebrow">
+        <span>{isOverview ? '코드랩' : `코드랩 ${num}`}</span>
+        {track && <span class="lab-sep" aria-hidden="true">/</span>}
+        {track && <span>{track.title}</span>}
       </div>
-      <h1 class="lab-h1">
-        {!isOverview && <span class="lab-num">LAB {num}</span>}
-        {d.title}
-      </h1>
+      <h1 class="lab-h1">{d.title}</h1>
       {isOverview ? (
-        <div class="algo-say">
-          <Algo mood="wink" size={64} />
-          <div class="algo-bubble">
-            코드랩은 책에서 배운 원리를 <strong>직접 코드로</strong> 만들어 보는 곳이에요. 처음이라면 책을 먼저 읽고 와도 괜찮아요. 각 코드랩 맨 위의 <strong>그림 미리보기</strong>가 코드가 하는 일을 먼저 보여 줄 거예요!
-          </div>
-        </div>
+        <p class="lab-lead">코드랩은 책에서 배운 원리를 직접 코드로 만들어 보는 곳이에요. 처음이라면 책을 먼저 읽어도 괜찮습니다. 각 코드랩 위쪽의 시각화가 코드가 하는 일을 먼저 보여 줍니다.</p>
       ) : (
-        prereqs.length > 0 && (
-          <p class="lab-prereq">
-            <span>먼저 읽고 오면 좋아요</span>
-            {prereqs.map((e) => <a class="chip" href={bookHref(e!.id)}>{e!.data.chapter}장 · {e!.data.title}</a>)}
-          </p>
-        )
+        d.builds && <p class="lab-lead">{d.builds}</p>
       )}
+      <div class="lab-meta">
+        {vizCount > 0 && <span class="lab-meta-item"><Icon name="flask" size={15} />시각화 {vizCount}개</span>}
+        {!isOverview && prereqs.length > 0 && (
+          <span class="lab-prereq">
+            <span class="lab-prereq-label">먼저 읽으면 좋아요</span>
+            {prereqs.map((e) => <a href={bookHref(e!.id)}>{e!.data.chapter}장 {e!.data.title}</a>)}
+          </span>
+        )}
+      </div>
     </header>
 
-    <VisualSummary cards={d.summary} heading="코드가 하는 일, 그림으로 먼저" />
+    <VisualSummary cards={d.summary} />
 
     <div class="prose">
       <Content />
     </div>
 
+    <References refs={labRefs[d.lab] ?? []} />
     {!isOverview && <CompleteCard kind="lab" num={d.lab} />}
     <PrevNext prev={link(prev)} next={link(next)} />
+    <EditLinks path={entry.filePath} title={pageTitle} />
   </article>
 </DocLayout>
 
 <style>
   .lab-head {
-    margin-bottom: 26px;
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .lab-eyebrow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+    color: var(--text-3);
+    font-size: 13.5px;
+    font-weight: 550;
+  }
+
+  .lab-sep {
+    color: var(--border-strong);
+  }
+
+  .lab-h1 {
+    margin: 0 0 14px;
+    font-size: clamp(28px, 4.2vw, 38px);
+    font-weight: 700;
+    letter-spacing: -0.035em;
+    line-height: 1.25;
+  }
+
+  .lab-lead {
+    margin: 0 0 18px;
+    max-width: 38em;
+    color: var(--text-2);
+    font-size: 17px;
+    line-height: 1.75;
   }
 
   .lab-meta {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 14px;
+    align-items: baseline;
+    gap: 8px 20px;
+    color: var(--text-3);
+    font-size: 13.5px;
   }
 
-  .lab-adv {
+  .lab-meta-item {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 4px 12px;
-    border-radius: 999px;
-    background: var(--grad-warm);
-    color: #3b1d0e;
-    font-size: 13px;
-    font-weight: 800;
-  }
-
-  :global(:root[data-theme='dark']) .lab-adv {
-    color: #1a0610;
-  }
-
-  .lab-h1 {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    margin: 0 0 18px;
-    font-size: clamp(28px, 4.2vw, 40px);
-    font-weight: 850;
-    letter-spacing: -0.04em;
-    line-height: 1.2;
-  }
-
-  .lab-num {
-    font-family: var(--font-mono);
-    font-size: 15px;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    background: var(--grad-brand);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
   }
 
   .lab-prereq {
-    display: flex;
+    display: inline-flex;
     flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-    margin: 0;
-    font-size: 14px;
-    font-weight: 750;
+    gap: 4px 12px;
+  }
+
+  .lab-prereq-label {
+    font-weight: 600;
+  }
+
+  .lab-prereq a {
+    color: var(--accent);
+  }
+
+  .lab-prereq a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 </style>

@@ -1,5 +1,4 @@
 ---
-import Algo from '@/components/mascot/Algo.tsx';
 import Icon from './Icon.astro';
 import { url } from '@/data/curriculum';
 
@@ -10,12 +9,12 @@ interface Props {
 const { hasSidebar = false } = Astro.props;
 
 const nav = [
-  { href: '/book/', label: '책', icon: 'book' },
-  { href: '/playground/', label: '실험실', icon: 'flask' },
-  { href: '/practice/', label: '코드랩', icon: 'code' },
-  { href: '/review/', label: '복습', icon: 'quiz' },
-  { href: '/glossary/', label: '용어 사전', icon: 'glossary' },
-  { href: '/map/', label: '학습 지도', icon: 'map' }
+  { href: '/book/', label: '책' },
+  { href: '/playground/', label: '실험실' },
+  { href: '/practice/', label: '코드랩' },
+  { href: '/review/', label: '복습' },
+  { href: '/glossary/', label: '용어 사전' },
+  { href: '/map/', label: '학습 지도' }
 ] as const;
 
 const path = Astro.url.pathname;
@@ -24,12 +23,11 @@ const isActive = (href: string) => path.startsWith(url(href));
 <header class="site-header" data-pagefind-ignore>
   <div class="header-inner">
     <button class="btn btn-ghost btn-icon drawer-btn" type="button" aria-label="메뉴 열기" aria-controls="drawer" aria-expanded="false" data-drawer-open data-has-sidebar={hasSidebar ? '' : undefined}>
-      <Icon name="menu" size={22} />
+      <Icon name="menu" size={20} />
     </button>
 
     <a class="logo" href={url('/')} aria-label="AIology 홈">
-      <Algo size={34} still />
-      <span class="logo-text">AI<span class="logo-ology">ology</span></span>
+      <span class="logo-ai">AI</span>ology
     </a>
 
     <nav class="main-nav" aria-label="주요 메뉴">
@@ -42,16 +40,16 @@ const isActive = (href: string) => path.startsWith(url(href));
 
     <div class="header-actions">
       <button class="search-btn" type="button" data-search-open aria-label="검색 (Ctrl+K)">
-        <Icon name="search" size={18} />
+        <Icon name="search" size={16} />
         <span class="search-label">검색</span>
         <kbd class="search-kbd">⌘K</kbd>
       </button>
-      <button class="btn btn-ghost btn-icon theme-btn" type="button" data-theme-toggle aria-label="라이트/다크 모드 전환">
-        <span class="theme-icon theme-sun"><Icon name="sun" size={20} /></span>
-        <span class="theme-icon theme-moon"><Icon name="moon" size={20} /></span>
+      <button class="btn btn-ghost btn-icon theme-btn" type="button" data-theme-toggle aria-label="밝은 화면과 어두운 화면 전환">
+        <span class="theme-icon theme-sun"><Icon name="sun" size={18} /></span>
+        <span class="theme-icon theme-moon"><Icon name="moon" size={18} /></span>
       </button>
       <a class="btn btn-ghost btn-icon gh-btn" href="https://github.com/llouis0622/AI" target="_blank" rel="noopener noreferrer" aria-label="GitHub 저장소">
-        <Icon name="github" size={20} />
+        <Icon name="github" size={18} />
       </a>
     </div>
   </div>
@@ -64,9 +62,9 @@ const isActive = (href: string) => path.startsWith(url(href));
     top: 0;
     z-index: 50;
     height: var(--header-h);
-    background: color-mix(in srgb, var(--bg) 78%, transparent);
-    backdrop-filter: blur(16px) saturate(160%);
-    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    background: color-mix(in srgb, var(--bg) 86%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
   }
 
@@ -81,37 +79,32 @@ const isActive = (href: string) => path.startsWith(url(href));
   }
 
   .logo {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 850;
-    font-size: 21px;
-    letter-spacing: -0.04em;
+    font-weight: 700;
+    font-size: 19px;
+    letter-spacing: -0.03em;
     flex: none;
   }
 
-  .logo-ology {
-    background: var(--grad-brand);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+  .logo-ai {
+    color: var(--accent);
   }
 
   .main-nav {
     display: flex;
     align-items: center;
     gap: 2px;
-    margin-left: 18px;
+    margin-left: 22px;
   }
 
   .nav-link {
     position: relative;
-    padding: 8px 13px;
-    border-radius: 12px;
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
     color: var(--text-2);
-    font-size: 15px;
-    font-weight: 650;
-    transition: color 0.2s, background-color 0.2s;
+    font-size: 14.5px;
+    font-weight: 550;
+    line-height: 22px;
+    transition: color 0.15s, background-color 0.15s;
   }
 
   .nav-link:hover {
@@ -126,22 +119,18 @@ const isActive = (href: string) => path.startsWith(url(href));
   .nav-link.active::after {
     content: '';
     position: absolute;
-    left: 13px;
-    right: 13px;
-    bottom: 2px;
-    height: 3px;
-    border-radius: 3px;
-    background: var(--grad-brand);
-  }
-
-  :global(:root[data-theme='dark']) .nav-link.active::after {
-    box-shadow: var(--glow);
+    left: 12px;
+    right: 12px;
+    /* sits on the header's bottom border: (59px content - 34px link) / 2 */
+    bottom: -12px;
+    height: 2px;
+    background: var(--accent);
   }
 
   .header-actions {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 2px;
     margin-left: auto;
   }
 
@@ -149,31 +138,31 @@ const isActive = (href: string) => path.startsWith(url(href));
     display: flex;
     align-items: center;
     gap: 8px;
-    height: 40px;
-    padding: 0 10px 0 14px;
-    border-radius: 12px;
+    height: 36px;
+    margin-right: 4px;
+    padding: 0 8px 0 12px;
+    border-radius: var(--radius-sm);
     border: 1px solid var(--border);
     background: var(--surface);
     color: var(--text-3);
-    font-size: 14px;
-    font-weight: 600;
-    min-width: 180px;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    font-size: 13.5px;
+    font-weight: 500;
+    min-width: 200px;
+    transition: border-color 0.15s, color 0.15s;
   }
 
   .search-btn:hover {
     border-color: var(--border-strong);
-    box-shadow: var(--shadow-sm);
+    color: var(--text-2);
   }
 
   .search-kbd {
     margin-left: auto;
-    padding: 1px 7px;
-    border-radius: 6px;
+    padding: 0 6px;
+    border-radius: 4px;
     border: 1px solid var(--border);
-    background: var(--surface-2);
     font-family: var(--font-sans);
-    font-size: 12px;
+    font-size: 11.5px;
     color: var(--text-3);
   }
 
@@ -182,8 +171,8 @@ const isActive = (href: string) => path.startsWith(url(href));
     place-items: center;
   }
 
-  :global(:root:not([data-theme='dark'])) .theme-sun,
-  :global(:root[data-theme='dark']) .theme-moon {
+  :global(:root[data-theme='light']) .theme-sun,
+  :global(:root:not([data-theme='light'])) .theme-moon {
     display: none;
   }
 
@@ -196,7 +185,7 @@ const isActive = (href: string) => path.startsWith(url(href));
     left: 0;
     right: 0;
     bottom: -1px;
-    height: 3px;
+    height: 2px;
     pointer-events: none;
   }
 
@@ -206,12 +195,7 @@ const isActive = (href: string) => path.startsWith(url(href));
     width: 100%;
     transform-origin: left;
     transform: scaleX(var(--read, 0));
-    background: var(--grad-brand);
-    border-radius: 0 3px 3px 0;
-  }
-
-  :global(:root[data-theme='dark']) .reading-progress span {
-    box-shadow: var(--glow-strong);
+    background: var(--accent);
   }
 
   @media (max-width: 1180px) {
@@ -221,16 +205,15 @@ const isActive = (href: string) => path.startsWith(url(href));
     }
     .search-btn {
       min-width: 0;
-      width: 40px;
+      width: 36px;
       justify-content: center;
       padding: 0;
     }
     .main-nav {
-      margin-left: 8px;
+      margin-left: 10px;
     }
     .nav-link {
-      padding: 8px 9px;
-      font-size: 14.5px;
+      padding: 6px 9px;
     }
   }
 

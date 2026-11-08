@@ -6,7 +6,9 @@ import VisualSummary from '@/components/summary/VisualSummary.astro';
 import CompleteCard from '@/components/chapter/CompleteCard.astro';
 import PrevNext from '@/components/chapter/PrevNext.astro';
 import PartsGrid from '@/components/chapter/PartsGrid.astro';
-import Algo from '@/components/mascot/Algo.tsx';
+import References from '@/components/chapter/References.astro';
+import EditLinks from '@/components/chapter/EditLinks.astro';
+import { chapterRefs } from '@/data/references';
 import { getBook, getLabs, bookHref, labHref, readingMinutes, vizIdsIn, plain, type BookEntry } from '@/lib/content';
 import { partOf, url, chapterLabel } from '@/data/curriculum';
 import { vizById } from '@/data/viz';
@@ -37,24 +39,20 @@ const lastOfPart = part ? part.chapters[part.chapters.length - 1] === d.chapter 
 
 const link = (e?: BookEntry) => e && { href: bookHref(e.id), label: chapterLabel(e.data.chapter), title: e.data.title };
 const completeLinks = [
-  ...(lastOfPart && part ? [{ href: url(`/review/quiz-part${part.part}/`), label: `✅ ${part.part}부 복습 퀴즈` }] : []),
-  ...labs.slice(0, 2).map((l) => ({ href: labHref(l.id), label: `💻 코드랩 ${String(l.data.lab).padStart(2, '0')}` }))
+  ...(lastOfPart && part ? [{ href: url(`/review/quiz-part${part.part}/`), label: `${part.part}부 복습 퀴즈` }] : []),
+  ...labs.slice(0, 2).map((l) => ({ href: labHref(l.id), label: `코드랩 ${String(l.data.lab).padStart(2, '0')}` }))
 ];
 const vizHere = vizIdsIn(entry.body).map((id) => vizById[id]).filter(Boolean);
-const pageTitle = isIntro ? '여는 글 — 이 책을 읽는 법' : `${d.chapter}장. ${d.title}`;
+const pageTitle = isIntro ? `여는 글 · ${d.title}` : `${d.chapter}장. ${d.title}`;
+const refs = chapterRefs[d.chapter] ?? [];
 ---
-<DocLayout title={pageTitle} description={plain(d.question) || undefined} section="book" current={entry.id} headings={headings}>
+<DocLayout title={pageTitle} description={plain(d.question) || undefined} section="book" current={entry.id} headings={headings} ogType={isIntro ? 'website' : 'article'}>
   <article class="chapter" data-part={d.part} data-reading data-pagefind-body>
     {isIntro ? (
       <header class="intro-hero">
-        <div class="algo-say">
-          <Algo mood="happy" size={92} body />
-          <div class="algo-bubble">
-            <span class="intro-kicker">여는 글</span>
-            <h1 class="intro-title">{d.title}</h1>
-            <p>안녕하세요, 저는 안내 로봇 <strong>알고</strong>예요! 이 책은 글보다 <strong>그림과 실험</strong>을 먼저 보여 드려요. 막히는 단어는 점선 밑줄을 눌러 보세요.</p>
-          </div>
-        </div>
+        <span class="intro-kicker">여는 글</span>
+        <h1 class="intro-title">{d.title}</h1>
+        <p>이 책은 설명보다 그림과 직접 만져 보는 실험을 먼저 보여 줍니다. 처음 보는 용어에는 점선 밑줄이 있으니, 누르면 바로 뜻을 볼 수 있어요.</p>
       </header>
     ) : (
       <ChapterHero
@@ -62,7 +60,6 @@ const pageTitle = isIntro ? '여는 글 — 이 책을 읽는 법' : `${d.chapte
         title={d.title}
         question={d.question}
         prereq={d.prereq}
-        mascot={d.mascot}
         minutes={readingMinutes(entry.body)}
         vizCount={vizIdsIn(entry.body).length}
         firstViz={vizHere[0]?.id}
@@ -72,21 +69,23 @@ const pageTitle = isIntro ? '여는 글 — 이 책을 읽는 법' : `${d.chapte
 
     <VisualSummary cards={d.summary} />
 
-    {isIntro && <PartsGrid book={book} heading="이 책의 지도 — 9부 28장" />}
+    {isIntro && <PartsGrid book={book} heading="9부 28장의 구성" />}
 
     <div class="prose">
       <Content />
     </div>
 
+    <References refs={refs} />
     {!isIntro && <CompleteCard kind="chapter" num={d.chapter} links={completeLinks} />}
     <PrevNext prev={link(prev)} next={link(next)} />
+    <EditLinks path={entry.filePath} title={pageTitle} />
   </article>
   {vizHere.length > 0 && (
     <nav slot="toc-extra" class="toc-viz" aria-label="이 장의 실험" data-pagefind-ignore>
-      <p class="toc-title">이 장의 실험 🧪</p>
+      <p class="toc-title">이 장의 시각화</p>
       <ul>
         {vizHere.map((v) => (
-          <li><a href={`#viz-${v.id}`}><span aria-hidden="true">{v.icon}</span>{v.title}{v.is3D && <small>3D</small>}</a></li>
+          <li><a href={`#viz-${v.id}`}><span>{v.title}</span>{v.is3D && <small>3D</small>}</a></li>
         ))}
       </ul>
     </nav>
@@ -117,7 +116,7 @@ const pageTitle = isIntro ? '여는 글 — 이 책을 읽는 법' : `${d.chapte
         li.classList.toggle('is-checked', on);
         li.querySelector('.check-box')?.setAttribute('aria-pressed', String(on));
       });
-      note.textContent = done.size === items.length && items.length ? '🎉 모든 질문을 생각해 봤어요! 아래에서 "다 읽었어요"를 눌러 별을 켜 보세요.' : '';
+      note.textContent = done.size === items.length && items.length ? '모든 질문을 확인했어요. 아래에서 이 장을 완료로 표시할 수 있어요.' : '';
     };
     items.at(-1)?.parentElement?.after(note);
     items.forEach((li) =>
@@ -140,78 +139,69 @@ const pageTitle = isIntro ? '여는 글 — 이 책을 읽는 법' : `${d.chapte
 
 <style>
   .toc-viz {
-    margin-top: 26px;
+    margin-top: 28px;
   }
 
   .toc-viz ul {
     list-style: none;
     margin: 0;
     padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+    border-left: 1px solid var(--border);
   }
 
   .toc-viz a {
     display: flex;
-    align-items: center;
+    align-items: baseline;
     gap: 8px;
-    padding: 7px 10px;
-    border-radius: 12px;
-    background: var(--surface);
-    border: 1px solid var(--border);
+    padding: 4px 0 4px 14px;
     font-size: 13px;
-    font-weight: 700;
-    color: var(--text-2);
-    transition: border-color 0.2s, color 0.2s, transform 0.2s var(--ease-spring);
+    color: var(--text-3);
+    line-height: 1.5;
+    transition: color 0.15s;
   }
 
   .toc-viz a:hover {
     color: var(--text);
-    border-color: var(--brand);
-    transform: translateX(2px);
   }
 
   .toc-viz small {
     margin-left: auto;
-    padding: 0 6px;
-    border-radius: 99px;
-    background: var(--grad-btn);
-    color: var(--btn-ink);
+    padding: 0 5px;
+    border-radius: 4px;
+    border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+    color: var(--accent);
     font-size: 10.5px;
-    font-weight: 850;
+    font-weight: 650;
+    line-height: 16px;
   }
 
   .intro-hero {
-    margin-bottom: 28px;
+    margin-bottom: 32px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--border);
   }
 
   .intro-kicker {
-    font-size: 13px;
-    font-weight: 800;
-    color: var(--brand);
+    display: block;
+    margin-bottom: 12px;
+    color: var(--text-3);
+    font-size: 13.5px;
+    font-weight: 550;
   }
 
   .intro-title {
-    margin: 2px 0 8px;
-    font-size: clamp(26px, 4vw, 36px);
-    font-weight: 850;
-    letter-spacing: -0.04em;
+    margin: 0 0 14px;
+    font-size: clamp(30px, 4.4vw, 40px);
+    font-weight: 700;
+    letter-spacing: -0.035em;
     line-height: 1.25;
   }
 
   .intro-hero p {
     margin: 0;
+    max-width: 36em;
     color: var(--text-2);
-  }
-
-  @media (max-width: 640px) {
-    .intro-hero .algo-say {
-      flex-direction: column;
-      align-items: center;
-    }
-    .intro-hero .algo-bubble::before {
-      display: none;
-    }
+    font-size: 17px;
+    line-height: 1.75;
   }
 </style>

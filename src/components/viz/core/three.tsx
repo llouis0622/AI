@@ -114,7 +114,7 @@ export function Scene3D({
     <div ref={ref} className={`vz-3d${twoFinger ? ' is-two-finger' : ''}`} style={{ height }}>
       {hint && (
         <div className="vz-3d-hint" role="status">
-          {hint === 'wheel' ? 'Ctrl(⌘) + 스크롤로 확대해요' : '두 손가락으로 돌리고 확대해요 · ⤢ 크게 보기에서는 한 손가락으로!'}
+          {hint === 'wheel' ? 'Ctrl(⌘) + 스크롤로 확대해요' : '두 손가락으로 돌리고 확대해요. 크게 보기에서는 한 손가락으로도 돼요.'}
         </div>
       )}
       <Canvas
@@ -124,7 +124,7 @@ export function Scene3D({
         frameloop={inView ? 'always' : 'never'}
       >
         <ambientLight intensity={dark ? 0.55 : 0.9} />
-        <hemisphereLight args={[dark ? '#7fe9ff' : '#ffffff', dark ? '#2a0f4a' : '#f3e6d6', dark ? 0.6 : 0.55]} />
+        <hemisphereLight args={[dark ? '#dfe6f5' : '#ffffff', dark ? '#1c1c1c' : '#efe7da', dark ? 0.5 : 0.55]} />
         <directionalLight position={[6, 12, 8]} intensity={dark ? 1.0 : 1.25} />
         <directionalLight position={[-8, 6, -6]} intensity={dark ? 0.35 : 0.3} />
         <CameraFit position={camera} target={target} fit={fit} />
@@ -286,8 +286,8 @@ export function Surface({
           metalness={dark ? 0.25 : 0.05}
           transparent={opacity < 1}
           opacity={opacity}
-          emissive={dark ? new THREE.Color('#1a0b3a') : new THREE.Color('#000000')}
-          emissiveIntensity={dark ? 0.6 : 0}
+          emissive={new THREE.Color('#000000')}
+          emissiveIntensity={0}
         />
       </mesh>
       {wire && (
@@ -348,12 +348,12 @@ export function Ball({ position, color, radius = 0.2, glow = true }: { position:
     <group position={position}>
       <mesh>
         <sphereGeometry args={[radius, 32, 32]} />
-        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={glow ? 0.55 : 0.1} roughness={0.25} metalness={0.1} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={glow ? 0.22 : 0.08} roughness={0.35} metalness={0.05} />
       </mesh>
       {glow && (
         <mesh>
           <sphereGeometry args={[radius * 1.9, 24, 24]} />
-          <meshBasicMaterial color={color} transparent opacity={0.16} depthWrite={false} />
+          <meshBasicMaterial color={color} transparent opacity={0.08} depthWrite={false} />
         </mesh>
       )}
     </group>

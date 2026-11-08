@@ -3,7 +3,7 @@
   font-size: 17px;
   line-height: 1.85;
   color: var(--text);
-  letter-spacing: -0.003em;
+  letter-spacing: -0.004em;
 }
 
 .prose > :first-child {
@@ -15,41 +15,25 @@
 }
 
 .prose h2 {
-  position: relative;
-  margin: 2.6em 0 0.9em;
-  padding-top: 0.2em;
-  font-size: clamp(22px, 2.6vw, 27px);
-  font-weight: 800;
-  line-height: 1.35;
-  letter-spacing: -0.03em;
-}
-
-.prose h2::before {
-  content: '';
-  display: block;
-  width: 44px;
-  height: 6px;
-  margin-bottom: 14px;
-  border-radius: 99px;
-  background: var(--grad-brand);
-}
-
-:root[data-theme='dark'] .prose h2::before {
-  box-shadow: var(--glow);
+  margin: 2.8em 0 0.8em;
+  font-size: clamp(21px, 2.4vw, 25px);
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: -0.025em;
 }
 
 .prose h3 {
-  margin: 2em 0 0.7em;
-  font-size: 20px;
-  font-weight: 750;
-  line-height: 1.4;
+  margin: 2em 0 0.6em;
+  font-size: 19px;
+  font-weight: 650;
+  line-height: 1.45;
   letter-spacing: -0.02em;
 }
 
 .prose h4 {
-  margin: 1.6em 0 0.6em;
+  margin: 1.6em 0 0.5em;
   font-size: 17px;
-  font-weight: 750;
+  font-weight: 650;
 }
 
 .prose h2 > a,
@@ -58,39 +42,35 @@
 }
 
 .prose strong {
-  font-weight: 750;
+  font-weight: 650;
   color: var(--text);
-  background: linear-gradient(transparent 62%, var(--mark) 62%);
-  padding: 0 1px;
 }
 
 .prose a:not(.chip):not(.btn) {
-  color: var(--link);
-  font-weight: 600;
+  color: var(--accent);
   text-decoration: underline;
-  text-decoration-thickness: 1.5px;
+  text-decoration-thickness: 1px;
   text-underline-offset: 3px;
-  text-decoration-color: color-mix(in srgb, var(--link) 35%, transparent);
-  transition: text-decoration-color 0.2s;
+  text-decoration-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  transition: text-decoration-color 0.15s;
 }
 
 .prose a:not(.chip):not(.btn):hover {
-  text-decoration-color: var(--link);
+  text-decoration-color: var(--accent);
 }
 
 .prose ul,
 .prose ol {
   margin: 0 0 1.2em;
-  padding-left: 1.4em;
+  padding-left: 1.3em;
 }
 
 .prose li {
-  margin: 0.35em 0;
+  margin: 0.3em 0;
 }
 
 .prose li::marker {
-  color: var(--brand);
-  font-weight: 700;
+  color: var(--text-3);
 }
 
 .prose hr {
@@ -100,15 +80,11 @@
   background: var(--border);
 }
 
-/* Blockquote as a soft callout card */
 .prose blockquote {
   margin: 1.6em 0;
-  padding: 18px 22px;
-  border-radius: var(--radius);
-  background: var(--brand-soft);
-  border: 1px solid color-mix(in srgb, var(--brand) 22%, transparent);
-  color: var(--text);
-  font-size: 16.5px;
+  padding: 2px 0 2px 18px;
+  border-left: 2px solid var(--border-strong);
+  color: var(--text-2);
 }
 
 .prose blockquote > :last-child {
@@ -129,15 +105,14 @@
   border-collapse: separate;
   border-spacing: 0;
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
+  border-radius: var(--radius-sm);
   font-size: 15px;
   line-height: 1.6;
 }
 
 .prose th,
 .prose td {
-  padding: 11px 16px;
+  padding: 10px 16px;
   text-align: left;
   vertical-align: top;
   border-bottom: 1px solid var(--border);
@@ -145,7 +120,7 @@
 
 .prose th {
   background: var(--surface-2);
-  font-weight: 750;
+  font-weight: 600;
   white-space: nowrap;
 }
 
@@ -155,22 +130,21 @@
 
 /* Inline code */
 .prose :not(pre) > code {
-  padding: 0.12em 0.42em;
-  border-radius: 7px;
+  padding: 0.12em 0.4em;
+  border-radius: 5px;
   background: var(--inline-code-bg);
   color: var(--inline-code-text);
   font-family: var(--font-mono);
   font-variant-ligatures: none;
   font-size: 0.86em;
-  font-weight: 550;
   word-break: break-word;
 }
 
 /* Code blocks (Shiki dual theme) */
 .prose pre.astro-code {
   margin: 1.4em 0;
-  padding: 18px 20px;
-  border-radius: var(--radius);
+  padding: 16px 18px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   background-color: var(--code-bg) !important;
   font-family: var(--font-mono);
@@ -181,16 +155,11 @@
   tab-size: 4;
 }
 
-:root[data-theme='dark'] .astro-code,
-:root[data-theme='dark'] .astro-code span {
+:root:not([data-theme='light']) .astro-code,
+:root:not([data-theme='light']) .astro-code span {
   color: var(--shiki-dark) !important;
   font-style: var(--shiki-dark-font-style) !important;
   font-weight: var(--shiki-dark-font-weight) !important;
-}
-
-:root[data-theme='dark'] .prose pre.astro-code {
-  background-color: var(--code-bg) !important;
-  box-shadow: inset 0 0 0 1px rgba(34, 229, 255, 0.06);
 }
 
 .code-block {
@@ -199,17 +168,17 @@
 
 .copy-btn {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  padding: 4px 10px;
-  border-radius: 8px;
+  top: 8px;
+  right: 8px;
+  padding: 3px 9px;
+  border-radius: var(--radius-xs);
   border: 1px solid var(--border);
-  background: var(--surface-solid);
+  background: var(--surface);
   color: var(--text-2);
   font-size: 12px;
-  font-weight: 650;
+  font-weight: 600;
   opacity: 0;
-  transition: opacity 0.2s;
+  transition: opacity 0.15s;
 }
 
 .code-block:hover .copy-btn,
@@ -225,7 +194,7 @@
 
 /* Math */
 .prose .katex {
-  font-size: 1.06em;
+  font-size: 1.05em;
 }
 
 .prose .katex-display {
@@ -235,18 +204,11 @@
   overflow-y: hidden;
 }
 
-/* ---------- Fold (수식/코드 펼치기) ---------- */
+/* ---------- Fold (math and code behind a toggle) ---------- */
 .prose details.fold {
   margin: 1.2em 0 1.4em;
-  border-radius: var(--radius);
-  border: 1.5px dashed var(--border-strong);
-  background: var(--surface-2);
-  transition: border-color 0.2s, background-color 0.2s;
-}
-
-.prose details.fold[open] {
-  border-style: solid;
-  border-color: var(--border);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
   background: var(--surface);
 }
 
@@ -254,14 +216,18 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 16px;
+  padding: 10px 14px;
   cursor: pointer;
   list-style: none;
   user-select: none;
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 14.5px;
+  font-weight: 600;
   color: var(--text-2);
   -webkit-tap-highlight-color: transparent;
+}
+
+.prose .fold-summary:hover {
+  color: var(--text);
 }
 
 .prose .fold-summary::-webkit-details-marker {
@@ -271,32 +237,23 @@
 .prose .fold-icon {
   display: inline-grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
-  background: var(--lav-soft);
-  color: var(--lav);
+  min-width: 28px;
+  height: 24px;
+  padding: 0 6px;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border);
+  color: var(--text-2);
   font-family: var(--font-mono);
-  font-size: 14px;
-  font-weight: 800;
-  flex: none;
-}
-
-.prose .fold-code .fold-icon {
-  background: var(--mint-soft);
-  color: var(--mint);
   font-size: 12px;
+  font-weight: 600;
+  flex: none;
 }
 
 .prose .fold-hint {
   margin-left: auto;
-  font-size: 12.5px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 500;
   color: var(--text-3);
-}
-
-.prose .fold-hint::after {
-  content: ' ▾';
 }
 
 .prose details.fold[open] .fold-hint {
@@ -304,99 +261,70 @@
 }
 
 .prose details.fold[open] .fold-hint::after {
-  content: '접기 ▴';
-  font-size: 12.5px;
+  content: '접기';
+  font-size: 13px;
+}
+
+.prose details.fold[open] .fold-summary {
+  border-bottom: 1px solid var(--border);
 }
 
 .prose .fold-body {
-  padding: 4px 18px 14px;
-  animation: fold-in 0.35s var(--ease-out);
+  padding: 6px 18px 12px;
 }
 
 .prose .fold-code .fold-body {
-  padding: 0 10px 10px;
+  padding: 0;
 }
 
 .prose .fold-code pre.astro-code {
   margin: 0;
-}
-
-@keyframes fold-in {
-  from { opacity: 0; transform: translateY(-6px); }
-  to { opacity: 1; transform: none; }
+  border: 0;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
 }
 
 /* ---------- Glossary terms ---------- */
 .prose .term {
   cursor: help;
-  border-bottom: 2px dotted color-mix(in srgb, var(--brand) 55%, transparent);
-  border-radius: 3px;
-  transition: background-color 0.2s, border-color 0.2s;
+  border-bottom: 1px dashed var(--text-3);
+  transition: background-color 0.15s, border-color 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
 
 .prose .term:hover,
 .prose .term:focus-visible,
 .prose .term[aria-expanded='true'] {
-  background: var(--brand-soft);
-  border-bottom-color: var(--brand);
+  background: var(--accent-soft);
+  border-bottom-color: var(--accent);
 }
 
-/* ---------- End-of-chapter cards (rehype-sections) ---------- */
+/* ---------- End-of-chapter sections (rehype-sections) ---------- */
 .prose .sec {
-  --sec: var(--brand);
-  --sec-soft: var(--brand-soft);
-  margin: 2.6em 0 0;
-  padding: 20px 22px 10px;
-  border-radius: var(--radius-xl);
-  background: var(--sec-soft);
-  border: 1px solid color-mix(in srgb, var(--sec) 28%, transparent);
+  margin: 3em 0 0;
+  padding: 22px 24px 8px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
 }
-
-.prose .sec-summary { --sec: var(--mint); --sec-soft: var(--mint-soft); }
-.prose .sec-selfcheck { --sec: var(--lav); --sec-soft: var(--lav-soft); }
-.prose .sec-next { --sec: var(--peach); --sec-soft: var(--peach-soft); }
 
 .prose .sec + .sec {
-  margin-top: 1.2em;
+  margin-top: 16px;
 }
 
 .prose .sec-head {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .prose .sec-head h2 {
   margin: 0;
-  padding: 0;
-  font-size: 21px;
-}
-
-.prose .sec-head h2::before {
-  content: none;
-}
-
-.prose .sec-icon {
-  display: grid;
-  place-items: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 14px;
-  background: var(--surface-solid);
-  box-shadow: var(--shadow-sm);
-  font-size: 21px;
-  flex: none;
+  font-size: 18px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
 }
 
 .prose .sec ul,
 .prose .sec ol {
-  margin-bottom: 0.9em;
-}
-
-.prose .sec li::marker {
-  color: var(--sec);
+  margin-bottom: 1em;
 }
 
 .prose .sec-selfcheck ol,
@@ -407,63 +335,65 @@
 
 .prose .sec-selfcheck li[data-check] {
   position: relative;
-  margin: 0 0 12px;
-  padding: 12px 14px 12px 56px;
-  border-radius: 16px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  transition: opacity 0.3s, border-color 0.3s;
+  margin: 0;
+  padding: 12px 0 12px 44px;
+  border-top: 1px solid var(--border);
+  transition: color 0.2s;
+}
+
+.prose .sec-selfcheck li[data-check]:first-child {
+  border-top: 0;
 }
 
 .prose .check-box {
   position: absolute;
-  left: 14px;
-  top: 12px;
+  left: 0;
+  top: 13px;
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 9px;
-  border: 2px solid var(--sec);
-  background: var(--surface-solid);
-  color: var(--text);
-  font-size: 13px;
-  font-weight: 850;
-  transition: background-color 0.25s, transform 0.25s var(--ease-spring);
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border-strong);
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 12.5px;
+  font-weight: 650;
+  transition: background-color 0.15s, border-color 0.15s;
 }
 
 .prose .check-box:hover {
-  transform: scale(1.08);
+  border-color: var(--accent);
 }
 
 .prose li.is-checked {
-  border-color: color-mix(in srgb, var(--ok) 45%, transparent);
+  color: var(--text-2);
 }
 
 .prose li.is-checked .check-box {
-  background: var(--ok);
-  border-color: var(--ok);
+  background: var(--accent);
+  border-color: var(--accent);
   color: transparent;
 }
 
 .prose li.is-checked .check-box::after {
   content: '';
   position: absolute;
-  width: 7px;
-  height: 13px;
-  border: solid #fff;
-  border-width: 0 3px 3px 0;
-  transform: translate(0, -2px) rotate(45deg);
+  width: 6px;
+  height: 11px;
+  border: solid var(--accent-ink);
+  border-width: 0 2px 2px 0;
+  transform: translate(0, -1px) rotate(45deg);
 }
 
 .prose .selfcheck-note {
   margin: 4px 0 12px;
   font-size: 14px;
-  font-weight: 750;
-  color: var(--ok);
+  font-weight: 600;
+  color: var(--accent);
 }
 
-/* Section anchors offset under sticky header */
+/* Section anchors offset under the sticky header */
 .prose :is(h2, h3)[id] {
   scroll-margin-top: calc(var(--header-h) + 24px);
 }
@@ -476,9 +406,8 @@
   .prose pre.astro-code {
     font-size: 13px;
     padding: 14px 16px;
-    border-radius: var(--radius-sm);
   }
-  .prose blockquote {
-    padding: 16px 18px;
+  .prose .sec {
+    padding: 18px 18px 6px;
   }
 }

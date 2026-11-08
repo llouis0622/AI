@@ -1,7 +1,7 @@
 import { Component, useCallback, useEffect, useRef, useState, type ComponentType, type ReactNode } from 'react';
 import { vizById } from '@/data/viz';
 import { markViz } from '@/lib/progress';
-import Algo from '@/components/mascot/Algo';
+import Icon from '@/components/ui/Icon';
 
 /** Props every visualization component receives from the host. */
 export interface VizProps {
@@ -26,9 +26,9 @@ function hasWebGL() {
 }
 
 /**
- * Host for every visualization: draws the frame (title, mascot hint, expand /
+ * Host for every visualization: draws the frame (title, usage hint, expand /
  * reset buttons), lazy-loads the component chunk, and gates heavy 3D scenes
- * behind a "▶ 3D로 실행" poster so pages stay light.
+ * behind a poster so pages stay light.
  */
 export default function Viz({ id, params }: { id: string; params?: Record<string, unknown> }) {
   const meta = vizById[id];
@@ -85,7 +85,7 @@ export default function Viz({ id, params }: { id: string; params?: Record<string
   if (!meta) {
     return (
       <div className="vz-frame">
-        <div className="vz-error">🛠️ 준비 중인 시각화예요 ({id})</div>
+        <div className="vz-error">준비 중인 시각화입니다 ({id})</div>
       </div>
     );
   }
@@ -93,18 +93,17 @@ export default function Viz({ id, params }: { id: string; params?: Record<string
   return (
     <figure className={`vz-frame${expanded ? ' is-expanded' : ''}`} id={`viz-${meta.id}`} data-viz={meta.id} aria-label={meta.title}>
       <figcaption className="vz-head">
-        <span className="vz-icon" aria-hidden="true">{meta.icon}</span>
         <div className="vz-titles">
           <h3 className="vz-title">
             {meta.title}
-            {meta.is3D ? <span className="vz-badge vz-badge-3d">3D</span> : <span className="vz-badge">직접 해보기</span>}
+            {meta.is3D && <span className="vz-badge vz-badge-3d">3D</span>}
           </h3>
           <p className="vz-tagline">{meta.tagline}</p>
         </div>
         <div className="vz-actions" data-pagefind-ignore>
           {phase === 'ready' && (
             <button className="vz-action" type="button" onClick={() => setMountKey((k) => k + 1)} title="처음 상태로" aria-label="처음 상태로 되돌리기">
-              ↺
+              <Icon name="reset" size={17} />
             </button>
           )}
           <button
@@ -114,7 +113,7 @@ export default function Viz({ id, params }: { id: string; params?: Record<string
             title={expanded ? '닫기 (Esc)' : '크게 보기'}
             aria-label={expanded ? '크게 보기 닫기' : '크게 보기'}
           >
-            {expanded ? '✕' : '⤢'}
+            <Icon name={expanded ? 'close' : 'expand'} size={17} />
           </button>
         </div>
       </figcaption>
@@ -131,7 +130,7 @@ export default function Viz({ id, params }: { id: string; params?: Record<string
 
       {meta.howTo && (
         <div className="vz-foot" data-pagefind-ignore>
-          <Algo mood="wink" size={30} still />
+          <Icon name="pointer" size={16} className="vz-foot-icon" />
           <span>{meta.howTo}</span>
         </div>
       )}
@@ -145,7 +144,7 @@ function Poster({
   noGL,
   onPlay
 }: {
-  meta: { icon: string; is3D?: boolean; aspect?: number };
+  meta: { is3D?: boolean; aspect?: number };
   phase: Phase;
   noGL: boolean;
   onPlay: () => void;
@@ -155,17 +154,18 @@ function Poster({
     <div className="vz-poster" style={{ aspectRatio: String(aspect) }}>
       <div className="vz-poster-grid" />
       <div className="vz-poster-inner">
-        <span className="vz-poster-emoji" aria-hidden="true">{meta.icon}</span>
+        {meta.is3D && <Icon name="cube" size={40} strokeWidth={1.25} className="vz-poster-icon" />}
         {phase === 'error' ? (
           <p className="vz-poster-note">
-            {noGL ? '이 기기(브라우저)에서는 3D 그래픽을 켤 수 없어요. 다른 브라우저로 열어 보세요.' : '시각화를 불러오지 못했어요. 새로고침해 볼까요?'}
+            {noGL ? '이 브라우저에서는 3D 그래픽을 쓸 수 없어요. 다른 브라우저에서 열어 주세요.' : '시각화를 불러오지 못했어요. 새로고침해 주세요.'}
           </p>
         ) : meta.is3D && phase === 'poster' ? (
           <>
             <button className="vz-play" type="button" onClick={onPlay}>
-              <span className="vz-play-ring">▶</span>3D로 실행하기
+              <Icon name="play" size={16} />
+              3D 장면 열기
             </button>
-            <span className="vz-poster-note">드래그로 돌려 보세요 · 확대는 Ctrl(⌘)+휠 또는 두 손가락</span>
+            <span className="vz-poster-note">끌어서 돌리고, Ctrl(⌘)+휠이나 두 손가락으로 확대해요</span>
           </>
         ) : (
           <span className="vz-loading">
@@ -190,8 +190,8 @@ class ErrorBoundary extends Component<{ children: ReactNode; onRetry: () => void
     if (!this.state.error) return this.props.children;
     return (
       <div className="vz-error">
-        <span style={{ fontSize: 36 }}>🤖💦</span>
-        <p>앗, 시각화가 잠깐 멈췄어요.</p>
+        <Icon name="warn" size={28} />
+        <p>시각화를 실행하다 문제가 생겼어요.</p>
         <button
           className="vz-btn"
           type="button"

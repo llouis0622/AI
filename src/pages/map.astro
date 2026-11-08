@@ -1,6 +1,5 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import Algo from '@/components/mascot/Algo.tsx';
 import LearningMap from '@/components/map/LearningMap.tsx';
 import { allViz } from '@/data/viz';
 import { PARTS, url } from '@/data/curriculum';
@@ -10,43 +9,38 @@ const book = await getBook();
 const mapParts = PARTS.map((p) => ({
   part: p.part,
   title: p.title,
-  emoji: p.emoji,
   chapters: book
     .filter((e) => e.data.part === p.part)
     .map((e) => ({ n: e.data.chapter, title: e.data.title, href: bookHref(e.id), question: plain(e.data.question).replace(/\s+/g, ' ') }))
 }));
 ---
-<BaseLayout title="학습 지도" description="28장을 잇는 나만의 학습 지도. 읽은 장과 해 본 실험이 기록돼요.">
+<BaseLayout title="학습 지도" description="28장의 진도를 한눈에 보는 학습 지도. 읽은 장과 해 본 시각화가 기록됩니다.">
   <main id="main" class="container map-page">
     <header class="map-hero">
-      <div class="algo-say">
-        <Algo mood="cheer" size={84} body />
-        <div class="algo-bubble">
-          <h1 class="map-title">나의 학습 지도 🗺️</h1>
-          <p>정류장을 누르면 그 장으로 가요. 장을 다 읽고 맨 아래 <strong>"다 읽었어요 ✓"</strong>를 누르면 별이 켜져요. 실험을 직접 만져 본 것도 기록돼요!</p>
-        </div>
-      </div>
+      <span class="eyebrow">학습 지도</span>
+      <h1 class="map-title">나의 진도</h1>
+      <p>장을 끝까지 읽고 맨 아래에서 완료로 표시하면 여기에 기록됩니다. 칸을 누르면 그 장으로 이동해요.</p>
     </header>
     <LearningMap parts={mapParts} totalViz={allViz.length} showReset client:load />
-    <p class="map-note">💡 기록은 지금 쓰는 브라우저에만 저장돼요. 다른 기기에서는 처음부터 시작해요. <a href={url('/playground/')}>실험실</a>에서 아직 안 해 본 실험만 골라 볼 수도 있어요.</p>
+    <p class="map-note">기록은 지금 쓰는 브라우저에만 저장됩니다. 다른 기기에서는 처음부터 시작해요. <a href={url('/playground/')}>시각화 실험실</a>에서 아직 안 해 본 시각화만 골라 볼 수도 있어요.</p>
   </main>
 </BaseLayout>
 
 <style>
   .map-page {
-    padding-top: 28px;
-    max-width: 1160px;
+    padding-top: 40px;
+    max-width: 1000px;
   }
 
   .map-hero {
-    margin-bottom: 22px;
+    margin-bottom: 28px;
   }
 
   .map-title {
-    margin: 0 0 6px;
-    font-size: clamp(26px, 4vw, 36px);
-    font-weight: 900;
-    letter-spacing: -0.04em;
+    margin: 0 0 10px;
+    font-size: clamp(28px, 4vw, 38px);
+    font-weight: 700;
+    letter-spacing: -0.035em;
   }
 
   .map-hero p {
@@ -56,12 +50,13 @@ const mapParts = PARTS.map((p) => ({
 
   .map-note {
     margin-top: 24px;
-    font-size: 14px;
-    color: var(--text-2);
+    color: var(--text-3);
+    font-size: 13.5px;
   }
 
   .map-note a {
-    color: var(--link);
-    font-weight: 700;
+    color: var(--text-2);
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 </style>

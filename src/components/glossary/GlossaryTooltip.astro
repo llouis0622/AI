@@ -5,18 +5,14 @@
  */
 ---
 <div class="term-tip" id="term-tip" role="tooltip" hidden data-pagefind-ignore>
-  <div class="term-tip-head">
-    <span class="term-tip-emoji"></span>
-    <strong class="term-tip-title"></strong>
-  </div>
+  <strong class="term-tip-title"></strong>
   <p class="term-tip-def"></p>
-  <a class="term-tip-link" href="#">용어 사전에서 더 보기 →</a>
+  <a class="term-tip-link" href="#">용어 사전에서 보기</a>
 </div>
 
 <script>
   const tip = document.getElementById('term-tip') as HTMLElement;
   const titleEl = tip.querySelector('.term-tip-title') as HTMLElement;
-  const emojiEl = tip.querySelector('.term-tip-emoji') as HTMLElement;
   const defEl = tip.querySelector('.term-tip-def') as HTMLElement;
   const linkEl = tip.querySelector('.term-tip-link') as HTMLAnchorElement;
   let current: HTMLElement | null = null;
@@ -42,7 +38,6 @@
     if (current && current !== target) current.setAttribute('aria-expanded', 'false');
     current = target;
     titleEl.textContent = target.dataset.title ?? target.textContent ?? '';
-    emojiEl.textContent = target.dataset.emoji || '💡';
     defEl.textContent = target.dataset.def ?? '';
     linkEl.href = target.dataset.href ?? '#';
     tip.hidden = false;
@@ -116,34 +111,25 @@
     position: absolute;
     z-index: 90;
     width: min(320px, calc(100vw - 20px));
-    padding: 14px 16px 12px;
-    border-radius: 18px;
-    background: var(--surface-solid);
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    background: var(--surface);
     border: 1px solid var(--border-strong);
     box-shadow: var(--shadow-lg);
-    font-size: 14.5px;
+    font-size: 14px;
     line-height: 1.65;
-    animation: tip-in 0.22s var(--ease-spring);
-  }
-
-  :root[data-theme='dark'] .term-tip {
-    box-shadow: var(--shadow-lg), var(--glow);
+    animation: tip-in 0.15s var(--ease-out);
   }
 
   .term-tip[hidden] {
     display: none;
   }
 
-  .term-tip-head {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 6px;
-    font-size: 16px;
-  }
-
-  .term-tip-emoji {
-    font-size: 20px;
+  .term-tip-title {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 15px;
+    font-weight: 650;
   }
 
   .term-tip-def {
@@ -153,12 +139,17 @@
 
   .term-tip-link {
     font-size: 13px;
-    font-weight: 700;
-    color: var(--link);
+    font-weight: 550;
+    color: var(--accent);
+  }
+
+  .term-tip-link:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 
   @keyframes tip-in {
-    from { opacity: 0; transform: translateY(4px) scale(0.97); }
+    from { opacity: 0; transform: translateY(3px); }
     to { opacity: 1; transform: none; }
   }
 </style>

@@ -1,6 +1,6 @@
 import { CodeStory, type StoryStep } from '../core/story';
 import { rng, softmax } from '../core/math';
-import { Arrow, Bars, Box, Cells, Chip, Curve, Defs, Tensor, Txt, VB, mix, seg, soft } from './_labsA';
+import { Arrow, Bars, Box, Cells, Chip, Curve, Defs, Glyph, Tensor, Txt, VB, mix, seg, soft } from './_labsA';
 
 /* A 12×12 "7" (the real MNIST image is 28×28; drawn smaller so the cells are visible). */
 const SEVEN = [
@@ -29,7 +29,7 @@ const steps: StoryStep[] = [
     title: '그림 한 장을 숫자 784개로 편다',
     text: (
       <>
-        MNIST 한 장은 28×28 = <strong>784칸</strong>짜리 밝기 그림이에요. <code>reshape(-1, 784)</code>로 한 줄로 펴면 숫자 784개짜리 벡터가 되고, 128장을 묶으면 행렬 <strong>X (128, 784)</strong>가 돼요. 정답 숫자는 <code>one_hot</code>으로 10칸 중 한 칸만 1인 벡터가 돼요.
+        MNIST 한 장은 28×28 = 784칸짜리 밝기 그림이에요. <code>reshape(-1, 784)</code>로 한 줄로 펴면 숫자 784개짜리 벡터가 되고, 128장을 묶으면 행렬 <strong>X (128, 784)</strong>가 돼요. 정답 숫자는 <code>one_hot</code>으로 10칸 중 한 칸만 1인 벡터로 바꿔요.
       </>
     ),
     code: `x_tr = tr.data.numpy().reshape(-1, 784).astype(np.float32) / 255.0
@@ -100,7 +100,7 @@ def one_hot(y, num_classes=10):
     title: '1층: X·W₁ + b₁, 그리고 ReLU',
     text: (
       <>
-        행렬 곱 한 번으로 128장 모두의 1층 점수 <strong>z₁ (128, 256)</strong>을 한꺼번에 계산해요. 그다음 ReLU가 <strong>음수는 0으로, 양수는 그대로</strong> 통과시켜요. 그래서 <code>W₁</code>을 He 초기화(분산 2/fan_in)로 시작하죠 — 절반이 꺼져도 신호 크기가 유지되게요.
+        행렬 곱 한 번으로 128장 모두의 1층 점수 <strong>z₁ (128, 256)</strong>을 한꺼번에 계산해요. 그다음 ReLU가 음수는 0으로 바꾸고 양수는 그대로 통과시켜요. 절반이 꺼져도 신호 크기가 유지되도록 <code>W₁</code>은 He 초기화(분산 2/fan_in)로 시작해요.
       </>
     ),
     code: `# He 초기화: ReLU가 절반을 죽이므로 분산을 2/fan_in으로.
@@ -173,7 +173,7 @@ self.h = np.maximum(0, self.z1)          # ReLU`,
           <g opacity={seg(t, 0.8, 1)}>
             <rect x={60} y={214} width={360} height={52} rx={14} fill={soft(c.series[2], 0.12)} stroke={soft(c.series[2], 0.6)} />
             <Txt x={240} y={237} size={14} weight={750}>
-              빨간 칸(음수) → 회색 칸(0): 신호가 꺼져요
+              주황 칸(음수) → 회색 칸(0): 신호가 꺼져요
             </Txt>
             <Txt x={240} y={256} size={12.5} weight={650} color="var(--text-2)">
               살아남은 양수만 다음 층으로 가요
@@ -187,7 +187,7 @@ self.h = np.maximum(0, self.z1)          # ReLU`,
     title: '2층과 소프트맥스: 점수를 확률로',
     text: (
       <>
-        <code>h @ W₂</code>로 숫자 0~9 각각의 점수(로짓) 10개가 나와요. 소프트맥스는 점수를 <strong>합이 1인 확률</strong>로 바꿔요. 계산 전에 최댓값을 빼는 건 <code>exp</code>가 너무 커져 넘치지 않게 하는 안전장치예요 — 결과는 똑같아요.
+        <code>h @ W₂</code>로 숫자 0~9 각각의 점수(로짓) 10개가 나와요. 소프트맥스는 점수를 <strong>합이 1인 확률</strong>로 바꿔요. 계산 전에 최댓값을 빼는 건 <code>exp</code>가 너무 커져 넘치지 않게 하는 안전장치이고, 결과는 같아요.
       </>
     ),
     code: `self.z2 = self.h @ self.W2 + self.b2
@@ -252,7 +252,7 @@ return self.probs`,
     title: '손실: 정답 확률이 낮을수록 큰 벌점',
     text: (
       <>
-        교차엔트로피 손실은 <strong>-log(정답 확률)</strong>이에요. 처음엔 아무것도 몰라서 정답 확률이 1/10쯤이고 손실은 <strong>-log(0.1) ≈ 2.30</strong>이에요 — 첫 배치 손실이 이 값 근처가 아니면 버그를 의심하세요. 정답을 80%로 맞히면 손실은 0.22로 뚝 떨어져요.
+        교차엔트로피 손실은 <strong>-log(정답 확률)</strong>이에요. 처음엔 아무것도 몰라서 정답 확률이 1/10쯤이고 손실은 -log(0.1) ≈ 2.30이에요. 첫 배치 손실이 이 값 근처가 아니면 버그를 의심해 보세요. 정답을 80% 확률로 맞히면 손실은 0.22로 떨어져요.
       </>
     ),
     code: `def loss(self, Y):
@@ -295,9 +295,7 @@ return self.probs`,
             </g>
           )}
           <g opacity={seg(t, 0.85, 1)}>
-            <Txt x={420} y={120} size={26}>
-              🎯
-            </Txt>
+            <Glyph name="target" x={420} y={110} size={26} color={c.series[2]} />
             <Txt x={420} y={146} size={12.5} weight={750} color="var(--text-2)">
               확신 있게
             </Txt>
@@ -313,7 +311,7 @@ return self.probs`,
     title: '역전파: (probs - Y) / n 에서 거꾸로',
     text: (
       <>
-        소프트맥스+교차엔트로피를 합쳐 미분하면 놀랍게도 <strong>(probs - Y) / n</strong> 한 줄이 돼요. 여기서 출발해 순전파의 반대 순서로, 각 층의 국소 미분을 곱하며 거슬러 올라가요. ReLU는 꺼졌던 칸(z₁ ≤ 0)으로는 기울기를 <strong>통과시키지 않아요</strong>.
+        소프트맥스와 교차엔트로피를 합쳐 미분하면 <strong>(probs - Y) / n</strong> 한 줄로 정리돼요. 여기서 출발해 순전파의 반대 순서로, 각 층의 국소 미분을 곱하며 거슬러 올라가요. ReLU는 꺼졌던 칸(z₁ ≤ 0)으로는 기울기를 통과시키지 않아요.
       </>
     ),
     code: `dz2 = (self.probs - Y) / n                        # (n, 10)
@@ -351,7 +349,7 @@ dW1 = self.X.T @ dz1                              # (784, 256)`,
           {nodes.map((n, i) => {
             const hit = grads.findIndex((g) => g.to === i);
             const arrived = hit >= 0 && seg(t, 0.08 + hit * 0.17, 0.2 + hit * 0.17) >= 1 && (i === 1 || i === 4);
-            return <Box key={n.label} x={n.x} y={y} w={w} h={36} label={n.label} fs={n.label.length > 3 ? 12 : 15} color={n.col} glow={arrived} c={c} />;
+            return <Box key={n.label} x={n.x} y={y} w={w} h={36} label={n.label} fs={n.label.length > 3 ? 12 : 15} color={n.col} ring={arrived} c={c} />;
           })}
           <Txt x={240} y={30} size={12} weight={700} color="var(--text-2)">
             순전파 →
@@ -381,7 +379,7 @@ dW1 = self.X.T @ dz1                              # (784, 256)`,
     title: '한 걸음 내려가고, 반복한다',
     text: (
       <>
-        구한 기울기의 <strong>반대 방향으로 lr(=0.1)만큼</strong> 모든 가중치를 옮기면 한 스텝 끝! 배치 128장마다 순전파 → 손실 → 역전파 → 스텝을 반복하면 10 에포크 뒤 테스트 정확도가 <strong>약 97.5%</strong>까지 올라가요. <code>loss.backward()</code>가 하던 일을 전부 직접 짠 거예요.
+        구한 기울기의 <strong>반대 방향으로 lr(=0.1)만큼</strong> 모든 가중치를 옮기면 한 스텝이 끝나요. 배치 128장마다 순전파 → 손실 → 역전파 → 스텝을 반복하면 10 에포크 뒤 테스트 정확도가 약 97.5%까지 올라가요. <code>loss.backward()</code>가 하던 일을 모두 직접 구현한 셈이에요.
       </>
     ),
     code: `def step(self, grads, lr):
@@ -450,7 +448,7 @@ model.step(grads, lr)`,
           <g opacity={seg(t, 0.85, 1)}>
             <rect x={286} y={228} width={174} height={40} rx={20} fill={soft(c.pos, 0.15)} stroke={c.pos} />
             <Txt x={373} y={254} size={14} weight={850}>
-              테스트 정확도 97.5% 🎉
+              테스트 정확도 97.5%
             </Txt>
           </g>
         </g>

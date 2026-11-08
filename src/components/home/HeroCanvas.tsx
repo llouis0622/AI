@@ -25,7 +25,6 @@ export default function HeroCanvas() {
       <Rig>
         <Terrain />
         <Roller />
-        <Dust />
       </Rig>
     </Canvas>
   );
@@ -82,19 +81,10 @@ function Terrain() {
   return (
     <group>
       <mesh geometry={geom}>
-        <meshStandardMaterial
-          vertexColors
-          roughness={dark ? 0.3 : 0.65}
-          metalness={dark ? 0.3 : 0.05}
-          transparent
-          opacity={dark ? 0.85 : 0.95}
-          side={THREE.DoubleSide}
-          emissive={dark ? '#1a0b3a' : '#000000'}
-          emissiveIntensity={dark ? 0.7 : 0}
-        />
+        <meshStandardMaterial vertexColors roughness={0.7} metalness={0.05} transparent opacity={0.95} side={THREE.DoubleSide} />
       </mesh>
       <lineSegments geometry={wire}>
-        <lineBasicMaterial color={dark ? '#5ce8ff' : '#6a58f0'} transparent opacity={dark ? 0.3 : 0.14} />
+        <lineBasicMaterial color={dark ? '#ffffff' : '#1d1d1b'} transparent opacity={dark ? 0.1 : 0.08} />
       </lineSegments>
     </group>
   );
@@ -147,44 +137,13 @@ function Roller() {
   });
   return (
     <group>
-      <Line ref={lineRef as never} points={[[0, 0, 0], [0, 0.01, 0]]} color={c.series[2]} lineWidth={3} transparent opacity={0.9} />
+      <Line ref={lineRef as never} points={[[0, 0, 0], [0, 0.01, 0]]} color={c.series[1]} lineWidth={2.5} transparent opacity={0.85} />
       <group ref={ball}>
         <mesh>
           <sphereGeometry args={[0.22, 32, 32]} />
-          <meshStandardMaterial color={c.series[0]} emissive={c.series[0]} emissiveIntensity={0.8} roughness={0.2} />
-        </mesh>
-        <mesh>
-          <sphereGeometry args={[0.46, 24, 24]} />
-          <meshBasicMaterial color={c.series[0]} transparent opacity={0.18} depthWrite={false} />
+          <meshStandardMaterial color={c.series[1]} emissive={c.series[1]} emissiveIntensity={0.2} roughness={0.35} />
         </mesh>
       </group>
     </group>
-  );
-}
-
-function Dust() {
-  const c = useVizColors();
-  const ref = useRef<THREE.Points>(null);
-  const geom = useMemo(() => {
-    const n = 260;
-    const p = new Float32Array(n * 3);
-    let s = 7;
-    const r = () => ((s = (s * 16807) % 2147483647) / 2147483647);
-    for (let i = 0; i < n; i++) {
-      p[i * 3] = (r() - 0.5) * 14;
-      p[i * 3 + 1] = r() * 6 - 0.5;
-      p[i * 3 + 2] = (r() - 0.5) * 14;
-    }
-    const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.BufferAttribute(p, 3));
-    return g;
-  }, []);
-  useFrame((st) => {
-    if (ref.current) ref.current.position.y = Math.sin(st.clock.elapsedTime * 0.4) * 0.15;
-  });
-  return (
-    <points ref={ref} geometry={geom}>
-      <pointsMaterial size={c.theme === 'dark' ? 0.05 : 0.06} color={c.theme === 'dark' ? '#bdf6ff' : '#b7abff'} transparent opacity={c.theme === 'dark' ? 0.9 : 0.6} sizeAttenuation />
-    </points>
   );
 }

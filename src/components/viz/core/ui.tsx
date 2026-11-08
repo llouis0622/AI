@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import Algo, { type AlgoMood } from '@/components/mascot/Algo';
+import Icon, { type IconName } from '@/components/ui/Icon';
 
 /* Shared controls for visualizations. Styles live in src/styles/viz.css (vz-*). */
 
@@ -195,16 +195,17 @@ export function PlayBar({
   return (
     <div className="vz-playbar">
       <Button variant="primary" onClick={onToggle}>
-        {playing ? '❚❚ 멈춤' : '▶ 시작'}
+        <Icon name={playing ? 'pause' : 'play'} size={16} />
+        {playing ? '멈춤' : '시작'}
       </Button>
       {onStep && (
-        <Button onClick={onStep} disabled={playing} title="한 걸음씩">
-          한 걸음 ⟶
+        <Button onClick={onStep} disabled={playing} title="한 단계씩 진행">
+          <Icon name="step" size={16} />한 단계
         </Button>
       )}
       {onReset && (
-        <Button variant="ghost" onClick={onReset} title="처음으로">
-          ↺ 처음으로
+        <Button variant="ghost" onClick={onReset} title="처음 상태로">
+          <Icon name="reset" size={16} />처음으로
         </Button>
       )}
       {onSpeed && speed !== undefined && (
@@ -223,15 +224,22 @@ export function PlayBar({
   );
 }
 
-/** A small 알고 note inside a visualization (results, warnings, hints). */
-export function Note({ children, mood = 'smile', tone }: { children: ReactNode; mood?: AlgoMood; tone?: 'good' | 'bad' | 'warn' }) {
+const NOTE_ICON: Record<'info' | 'good' | 'bad' | 'warn', IconName> = { info: 'info', good: 'check-circle', bad: 'error', warn: 'warn' };
+
+/**
+ * One-line status under a visualization (what is happening, results, warnings).
+ * `mood` is accepted for older call sites and ignored.
+ */
+export function Note({ children, tone }: { children: ReactNode; mood?: string; tone?: 'good' | 'bad' | 'warn' }) {
   return (
     <div className={`vz-note${tone ? ` vz-note-${tone}` : ''}`} role="status">
-      <Algo mood={mood} size={34} still />
+      <Icon name={NOTE_ICON[tone ?? 'info']} size={18} className="vz-note-icon" />
       <div className="vz-note-text">{children}</div>
     </div>
   );
 }
+
+export { Icon };
 
 /**
  * Responsive two-area layout: a stage (canvas / svg) and a side panel.

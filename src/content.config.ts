@@ -2,13 +2,12 @@ import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 
-/** One card of the "그림으로 3분 요약" strip shown at the top of a chapter. */
+/** One card of the summary strip shown at the top of a chapter. */
 const summaryCard = z.object({
-  /** Big emoji (or short emoji sequence) used as the card illustration. */
-  icon: z.string(),
   title: z.string(),
   text: z.string(),
-  /** Optional named mini-animation rendered behind the icon (see VisualSummary). */
+  /** Legacy fields from the emoji cards; ignored. */
+  icon: z.string().optional(),
   visual: z.string().optional()
 });
 
@@ -23,7 +22,7 @@ const book = defineCollection({
     question: z.string().optional(),
     /** "전제" line — may contain markdown links. */
     prereq: z.string().optional(),
-    /** What the mascot says next to the question. */
+    /** Legacy mascot line; ignored. */
     mascot: z.string().optional(),
     summary: z.array(summaryCard).default([]),
     /** Related code labs by number. */

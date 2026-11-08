@@ -1,6 +1,6 @@
 import { CodeStory, type StoryStep } from '../core/story';
 import type { VizColors } from '../core/colors';
-import { Arrow, Bars, Box, Defs, Emoji, Txt, VB, seg, soft } from './_labsA';
+import { Arrow, Bars, Box, Defs, Glyph, Txt, VB, seg, soft } from './_labsA';
 
 const BLOCKS = [
   { id: 'stem', label: 'stem', x: 14, w: 56, feat: '선·색' },
@@ -41,7 +41,7 @@ function Net({
   return (
     <g>
       <Txt x={200} y={52} size={13} weight={800} color="var(--text-2)">
-        ResNet-50 몸통 · ImageNet 사전학습 ✓
+        ResNet-50 몸통 · ImageNet 사전학습
       </Txt>
       <line x1={14} x2={368} y1={62} y2={62} stroke="var(--border-strong)" strokeWidth={1.5} />
       {BLOCKS.map((b, i) => (
@@ -52,10 +52,8 @@ function Net({
           </Txt>
           {ice[i] > 0.01 && (
             <g opacity={ice[i]}>
-              <rect x={b.x - 3} y={Y - 3} width={b.w + 6} height={H + 6} rx={13} fill={c.theme === 'dark' ? 'rgba(125, 220, 255, 0.22)' : 'rgba(140, 200, 255, 0.35)'} stroke="#7cc8ff" strokeWidth={1.5} />
-              <Emoji x={b.x + b.w - 8} y={Y + 12} size={15}>
-                ❄️
-              </Emoji>
+              <rect x={b.x - 3} y={Y - 3} width={b.w + 6} height={H + 6} rx={13} fill={soft(c.series[0], c.theme === 'dark' ? 0.22 : 0.18)} stroke={c.series[0]} strokeWidth={1.5} />
+              <Glyph name="snowflake" x={b.x + b.w - 9} y={Y + 9} size={13} color={c.series[0]} />
             </g>
           )}
         </g>
@@ -64,7 +62,7 @@ function Net({
         <Box x={HEAD.x} y={Y - 30 * headNew} w={HEAD.w} h={H} label="fc 1000" sub="옛 헤드" subFs={11} fs={13} color={c.neg} c={c} />
       </g>
       <g opacity={headNew}>
-        <Box x={HEAD.x} y={Y + 30 * (1 - headNew)} w={HEAD.w} h={H} label="fc 102 ✨" sub="새 헤드" subFs={11} fs={13} color={c.series[3]} c={c} />
+        <Box x={HEAD.x} y={Y + 30 * (1 - headNew)} w={HEAD.w} h={H} label="fc 102" sub="새 헤드" subFs={11} fs={13} color={c.series[3]} c={c} />
       </g>
       <Txt x={HEAD.x + HEAD.w / 2} y={Y + H + 18} size={11.5} weight={700} color="var(--text-2)">
         꽃 102종
@@ -72,17 +70,13 @@ function Net({
       {gradTo <= BLOCKS.length && (
         <g>
           <Arrow x1={gx0} y1={Y + H + 32} x2={target} y2={Y + H + 32} color={c.series[2]} width={3} t={gradT} flow label="← 기울기" labelDy={20} />
-          {gradTo > 0 && gradT > 0.95 && (
-            <Emoji x={target - 14} y={Y + H + 38} size={16} className="labA-bob">
-              🛑
-            </Emoji>
-          )}
+          {gradTo > 0 && gradT > 0.95 && <Glyph name="ban" x={target - 14} y={Y + H + 32} size={16} color={c.neg} />}
         </g>
       )}
       {lr && (
         <g opacity={seg(t, 0.55, 0.8)}>
           <Txt x={190} y={Y - 12} size={12.5} weight={850} color={c.series[1]}>
-            lr 1e-4 (살살)
+            lr 1e-4 (작게)
           </Txt>
           <Txt x={HEAD.x + HEAD.w / 2} y={Y - 12} size={12.5} weight={850} color={c.series[3]}>
             lr 1e-3 (크게)
@@ -129,7 +123,7 @@ model.fc = nn.Linear(model.fc.in_features, num_classes)`,
     title: '선형 프로브: 몸통은 얼리고 헤드만 학습',
     text: (
       <>
-        <code>requires_grad = False</code>로 몸통 전체를 <strong>얼려요(동결)</strong>. 기울기는 새 헤드까지만 흐르고 멈춰요. 학습할 파라미터가 <strong>0.2M</strong>뿐이라 데이터가 아주 적어도(클래스당 10장!) 과적합 걱정이 적어요.
+        <code>requires_grad = False</code>로 몸통 전체를 <strong>얼려요(동결)</strong>. 기울기는 새 헤드까지만 흐르고 멈춰요. 학습할 파라미터가 0.2M뿐이라 데이터가 아주 적어도(클래스당 10장) 과적합 걱정이 적어요.
       </>
     ),
     code: `if mode == "linear":
@@ -151,7 +145,7 @@ model.fc = nn.Linear(model.fc.in_features, num_classes)`,
     title: '부분 해동: layer4만 녹인다',
     text: (
       <>
-        마지막 스테이지 <strong>layer4</strong>는 "고양이 귀 모양" 같은 과제 특화 특징을 담아요. 여기만 녹여서(해동) 꽃에 맞게 고쳐 쓰면, 저수준 특징(선·질감)은 그대로 지키면서 더 잘 맞출 수 있어요. 학습 파라미터는 <strong>15.2M</strong>.
+        마지막 스테이지 <strong>layer4</strong>는 "고양이 귀 모양" 같은 과제 특화 특징을 담아요. 여기만 녹여서(해동) 꽃에 맞게 고쳐 쓰면, 저수준 특징(선·질감)은 그대로 지키면서 더 잘 맞출 수 있어요. 학습하는 파라미터는 15.2M이에요.
       </>
     ),
     code: `elif mode == "partial":
@@ -170,7 +164,7 @@ model.fc = nn.Linear(model.fc.in_features, num_classes)`,
     }
   },
   {
-    title: '전체 파인튜닝: 몸통은 살살, 헤드는 크게',
+    title: '전체 파인튜닝: 몸통은 작게, 헤드는 크게',
     text: (
       <>
         데이터가 충분하면 전부 녹여요. 단, 사전학습 층은 이미 좋은 자리에 있으니 <strong>작은 학습률(1e-4)</strong>로, 무작위로 시작한 헤드는 <strong>큰 학습률(1e-3)</strong>로 움직여요. 그래야 헤드의 큰 기울기가 몸통을 망가뜨리지 않아요.
@@ -197,7 +191,7 @@ return torch.optim.AdamW([
     title: '결과: 클래스당 10장으로도 95%',
     text: (
       <>
-        10 에포크 뒤 대략 <strong>선형 프로브 88% · 부분 해동 93% · 전체 95%</strong>. 함정 하나: 동결해도 <code>model.train()</code>은 BatchNorm의 평균 통계를 계속 바꿔요. 그래서 선형 프로브에선 몸통을 <code>eval()</code>로 두고 헤드만 <code>train()</code>으로 켜요.
+        10 에포크 뒤 정확도는 대략 <strong>선형 프로브 88% · 부분 해동 93% · 전체 95%</strong>예요. 주의할 점이 하나 있어요. 동결해도 <code>model.train()</code>은 BatchNorm의 평균 통계를 계속 바꿔요. 그래서 선형 프로브에선 몸통을 <code>eval()</code>로 두고 헤드만 <code>train()</code>으로 켜요.
       </>
     ),
     code: `model.train()
@@ -229,10 +223,8 @@ if args.mode == "linear":
           (세로축은 80%부터)
         </Txt>
         <g opacity={seg(t, 0.55, 0.85)}>
-          <rect x={314} y={50} width={154} height={150} rx={16} fill={soft(c.series[4], 0.12)} stroke={soft(c.series[4], 0.7)} />
-          <Emoji x={391} y={86} size={24}>
-            ⚠️
-          </Emoji>
+          <rect x={314} y={50} width={154} height={150} rx={16} fill={soft(c.neg, 0.12)} stroke={soft(c.neg, 0.7)} />
+          <Glyph name="warn" x={391} y={79} size={22} color={c.neg} />
           <Txt x={391} y={112} size={13} weight={850}>
             BatchNorm 함정
           </Txt>
@@ -242,7 +234,7 @@ if args.mode == "linear":
           <Txt x={391} y={154} size={11.5} weight={700} color="var(--text-2)">
             평균 통계는 바뀌어요
           </Txt>
-          <Txt x={391} y={180} size={12} weight={850} color={c.series[4]} mono>
+          <Txt x={391} y={180} size={12} weight={850} color={c.neg} mono>
             → 몸통은 eval()
           </Txt>
         </g>
