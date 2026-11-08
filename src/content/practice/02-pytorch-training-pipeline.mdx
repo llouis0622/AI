@@ -109,7 +109,7 @@ def main():
     optimizer = torch.optim.SGD(model.parameters(), lr=CFG["lr"],
                                 momentum=0.9, weight_decay=CFG["weight_decay"],
                                 nesterov=True)
-    # 웜업 없이 코사인 감쇠. 총 스텝 수 기준으로 스케줄한다.
+    # 앞 10%는 웜업, 이후 코사인 감쇠. 총 스텝 수 기준으로 스케줄한다.
     scheduler = torch.optim.lr_scheduler.OneCycleLR(
         optimizer, max_lr=CFG["lr"],
         total_steps=CFG["epochs"] * len(train_dl),

@@ -1,6 +1,7 @@
 import type { SVGProps } from 'react';
 import {
   Activity,
+  ArrowDown,
   ArrowLeft,
   ArrowRight,
   ArrowUp,
@@ -162,6 +163,7 @@ import {
  */
 const ICONS = {
   activity: Activity,
+  'arrow-down': ArrowDown,
   'arrow-left': ArrowLeft,
   'arrow-right': ArrowRight,
   'arrow-up': ArrowUp,
