@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent as RPointerEvent } from 'react';
 import type { VizProps } from '../Viz';
-import { Button, Controls, Note, Toggle, VizLayout } from '../core/ui';
+import { Button, Controls, Icon, Note, Toggle, VizLayout } from '../core/ui';
 import { useCanvas, useElementSize, usePrefersReducedMotion, useRafLoop } from '../core/hooks';
 import { useVizColors, withAlpha, type VizColors } from '../core/colors';
 import { clamp, softmax } from '../core/math';
@@ -26,10 +26,10 @@ interface Obj {
 
 const KIND_ORDER: Kind[] = ['cat', 'dog', 'ball'];
 /** box = visible extent inside the object's square, as fractions [x0, y0, x1, y1]. */
-const KINDS: Record<Kind, { name: string; emoji: string; base: number; box: [number, number, number, number] }> = {
-  cat: { name: '고양이', emoji: '🐱', base: 0.97, box: [10 / 64, 6 / 64, 54 / 64, 55 / 64] },
-  dog: { name: '강아지', emoji: '🐶', base: 0.94, box: [6 / 64, 13 / 64, 58 / 64, 55 / 64] },
-  ball: { name: '공', emoji: '⚽', base: 0.91, box: [4 / 64, 4 / 64, 60 / 64, 60 / 64] }
+const KINDS: Record<Kind, { name: string; base: number; box: [number, number, number, number] }> = {
+  cat: { name: '고양이', base: 0.97, box: [10 / 64, 6 / 64, 54 / 64, 55 / 64] },
+  dog: { name: '강아지', base: 0.94, box: [6 / 64, 13 / 64, 58 / 64, 55 / 64] },
+  ball: { name: '공', base: 0.91, box: [4 / 64, 4 / 64, 60 / 64, 60 / 64] }
 };
 
 const START: Obj[] = [
@@ -38,10 +38,10 @@ const START: Obj[] = [
   { kind: 'dog', x: 204, y: 104, s: 104 }
 ];
 
-const RUNGS: { mode: Mode; floor: number; name: string; emoji: string; q: string; out: string }[] = [
-  { mode: 'cls', floor: 1, name: '분류', emoji: '🏷️', q: '무엇이 있나?', out: '클래스 하나' },
-  { mode: 'det', floor: 2, name: '탐지', emoji: '📦', q: '무엇이 어디에?', out: '상자 + 클래스' },
-  { mode: 'seg', floor: 3, name: '분할', emoji: '🎨', q: '어떤 픽셀이 무엇?', out: '픽셀마다 클래스' }
+const RUNGS: { mode: Mode; floor: number; name: string; q: string; out: string }[] = [
+  { mode: 'cls', floor: 1, name: '분류', q: '무엇이 있나?', out: '클래스 하나' },
+  { mode: 'det', floor: 2, name: '탐지', q: '무엇이 어디에?', out: '상자 + 클래스' },
+  { mode: 'seg', floor: 3, name: '분할', q: '어떤 픽셀이 무엇?', out: '픽셀마다 클래스' }
 ];
 
 /** Rough human labelling time for one photo like this (log-scale bars). */
@@ -134,7 +134,7 @@ export default function VisionTaskLadder(_props: VizProps) {
   useEffect(() => setAnim(reduce ? 1 : 0), [mode, reduce]);
   useRafLoop((dt) => setAnim((a) => Math.min(1, a + dt / 0.9)), anim < 1);
 
-  const colorOf: Record<Kind, string> = { cat: c.series[0], dog: c.series[1], ball: c.series[5] };
+  const colorOf: Record<Kind, string> = { cat: c.series[0], dog: c.series[1], ball: c.series[2] };
   const lab = useMemo(() => labelMap(objs), [objs]);
   const probs = useMemo(() => softmax(KIND_ORDER.map((k) => 2 * Math.log(lab.vis[k] + 1))), [lab]);
   const det = useMemo(() => {
@@ -164,6 +164,11 @@ export default function VisionTaskLadder(_props: VizProps) {
         drawPark(ctx, W, H);
         for (const o of objs) drawShadow(ctx, o);
         for (const o of objs) drawObj(ctx, o);
+        // dim the bright photo on the dark theme so labels and masks stay legible
+        if (c.theme === 'dark') {
+          ctx.fillStyle = withAlpha(c.bg, 0.38);
+          ctx.fillRect(0, 0, W, H);
+        }
       }
       ctx.restore();
       const t = easeOut(anim);
@@ -212,7 +217,7 @@ export default function VisionTaskLadder(_props: VizProps) {
             ctx.beginPath();
             ctx.roundRect(lx, ly, tw, 19, 5);
             ctx.fill();
-            ctx.fillStyle = '#ffffff';
+            ctx.fillStyle = c.bg;
             ctx.fillText(label, lx + 6, ly + 14);
             ctx.globalAlpha = 1;
           }
@@ -323,10 +328,8 @@ export default function VisionTaskLadder(_props: VizProps) {
   if (mode === 'cls') {
     output = (
       <>
-        <div style={{ fontSize: 22, fontWeight: 900, color: colorOf[top] }}>
-          {KINDS[top].emoji} {KINDS[top].name}
-        </div>
-        {KIND_ORDER.map((k, i) => bar(probs[i] * anim, colorOf[k], `${KINDS[k].emoji} ${KINDS[k].name}`, `${Math.round(probs[i] * 100)}%`, k))}
+        <div style={{ fontSize: 22, fontWeight: 900, color: colorOf[top] }}>{KINDS[top].name}</div>
+        {KIND_ORDER.map((k, i) => bar(probs[i] * anim, colorOf[k], KINDS[k].name, `${Math.round(probs[i] * 100)}%`, k))}
       </>
     );
     numbers = `${KIND_ORDER.length}개 (클래스별 확률)`;
@@ -338,9 +341,7 @@ export default function VisionTaskLadder(_props: VizProps) {
           const [x0, y0, x1, y1] = d.box;
           return (
             <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', borderRadius: 10, border: `1.5px solid ${d.found ? colorOf[k] : 'var(--border)'}`, opacity: d.found ? 1 : 0.6 }}>
-              <span style={{ fontWeight: 850, minWidth: 64 }}>
-                {KINDS[k].emoji} {KINDS[k].name}
-              </span>
+              <span style={{ fontWeight: 850, minWidth: 64 }}>{KINDS[k].name}</span>
               {d.found ? (
                 <>
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11.5, color: 'var(--text-2)', flex: 1 }}>
@@ -349,7 +350,7 @@ export default function VisionTaskLadder(_props: VizProps) {
                   <span style={{ fontWeight: 900, color: colorOf[k] }}>{d.score.toFixed(2)}</span>
                 </>
               ) : (
-                <span style={{ color: 'var(--text-3)' }}>너무 가려져서 못 찾음</span>
+                <span style={{ color: 'var(--text-3)' }}>많이 가려져서 찾지 못함</span>
               )}
             </div>
           );
@@ -361,7 +362,7 @@ export default function VisionTaskLadder(_props: VizProps) {
   } else {
     output = (
       <>
-        {KIND_ORDER.map((k) => bar(lab.vis[k] / total, colorOf[k], `${KINDS[k].emoji} ${KINDS[k].name}`, `${Math.round((lab.vis[k] / total) * 100)}%`, k))}
+        {KIND_ORDER.map((k) => bar(lab.vis[k] / total, colorOf[k], KINDS[k].name, `${Math.round((lab.vis[k] / total) * 100)}%`, k))}
         {bar(lab.bg / total, withAlpha(c.text, 0.45), '배경', `${bgPct}%`, 'bg')}
         <div style={{ fontSize: 12.5, minHeight: 20, color: 'var(--text-2)' }}>
           {hover !== null ? (
@@ -395,48 +396,45 @@ export default function VisionTaskLadder(_props: VizProps) {
             <div key={r.mode} style={{ display: 'grid', gap: 3, opacity: on ? 1 : 0.55 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, fontWeight: on ? 850 : 650 }}>
                 <span>
-                  {r.emoji} {r.name} · {COST[r.mode].what}
+                  {r.name} · {COST[r.mode].what}
                 </span>
                 <span>{COST[r.mode].time}</span>
               </div>
               <span style={{ height: 9, borderRadius: 5, background: 'var(--surface-3)', overflow: 'hidden' }}>
-                <span style={{ display: 'block', height: '100%', width: `${frac * 100}%`, background: on ? c.series[2] : c.axis, borderRadius: 5 }} />
+                <span style={{ display: 'block', height: '100%', width: `${frac * 100}%`, background: on ? c.series[1] : c.axis, borderRadius: 5 }} />
               </span>
             </div>
           );
         })}
-        <div style={{ fontSize: 11.5, color: 'var(--text-3)' }}>막대는 로그 눈금 — 한 칸 오를 때마다 수십 배씩 비싸져요.</div>
+        <div style={{ fontSize: 11.5, color: 'var(--text-3)' }}>막대는 로그 눈금이에요. 한 층 오를 때마다 수십 배씩 비싸져요.</div>
       </div>
     </>
   );
 
-  let note: { text: React.ReactNode; mood: 'smile' | 'happy' | 'think' | 'wow' | 'cheer'; tone?: 'good' | 'warn' };
+  let note: { text: React.ReactNode; tone?: 'good' | 'warn' };
   if (mode === 'cls')
     note = {
       text: (
         <>
-          사진에 고양이·강아지·공이 다 있는데 답은 <b>딱 하나</b>예요. 물체를 끌어서 다른 물체를 가려 보면 1등이 바뀌어요. "어디에"는 전혀 알려 주지 않죠.
+          사진에 고양이, 강아지, 공이 모두 있지만 답은 하나예요. 물체를 끌어서 다른 물체를 가리면 1등이 바뀌어요. "어디에"는 알려 주지 않아요.
         </>
-      ),
-      mood: 'think'
+      )
     };
   else if (mode === 'det')
     note = {
       text: moved ? (
-        <>상자가 물체를 따라다니죠? 많이 가려진 물체는 확신도가 떨어지고, 너무 가려지면 아예 놓쳐요.</>
+        <>상자가 물체를 따라 움직여요. 많이 가려진 물체는 확신도가 떨어지고, 너무 가려지면 아예 놓쳐요.</>
       ) : (
-        <>물체마다 <b>상자(좌표 4개) + 이름 + 확신도</b>가 나와요. 그림 속 물체를 손가락이나 마우스로 끌어 보세요!</>
-      ),
-      mood: 'happy'
+        <>물체마다 상자(좌표 4개), 이름, 확신도가 나와요. 그림 속 물체를 손가락이나 마우스로 끌어 보세요.</>
+      )
     };
   else
     note = {
       text: (
         <>
-          칸(픽셀)마다 이름표를 달아요. 그런데 배경이 <b>{bgPct}%</b>나 돼서, "전부 배경"이라고 찍어도 픽셀 정확도가 {bgPct}%예요. 그래서 분할은 IoU·Dice로 평가해요.
+          칸(픽셀)마다 이름표를 달아요. 배경이 {bgPct}%나 되어서 "전부 배경"이라고 답해도 픽셀 정확도가 {bgPct}%예요. 그래서 분할은 IoU나 Dice로 평가해요.
         </>
       ),
-      mood: 'wow',
       tone: 'warn'
     };
 
@@ -466,14 +464,11 @@ export default function VisionTaskLadder(_props: VizProps) {
                   color: 'var(--text)',
                   textAlign: 'left',
                   cursor: 'pointer',
-                  boxShadow: on ? `0 6px 18px ${withAlpha(c.brand, 0.25)}` : 'none',
-                  transition: 'all .2s'
+                  transition: 'border-color .2s, background-color .2s'
                 }}
               >
                 <span style={{ fontSize: 11.5, fontWeight: 800, color: on ? c.brand : 'var(--text-3)' }}>{r.floor}층</span>
-                <span style={{ fontSize: narrow ? 14 : 16, fontWeight: 900 }}>
-                  {r.emoji} {r.name}
-                </span>
+                <span style={{ fontSize: narrow ? 14 : 16, fontWeight: 900 }}>{r.name}</span>
                 <span style={{ fontSize: 12, color: 'var(--text-2)', fontWeight: 650 }}>{r.q}</span>
                 {!narrow && <span style={{ fontSize: 11.5, color: 'var(--text-3)' }}>→ {r.out}</span>}
               </button>
@@ -502,7 +497,7 @@ export default function VisionTaskLadder(_props: VizProps) {
               onPointerCancel={onUp}
               onPointerLeave={() => setHover(null)}
             />
-            <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 6 }}>✋ 그림 속 물체를 끌어서 옮길 수 있어요. 출력 숫자는 개념을 보여 주기 위한 간이 모델이 계산해요.</div>
+            <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 6 }}>그림 속 물체를 끌어서 옮길 수 있어요. 출력 숫자는 개념을 보여 주기 위한 간이 모델이 계산해요.</div>
           </div>
         }
         side={side}
@@ -510,9 +505,7 @@ export default function VisionTaskLadder(_props: VizProps) {
 
       <div className="vz-pad" style={{ display: 'grid', gap: 12 }}>
         <HeadsDiagram mode={mode} narrow={narrow} c={c} reduce={reduce} />
-        <Note mood={note.mood} tone={note.tone}>
-          {note.text}
-        </Note>
+        <Note tone={note.tone}>{note.text}</Note>
       </div>
 
       <Controls>
@@ -523,7 +516,7 @@ export default function VisionTaskLadder(_props: VizProps) {
             setMoved(false);
           }}
         >
-          ↺ 물체 제자리로
+          <Icon name="reset" size={16} />물체 제자리로
         </Button>
         {mode === 'seg' && <Toggle label="사진 빼고 라벨 지도만 보기" checked={mapOnly} onChange={setMapOnly} />}
       </Controls>
@@ -534,9 +527,9 @@ export default function VisionTaskLadder(_props: VizProps) {
 /** Shared backbone → three task heads. */
 function HeadsDiagram({ mode, narrow, c, reduce }: { mode: Mode; narrow: boolean; c: VizColors; reduce: boolean }) {
   const heads: { mode: Mode; title: string; sub: string }[] = [
-    { mode: 'cls', title: '🏷️ 분류 머리', sub: '선형 층' },
-    { mode: 'det', title: '📦 탐지 머리', sub: '상자 예측 (YOLO 계열)' },
-    { mode: 'seg', title: '🎨 분할 머리', sub: '디코더 (U-Net 계열)' }
+    { mode: 'cls', title: '분류 머리', sub: '선형 층' },
+    { mode: 'det', title: '탐지 머리', sub: '상자 예측 (YOLO 계열)' },
+    { mode: 'seg', title: '분할 머리', sub: '디코더 (U-Net 계열)' }
   ];
   const flow = (d: string, on: boolean, key: string) => (
     <path key={key} d={d} fill="none" stroke={on ? c.brand : c.axis} strokeWidth={on ? 3 : 1.5} strokeDasharray={on ? '7 6' : '3 5'} opacity={on ? 1 : 0.55}>
@@ -555,8 +548,9 @@ function HeadsDiagram({ mode, narrow, c, reduce }: { mode: Mode; narrow: boolean
     const ys = [32, 86, 140];
     return (
       <svg className="vz-svg" viewBox="0 0 640 172" role="img" aria-label="공유 몸통 하나에 과제별 머리 세 개가 붙은 구조" style={{ touchAction: 'pan-y' }}>
-        <rect x={6} y={60} width={78} height={52} rx={10} fill={withAlpha(c.series[3], 0.14)} stroke={c.series[3]} strokeWidth={1.5} />
-        <text x={45} y={91} textAnchor="middle" style={{ fontSize: 13, fontWeight: 800 }}>📷 사진</text>
+        <rect x={6} y={60} width={78} height={52} rx={10} fill={withAlpha(c.text, 0.08)} stroke={c.text} strokeWidth={1.5} />
+        <Icon name="image" x={17} y={78} size={16} color={c.text} />
+        <text x={56} y={91} textAnchor="middle" style={{ fontSize: 13, fontWeight: 800 }}>사진</text>
         {flow('M 86 86 L 110 86', true, 'a')}
         <rect x={112} y={44} width={150} height={84} rx={14} fill={withAlpha(c.brand, 0.12)} stroke={c.brand} strokeWidth={2} />
         <text x={187} y={80} textAnchor="middle" style={{ fontSize: 15, fontWeight: 900 }}>공유 몸통</text>
@@ -584,8 +578,9 @@ function HeadsDiagram({ mode, narrow, c, reduce }: { mode: Mode; narrow: boolean
   const xs = [58, 170, 282];
   return (
     <svg className="vz-svg" viewBox="0 0 340 250" role="img" aria-label="공유 몸통 하나에 과제별 머리 세 개가 붙은 구조" style={{ touchAction: 'pan-y', maxWidth: 440, margin: '0 auto' }}>
-      <rect x={8} y={12} width={88} height={50} rx={10} fill={withAlpha(c.series[3], 0.14)} stroke={c.series[3]} strokeWidth={1.5} />
-      <text x={52} y={42} textAnchor="middle" style={{ fontSize: 13, fontWeight: 800 }}>📷 사진</text>
+      <rect x={8} y={12} width={88} height={50} rx={10} fill={withAlpha(c.text, 0.08)} stroke={c.text} strokeWidth={1.5} />
+      <Icon name="image" x={24} y={29} size={16} color={c.text} />
+      <text x={63} y={42} textAnchor="middle" style={{ fontSize: 13, fontWeight: 800 }}>사진</text>
       {flow('M 98 37 L 122 37', true, 'a')}
       <rect x={124} y={8} width={208} height={58} rx={14} fill={withAlpha(c.brand, 0.12)} stroke={c.brand} strokeWidth={2} />
       <text x={228} y={33} textAnchor="middle" style={{ fontSize: 15, fontWeight: 900 }}>공유 몸통</text>

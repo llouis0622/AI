@@ -36,9 +36,9 @@ const OX = 30;
 const OY = 26;
 
 const PRESETS: { key: string; label: string; a: Box; b: Box }[] = [
-  { key: 'book', label: '📘 책의 문제', a: [0, 0, 10, 10], b: [5, 5, 15, 15] },
+  { key: 'book', label: '책의 문제', a: [0, 0, 10, 10], b: [5, 5, 15, 15] },
   { key: 'half', label: '반만 겹침', a: [2, 3, 12, 13], b: [7, 3, 17, 13] },
-  { key: 'inside', label: '안에 쏙', a: [3, 2, 15, 14], b: [6, 5, 12, 11] },
+  { key: 'inside', label: '안에 들어감', a: [3, 2, 15, 14], b: [6, 5, 12, 11] },
   { key: 'close', label: '거의 같음', a: [4, 3, 14, 12], b: [5, 4, 15, 13] },
   { key: 'apart', label: '안 겹침', a: [1, 2, 7, 8], b: [11, 6, 18, 13] }
 ];
@@ -60,8 +60,9 @@ function IouPlayground({ c, narrow }: { c: VizColors; narrow: boolean }) {
   const ok = v >= 0.5;
   const preset = PRESETS.find((p) => p.a.every((x, i) => x === A[i]) && p.b.every((x, i) => x === B[i]))?.key ?? 'custom';
   const colA = c.series[0];
-  const colB = c.series[2];
-  const colI = c.series[4];
+  const colB = c.series[1];
+  // the overlap is "both", so it is drawn in the neutral ink rather than a third hue
+  const colI = c.ink;
 
   const toUnits = (e: RPointerEvent) => {
     const svg = svgRef.current!;
@@ -147,7 +148,7 @@ function IouPlayground({ c, narrow }: { c: VizColors; narrow: boolean }) {
           flex: `${w} 0 0`,
           minWidth: 0,
           background: strong ? color : withAlpha(color, 0.35),
-          color: strong ? '#fff' : 'var(--text)',
+          color: strong ? c.bg : 'var(--text)',
           fontSize: 11.5,
           fontWeight: 850,
           display: 'flex',
@@ -185,7 +186,7 @@ function IouPlayground({ c, narrow }: { c: VizColors; narrow: boolean }) {
           {seg(I, colI, `교 ${I}`, true)}
           {seg(aB - I, colB, 'B만')}
         </div>
-        <div style={{ fontSize: 11.5, color: 'var(--text-3)' }}>막대 전체 = 합집합. 진한 칸의 비율이 바로 IoU예요.</div>
+        <div style={{ fontSize: 11.5, color: 'var(--text-3)' }}>막대 전체가 합집합이고, 진한 칸이 차지하는 비율이 IoU예요.</div>
       </div>
       <div className="vz-panel">
         <div className="vz-panel-title">IoU = 교집합 ÷ 합집합</div>
@@ -200,19 +201,19 @@ function IouPlayground({ c, narrow }: { c: VizColors; narrow: boolean }) {
           <text x={130} y={42} textAnchor="middle" style={{ fontSize: 10.5, fontWeight: 800 }}>0.5 = 정답 인정선</text>
           <text x={256} y={42} textAnchor="end" style={{ fontSize: 10.5, fill: 'var(--text-3)' }}>1</text>
         </svg>
-        <Stat label="탐지 채점이라면" value={ok ? '맞았다 ✅' : '틀렸다 ❌'} tone={ok ? 'good' : 'bad'} />
+        <Stat label="탐지 채점이라면" value={ok ? '정답' : '오답'} tone={ok ? 'good' : 'bad'} />
       </div>
     </>
   );
 
-  let note: { text: ReactNode; mood: 'think' | 'wow' | 'cheer' | 'smile'; tone?: 'good' | 'bad' };
+  let note: { text: ReactNode; tone?: 'good' | 'bad' };
   if (preset === 'book')
-    note = { text: <>책의 문제 1번 그대로예요. 교집합 25, 합집합 175 → IoU ≈ 0.14. 꽤 겹쳐 보이는데 생각보다 훨씬 작죠? 분모가 합집합이라서예요.</>, mood: 'think' };
-  else if (preset === 'half') note = { text: <>딱 절반이 겹쳤는데 IoU는 0.33뿐! 겹친 부분(50)보다 합집합(150)이 훨씬 커요.</>, mood: 'wow' };
-  else if (preset === 'inside') note = { text: <>작은 상자가 큰 상자 안에 쏙 들어가도, 큰 상자의 남는 부분이 합집합을 키워서 IoU가 작아요.</>, mood: 'think' };
-  else if (v === 0) note = { text: <>하나도 안 겹치면 교집합이 0이라 IoU도 0이에요.</>, mood: 'smile' };
-  else if (ok) note = { text: <>IoU {v.toFixed(2)} ≥ 0.5 — 탐지 대회라면 "맞혔다"로 인정받아요! 🎉</>, mood: 'cheer', tone: 'good' };
-  else note = { text: <>상자 안을 끌면 옮겨지고, 모서리 동그라미를 끌면 크기가 바뀌어요. 0.5를 넘겨 보세요!</>, mood: 'smile' };
+    note = { text: <>책의 문제 1번과 같은 상자예요. 교집합 25, 합집합 175라서 IoU는 약 0.14예요. 꽤 겹쳐 보여도 분모가 합집합이라 값이 작아요.</> };
+  else if (preset === 'half') note = { text: <>정확히 절반이 겹쳤는데 IoU는 0.33이에요. 겹친 부분(50)보다 합집합(150)이 훨씬 커요.</> };
+  else if (preset === 'inside') note = { text: <>작은 상자가 큰 상자 안에 다 들어가도, 큰 상자의 남는 부분이 합집합을 키워서 IoU가 작아요.</> };
+  else if (v === 0) note = { text: <>전혀 겹치지 않으면 교집합이 0이라 IoU도 0이에요.</> };
+  else if (ok) note = { text: <>IoU가 {v.toFixed(2)}로 0.5 이상이라, 탐지 평가에서는 맞힌 것으로 인정돼요.</>, tone: 'good' };
+  else note = { text: <>상자 안쪽을 끌면 옮겨지고, 모서리의 동그라미를 끌면 크기가 바뀌어요. IoU를 0.5 넘게 만들어 보세요.</> };
 
   return (
     <>
@@ -251,7 +252,7 @@ function IouPlayground({ c, narrow }: { c: VizColors; narrow: boolean }) {
               {boxEl(B, 'B', colB)}
               {ib && (
                 <g pointerEvents="none">
-                  <rect x={px(ib[0])} y={py(ib[1])} width={(ib[2] - ib[0]) * U} height={(ib[3] - ib[1]) * U} fill={withAlpha(colI, 0.55)} stroke={colI} strokeWidth={2} />
+                  <rect x={px(ib[0])} y={py(ib[1])} width={(ib[2] - ib[0]) * U} height={(ib[3] - ib[1]) * U} fill={withAlpha(colI, 0.28)} stroke={colI} strokeWidth={2} />
                   {(ib[2] - ib[0]) * U > 44 && (ib[3] - ib[1]) * U > 30 && (
                     <text x={px((ib[0] + ib[2]) / 2)} y={py((ib[1] + ib[3]) / 2) + 5} textAnchor="middle" style={{ fontSize: 14, fontWeight: 900, fill: c.ink }}>
                       교 {I}
@@ -265,9 +266,7 @@ function IouPlayground({ c, narrow }: { c: VizColors; narrow: boolean }) {
         side={side}
       />
       <div className="vz-pad" style={{ paddingTop: 0 }}>
-        <Note mood={note.mood} tone={note.tone}>
-          {note.text}
-        </Note>
+        <Note tone={note.tone}>{note.text}</Note>
       </div>
       <Controls>
         <Segmented
@@ -291,7 +290,6 @@ const SW = 400;
 const SH = 250;
 type Kind = 'cat' | 'dog' | 'ball';
 const NAMES: Record<Kind, string> = { cat: '고양이', dog: '강아지', ball: '공' };
-const EMOJI: Record<Kind, string> = { cat: '🐱', dog: '🐶', ball: '⚽' };
 /** Same visible-extent fractions as the task-ladder pictures. */
 const FR: Record<Kind, Box> = { cat: [10 / 64, 6 / 64, 54 / 64, 55 / 64], dog: [6 / 64, 13 / 64, 58 / 64, 55 / 64], ball: [4 / 64, 4 / 64, 60 / 64, 60 / 64] };
 /** The dog stands right behind the cat: their true boxes overlap with IoU ≈ 0.41. */
@@ -402,7 +400,7 @@ function scenePhoto() {
 /** Approximate label width at 10.5px (Hangul glyphs are about twice as wide as digits). */
 const textW = (s: string) => [...s].reduce((w, ch) => w + (/[가-힣]/.test(ch) ? 10.6 : 6.1), 0);
 
-function Chip({ x, y, text, fill, color = '#fff', anchor = 'start' }: { x: number; y: number; text: string; fill: string; color?: string; anchor?: 'start' | 'end' }) {
+function Chip({ x, y, text, fill, color, anchor = 'start' }: { x: number; y: number; text: string; fill: string; color: string; anchor?: 'start' | 'end' }) {
   const w = textW(text) + 10;
   const x0 = clamp(anchor === 'end' ? x - w : x, 0, SW - w);
   const y0 = clamp(y, 0, SH - 16);
@@ -451,8 +449,8 @@ function NmsStepper({ c, narrow }: { c: VizColors; narrow: boolean }) {
   const found = evalRes.filter((m) => m > 0).length;
   const dups = evalRes.reduce((s, m) => s + Math.max(0, m - 1), 0);
 
-  const colIdle = c.series[3];
-  const colCur = c.series[4];
+  const colIdle = c.text;
+  const colCur = c.ink;
 
   const boxes = cands.map((cd, i) => {
     const st = run.status[i];
@@ -473,48 +471,45 @@ function NmsStepper({ c, narrow }: { c: VizColors; narrow: boolean }) {
   cands.forEach((cd, i) => {
     const st = run.status[i];
     const [x0, y0, x1, y1] = cd.box;
-    if (st === 'kept') chips.push(<Chip key={`k${i}`} x={x0} y={y0 - 17} text={`${NAMES[cd.kind]} ${cd.score.toFixed(2)}`} fill={c.pos} />);
-    if (st === 'current') chips.push(<Chip key={`c${i}`} x={x0} y={y0 - 17} text={`1등 #${i + 1} ${cd.score.toFixed(2)}`} fill={colCur} color="#2a2540" />);
-    // deleted look-alikes are shown by their red dashed outline; label only the boxes that survive despite overlapping
+    if (st === 'kept') chips.push(<Chip key={`k${i}`} x={x0} y={y0 - 17} text={`${NAMES[cd.kind]} ${cd.score.toFixed(2)}`} fill={c.pos} color={c.bg} />);
+    if (st === 'current') chips.push(<Chip key={`c${i}`} x={x0} y={y0 - 17} text={`1등 #${i + 1} ${cd.score.toFixed(2)}`} fill={colCur} color={c.bg} />);
+    // deleted look-alikes are shown by their dashed outline; label only the boxes that survive despite overlapping
     if (st === 'idle' && ious && ious[i] > 0.15 && ious[i] < thr) {
       const q = ious[i];
-      chips.push(<Chip key={`i${i}`} x={x1} y={y1 - 16} anchor="end" text={`IoU ${q.toFixed(2)}${q >= thr ? ' 삭제' : ' 남김'}`} fill={q >= thr ? c.neg : withAlpha(c.ink, 0.72)} />);
+      chips.push(<Chip key={`i${i}`} x={x1} y={y1 - 16} anchor="end" text={`IoU ${q.toFixed(2)}${q >= thr ? ' 삭제' : ' 남김'}`} fill={q >= thr ? c.neg : withAlpha(c.ink, 0.72)} color={c.bg} />);
     }
   });
 
-  let note: { text: ReactNode; mood: 'smile' | 'think' | 'wow' | 'cheer' | 'happy'; tone?: 'good' | 'bad' | 'warn' };
+  let note: { text: ReactNode; tone?: 'good' | 'bad' | 'warn' };
   if (!started)
     note = {
       text: (
         <>
-          후보 상자 {cands.length}개가 물체마다 우르르 겹쳐 있어요(탐지기 대신 만든 간이 후보예요). ▶ 시작이나 "한 걸음"을 눌러 NMS가 정리하는 걸 보세요.
+          후보 상자 {cands.length}개가 물체마다 여러 겹으로 겹쳐 있어요(탐지기 대신 만든 간이 후보예요). 시작이나 한 단계를 눌러 NMS가 정리하는 과정을 보세요.
         </>
-      ),
-      mood: 'smile'
+      )
     };
   else if (run.phase === 'suppress' && cur !== null) {
     const doomed = run.status.filter((s, i) => s === 'idle' && ious![i] >= thr).length;
     note = {
       text: (
         <>
-          남은 후보 중 확신도 1등(#{cur + 1}, {cands[cur].score.toFixed(2)})을 골랐어요. 이 상자와 IoU가 {thr.toFixed(2)} 이상인 <b style={{ color: c.neg }}>빨간 점선 {doomed}개</b>는 "같은 물체의 중복"으로 보고 지울 거예요.
+          남은 후보 중 확신도 1등(#{cur + 1}, {cands[cur].score.toFixed(2)})을 골랐어요. 이 상자와 IoU가 {thr.toFixed(2)} 이상인 <b style={{ color: c.neg }}>점선 상자 {doomed}개</b>는 같은 물체의 중복으로 보고 지워요.
         </>
-      ),
-      mood: 'think'
+      )
     };
-  } else if (run.phase === 'pick') note = { text: <>채택! 겹치던 {run.lastRemoved}개를 지웠어요. 남은 후보({nIdle}개) 중에서 다시 1등을 찾아요.</>, mood: 'happy' };
+  } else if (run.phase === 'pick') note = { text: <>1등 상자를 채택하고, 겹치던 {run.lastRemoved}개를 지웠어요. 남은 후보 {nIdle}개 중에서 다시 1등을 찾아요.</> };
   else if (found < TRUTHS.length)
     note = {
       text: (
         <>
-          물체를 놓쳤어요! 문턱이 {thr.toFixed(2)}로 너무 낮아서, 바짝 붙은 고양이와 강아지 상자(IoU ≈ 0.41)까지 "중복"으로 보고 지워 버렸어요.
+          물체를 놓쳤어요. 문턱({thr.toFixed(2)})이 너무 낮아서, 바짝 붙은 고양이와 강아지 상자(IoU ≈ 0.41)까지 중복으로 보고 지웠어요.
         </>
       ),
-      mood: 'wow',
       tone: 'bad'
     };
-  else if (dups > 0) note = { text: <>중복 상자 {dups}개가 살아남았어요. 문턱이 {thr.toFixed(2)}로 너무 높으면 꽤 겹친 상자도 "다른 물체"로 봐 줘요.</>, mood: 'think', tone: 'warn' };
-  else note = { text: <>🎉 물체 3개에 상자 3개! 후보 {cands.length}개가 깔끔하게 정리됐어요. 문턱을 0.3이나 0.8로 바꿔서도 해 보세요.</>, mood: 'cheer', tone: 'good' };
+  else if (dups > 0) note = { text: <>중복 상자 {dups}개가 남았어요. 문턱({thr.toFixed(2)})이 너무 높으면 꽤 겹친 상자도 다른 물체로 봐요.</>, tone: 'warn' };
+  else note = { text: <>물체 3개에 상자 3개가 남았어요. 후보 {cands.length}개가 깔끔하게 정리됐어요. 문턱을 0.3이나 0.8로 바꿔서도 해 보세요.</>, tone: 'good' };
 
   const side = (
     <>
@@ -553,12 +548,10 @@ function NmsStepper({ c, narrow }: { c: VizColors; narrow: boolean }) {
                 }}
               >
                 <span style={{ color: 'var(--text-3)', fontWeight: 800 }}>#{i + 1}</span>
-                <span style={{ fontWeight: 750 }}>
-                  {EMOJI[cd.kind]} {NAMES[cd.kind]}
-                </span>
+                <span style={{ fontWeight: 750 }}>{NAMES[cd.kind]}</span>
                 <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 800 }}>{cd.score.toFixed(2)}</span>
                 <span style={{ color, fontWeight: 850, fontSize: 11.5 }}>
-                  {st === 'kept' ? '✔ 채택' : st === 'current' ? '★ 1등' : st === 'removed' ? `✖ ${run.removedIou[i]!.toFixed(2)}` : doomed ? `삭제 예정 ${ious![i].toFixed(2)}` : '대기'}
+                  {st === 'kept' ? '채택' : st === 'current' ? '1등' : st === 'removed' ? `삭제 ${run.removedIou[i]!.toFixed(2)}` : doomed ? `삭제 예정 ${ious![i].toFixed(2)}` : '대기'}
                 </span>
               </div>
             );
@@ -576,6 +569,8 @@ function NmsStepper({ c, narrow }: { c: VizColors; narrow: boolean }) {
           <div className="vz-pad" style={{ display: 'grid', gap: 10 }}>
             <svg className="vz-svg" viewBox={`0 0 ${SW} ${SH}`} role="img" aria-label={`후보 상자 ${cands.length}개, 채택 ${nKept}개`} style={{ borderRadius: 14, border: '1px solid var(--border)', touchAction: 'pan-y' }}>
               <image href={photo} x={0} y={0} width={SW} height={SH} />
+              {/* dim the bright photo on the dark theme so the box colors stay legible */}
+              {c.theme === 'dark' && <rect width={SW} height={SH} fill={c.bg} opacity={0.38} />}
               {boxes}
               {chips}
             </svg>
@@ -598,15 +593,13 @@ function NmsStepper({ c, narrow }: { c: VizColors; narrow: boolean }) {
         side={side}
       />
       <div className="vz-pad" style={{ paddingTop: 0 }}>
-        <Note mood={note.mood} tone={note.tone}>
-          {note.text}
-        </Note>
+        <Note tone={note.tone}>{note.text}</Note>
       </div>
       <Controls>
         <Slider label="겹침 문턱 (IoU)" value={thr} min={0.3} max={0.8} step={0.05} onChange={setThr} format={(x) => x.toFixed(2)} hint="이 값 이상 겹치면 중복으로 보고 지워요" />
         <Toggle label="지운 상자도 흐리게 보기" checked={showRemoved} onChange={setShowRemoved} />
         <Button variant="ghost" onClick={() => setSeed((s) => s + 1)}>
-          🎲 새 후보
+          새 후보 만들기
         </Button>
       </Controls>
     </>
@@ -624,8 +617,8 @@ export default function IouNms(_props: VizProps) {
       <div className="vz-pad" style={{ paddingBottom: 0 }}>
         <Segmented
           options={[
-            { value: 'iou', label: '① IoU 재기' },
-            { value: 'nms', label: '② NMS로 정리하기' }
+            { value: 'iou', label: '1. IoU 재기' },
+            { value: 'nms', label: '2. NMS로 정리하기' }
           ]}
           value={tab}
           onChange={setTab}

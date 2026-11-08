@@ -3,9 +3,9 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { VizProps } from '../Viz';
 import { Scene3D, Label3D, Line } from '../core/three';
-import { Button, Controls, Note, Segmented } from '../core/ui';
+import { Button, Controls, Icon, Note, Segmented } from '../core/ui';
 import { useElementSize, useRafLoop, usePrefersReducedMotion } from '../core/hooks';
-import { useVizColors, withAlpha } from '../core/colors';
+import { mixHex, useVizColors, withAlpha } from '../core/colors';
 import { clamp, rng } from '../core/math';
 import { conv3, drawCat, hexToRgb, maxPool, paintMap, toGray } from './_draw';
 
@@ -23,12 +23,12 @@ interface LayerDef {
 const LAYERS: LayerDef[] = [
   { id: 'input', name: '입력 사진', short: '입력', spatial: 32, ch: 3, what: '픽셀 그대로예요. 빨강·초록·파랑 세 장이 겹쳐 있어요.', rf: 1, params: 0 },
   { id: 'conv1', name: '합성곱 1', short: '합성곱 1', spatial: 32, ch: 32, what: '3×3 픽셀만 보니까 방향별 모서리·색 대비·점 같은 원초적인 무늬를 찾아요.', rf: 3, params: 3 * 3 * 3 * 32 + 32 },
-  { id: 'pool1', name: '맥스 풀링', short: '풀링', spatial: 16, ch: 32, what: '2×2 구역에서 가장 큰 값만 남겨 크기를 절반으로. "이 근처에 무늬가 있었다"만 기억해요.', rf: 4, params: 0 },
-  { id: 'conv2', name: '합성곱 2', short: '합성곱 2', spatial: 16, ch: 64, what: '모서리들의 배치를 봐요: 모퉁이, 곡선, 줄무늬 같은 조합이에요.', rf: 8, params: 3 * 3 * 32 * 64 + 64 },
+  { id: 'pool1', name: '맥스 풀링', short: '풀링', spatial: 16, ch: 32, what: '2×2 구역에서 가장 큰 값만 남겨 크기를 절반으로 줄여요. "이 근처에 무늬가 있었다"만 기억해요.', rf: 4, params: 0 },
+  { id: 'conv2', name: '합성곱 2', short: '합성곱 2', spatial: 16, ch: 64, what: '모서리들의 배치를 봐요. 모퉁이, 곡선, 줄무늬 같은 조합이에요.', rf: 8, params: 3 * 3 * 32 * 64 + 64 },
   { id: 'pool2', name: '맥스 풀링', short: '풀링', spatial: 8, ch: 64, what: '한 번 더 절반으로 요약해요. 한 칸이 원래 사진의 더 넓은 곳을 대표해요.', rf: 10, params: 0 },
-  { id: 'conv3', name: '합성곱 3', short: '합성곱 3', spatial: 8, ch: 128, what: '이제 부품을 알아봐요: 눈, 귀, 수염처럼 "고양이의 부분"에 반응해요.', rf: 18, params: 3 * 3 * 64 * 128 + 128 },
+  { id: 'conv3', name: '합성곱 3', short: '합성곱 3', spatial: 8, ch: 128, what: '이제 부품을 알아봐요. 눈, 귀, 수염처럼 "고양이의 부분"에 반응해요.', rf: 18, params: 3 * 3 * 64 * 128 + 128 },
   { id: 'gap', name: '전역 평균 풀링', short: '평균', spatial: 1, ch: 128, what: '지도마다 평균을 내서 숫자 128개짜리 벡터로 만들어요. "어디에"는 지우고 "무엇이"만 남겨요.', rf: 32, params: 0 },
-  { id: 'fc', name: '분류기 (소프트맥스)', short: '출력', spatial: 1, ch: 10, what: '128개 숫자로 10가지 클래스의 확률을 내요. 5장의 그 출구예요!', rf: 32, params: 128 * 10 + 10 }
+  { id: 'fc', name: '분류기 (소프트맥스)', short: '출력', spatial: 1, ch: 10, what: '128개 숫자로 10가지 클래스의 확률을 내요. 5장에서 본 소프트맥스 출구와 같아요.', rf: 32, params: 128 * 10 + 10 }
 ];
 const CLASSES = [
   ['고양이', 0.86],
@@ -105,15 +105,15 @@ export default function CnnHierarchy3D({ expanded }: VizProps) {
     const r = rng(4);
     const gap = new Float32Array(128).map(() => r.next() ** 2);
     const base = hexToRgb(c.surface.startsWith('#') ? c.surface : '#ffffff');
-    const tone = (i: number) => hexToRgb(c.series[i]);
+    const hi = hexToRgb(c.series[0]);
     return {
       input: big,
-      conv1: paintMap(conv1, 32, base, tone(0), 4),
-      pool1: paintMap(pool1, 16, base, tone(0), 8),
-      conv2: paintMap(conv2, 16, base, tone(3), 8),
-      pool2: paintMap(pool2, 8, base, tone(3), 16),
-      conv3: paintMap(conv3m, 8, base, tone(2), 16),
-      gap: paintMap(gap, 128, base, tone(1), 1)
+      conv1: paintMap(conv1, 32, base, hi, 4),
+      pool1: paintMap(pool1, 16, base, hi, 8),
+      conv2: paintMap(conv2, 16, base, hi, 8),
+      pool2: paintMap(pool2, 8, base, hi, 16),
+      conv3: paintMap(conv3m, 8, base, hi, 16),
+      gap: paintMap(gap, 128, base, hi, 1)
     } as Record<string, HTMLCanvasElement>;
   }, [c.surface, c.series]);
 
@@ -129,10 +129,10 @@ export default function CnnHierarchy3D({ expanded }: VizProps) {
     return cv ? cv.toDataURL() : null;
   }, [maps, layer.id]);
 
-  let note: { text: string; mood: 'smile' | 'happy' | 'wow' | 'cheer'; tone?: 'good' };
-  if (playing) note = { text: `${LAYERS[Math.max(0, active)].name}: ${LAYERS[Math.max(0, active)].what}`, mood: 'wow' };
-  else if (t >= 1 && sel === LAYERS.length - 1) note = { text: '마지막엔 "고양이 86%"! 모서리 → 무늬 → 부품 → 고양이로, 층마다 점점 추상적인 표현이 자라났어요. 🎉', mood: 'cheer', tone: 'good' };
-  else note = { text: '판을 눌러 층마다 무엇을 보는지 확인해 보세요. 오른쪽으로 갈수록 판은 작아지고(공간↓) 두꺼워져요(채널↑). 판 위 무늬는 이해를 돕는 예시 지도예요.', mood: 'smile' };
+  let note: { text: string; tone?: 'good' };
+  if (playing) note = { text: `${LAYERS[Math.max(0, active)].name}: ${LAYERS[Math.max(0, active)].what}` };
+  else if (t >= 1 && sel === LAYERS.length - 1) note = { text: '마지막 층의 답은 "고양이 86%"예요. 모서리, 무늬, 부품, 고양이 순서로 층마다 더 추상적인 표현이 만들어졌어요.', tone: 'good' };
+  else note = { text: '판을 눌러 층마다 무엇을 보는지 확인해 보세요. 오른쪽으로 갈수록 판은 작아지고(공간↓) 두꺼워져요(채널↑). 판 위 무늬는 이해를 돕는 예시 지도예요.' };
 
   return (
     <div ref={box}>
@@ -142,7 +142,7 @@ export default function CnnHierarchy3D({ expanded }: VizProps) {
             <Slab key={l.id} index={i} def={l} map={maps[l.id]} selected={sel === i} lit={active === i} onSelect={() => setSel(i)} c={c} />
           ))}
           <ReceptiveField sel={sel} c={c} />
-          {playing && <Pulse t={t} color={c.series[2]} />}
+          {playing && <Pulse t={t} color={c.series[1]} />}
         </Scene3D>
       ) : (
         <div style={{ height: stageH }} />
@@ -155,11 +155,11 @@ export default function CnnHierarchy3D({ expanded }: VizProps) {
           )}
           {layer.id === 'fc' && (
             <div style={{ display: 'grid', gap: 3, width: 140 }}>
-              {CLASSES.slice(0, 4).map(([name, p]) => (
+              {CLASSES.slice(0, 4).map(([name, p], k) => (
                 <div key={name} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 750 }}>
                   <span style={{ width: 40 }}>{name}</span>
                   <span style={{ flex: 1, height: 8, borderRadius: 4, background: 'var(--surface-3)', overflow: 'hidden' }}>
-                    <span style={{ display: 'block', height: '100%', width: `${p * 100}%`, background: c.series[2] }} />
+                    <span style={{ display: 'block', height: '100%', width: `${p * 100}%`, background: k === 0 ? c.series[1] : c.series[0] }} />
                   </span>
                 </div>
               ))}
@@ -174,14 +174,16 @@ export default function CnnHierarchy3D({ expanded }: VizProps) {
             </div>
             <p style={{ margin: '6px 0 4px', fontSize: 14, color: 'var(--text-2)', lineHeight: 1.65 }}>{layer.what}</p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, fontSize: 12.5, fontWeight: 750, color: 'var(--text-3)' }}>
-              <span>👁️ 한 칸이 보는 범위: {layer.rf >= 32 ? '사진 전체' : `${layer.rf}×${layer.rf} 픽셀`}</span>
-              <span>🎛️ 학습할 숫자: {layer.params ? layer.params.toLocaleString() : '없음'}</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                <Icon name="eye" size={14} />한 칸이 보는 범위: {layer.rf >= 32 ? '사진 전체' : `${layer.rf}×${layer.rf} 픽셀`}
+              </span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                <Icon name="sliders" size={14} />학습할 숫자: {layer.params ? layer.params.toLocaleString() : '없음'}
+              </span>
             </div>
           </div>
         </div>
-        <Note mood={note.mood} tone={note.tone}>
-          {note.text}
-        </Note>
+        <Note tone={note.tone}>{note.text}</Note>
       </div>
 
       <Controls>
@@ -197,7 +199,7 @@ export default function CnnHierarchy3D({ expanded }: VizProps) {
             setSel(LAYERS.length - 1);
           }}
         >
-          ▶ 사진 한 장 통과시키기
+          <Icon name="play" size={16} />사진 한 장 통과시키기
         </Button>
         <Segmented label="층 고르기" options={LAYERS.map((l, i) => ({ value: i, label: l.short }))} value={sel} onChange={(v) => setSel(Number(v))} />
       </Controls>
@@ -235,8 +237,10 @@ function Slab({
     return t;
   }, [map, def.spatial]);
   useEffect(() => () => tex?.dispose(), [tex]);
-  const tint = c.series[index % 2 === 0 ? 0 : 3];
   const dark = c.theme === 'dark';
+  // convolution layers (odd slots) in blue, input / pooling / summary layers in a neutral grey
+  const tint = index % 2 === 1 ? c.series[0] : mixHex(c.text, c.bg, 0.35);
+  const top = c.series[1];
   const glow = selected || lit;
 
   if (isFc) {
@@ -256,11 +260,11 @@ function Slab({
               }}
             >
               <boxGeometry args={[bw, 0.18, 0.3]} />
-              <meshStandardMaterial color={k === 0 ? c.series[2] : tint} emissive={k === 0 ? c.series[2] : '#000000'} emissiveIntensity={glow && k === 0 ? 0.6 : dark ? 0.2 : 0} />
+              <meshStandardMaterial color={k === 0 ? top : tint} emissive={k === 0 ? top : '#000000'} emissiveIntensity={glow && k === 0 ? (dark ? 0.25 : 0.15) : dark ? 0.1 : 0} />
             </mesh>
           );
         })}
-        <Label3D position={[0.2, 1.6, 0]}>🐱 고양이 86%</Label3D>
+        <Label3D position={[0.2, 1.6, 0]}>고양이 86%</Label3D>
         <Label3D position={[0, -1.75, 0]}>{def.short}</Label3D>
       </group>
     );
@@ -278,7 +282,7 @@ function Slab({
         <boxGeometry args={[w, h, d]} />
         {[0, 1, 2, 3, 4, 5].map((face) =>
           face === 4 && tex ? (
-            <meshStandardMaterial key={face} attach={`material-${face}`} map={tex} emissive={glow ? tint : '#000000'} emissiveIntensity={glow ? 0.35 : 0} roughness={0.7} />
+            <meshStandardMaterial key={face} attach={`material-${face}`} map={tex} emissive={glow ? tint : '#000000'} emissiveIntensity={glow ? 0.12 : 0} roughness={0.7} />
           ) : (
             <meshStandardMaterial
               key={face}
@@ -287,7 +291,7 @@ function Slab({
               transparent
               opacity={dark ? 0.75 : 0.85}
               emissive={tint}
-              emissiveIntensity={glow ? 0.7 : dark ? 0.25 : 0.05}
+              emissiveIntensity={glow ? (dark ? 0.25 : 0.12) : dark ? 0.08 : 0.02}
               roughness={0.6}
             />
           )
@@ -296,7 +300,7 @@ function Slab({
       {glow && (
         <lineSegments>
           <edgesGeometry args={[new THREE.BoxGeometry(w + 0.04, h + 0.04, d + 0.04)]} />
-          <lineBasicMaterial color={dark ? '#ffffff' : c.ink} />
+          <lineBasicMaterial color={c.ink} />
         </lineSegments>
       )}
       <Label3D position={[0, -h / 2 - 0.35, d / 2]}>{def.short}</Label3D>
@@ -328,7 +332,7 @@ function ReceptiveField({ sel, c }: { sel: number; c: ReturnType<typeof useVizCo
   const target: [number, number, number] =
     def.id === 'gap' || def.id === 'fc' ? [tgt.cx, 0, z] : [tgt.cx - tw / 2 + (cxp / 32) * tw, tH / 2 - (cyp / 32) * tH, z];
   const sq: [number, number, number][] = [...corners, corners[0]].map(([x, y]) => [x, y, z] as [number, number, number]);
-  const color = c.series[2];
+  const color = c.series[1];
   return (
     <group>
       <Line points={sq} color={color} lineWidth={3.5} />
