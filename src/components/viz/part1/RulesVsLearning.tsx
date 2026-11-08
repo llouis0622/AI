@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import type { VizProps } from '../Viz';
-import { Button, Controls, Note, Segmented, Slider, Stat, Toggle } from '../core/ui';
+import { Button, Controls, Icon, Note, Segmented, Slider, Stat, Toggle } from '../core/ui';
+import type { IconName } from '@/components/ui/Icon';
 import { useElementSize, useRafLoop, usePrefersReducedMotion, useInView } from '../core/hooks';
 import { useVizColors, withAlpha } from '../core/colors';
 
@@ -126,16 +127,16 @@ export default function RulesVsLearning({ expanded }: VizProps) {
   const blocked = results.filter((r) => !r.m.spam && r.p).length;
   const acc = correct / results.length;
 
-  let note: { text: string; mood: 'smile' | 'happy' | 'wow' | 'think' | 'cheer'; tone?: 'good' | 'bad' | 'warn' };
+  let note: { text: string; tone?: 'good' | 'bad' | 'warn' };
   if (mode === 'rules') {
-    if (tricked && missed > 0) note = { text: `스패머가 수법을 바꿨어요! 😈 규칙에 없는 새 단어가 빠져나가요. 규칙을 더 켜 보세요 — 그런데 정상 메일까지 막히진 않을까요?`, mood: 'wow', tone: 'warn' };
-    else if (blocked > 0) note = { text: `정상 메일 ${blocked}통이 스팸함에 갇혔어요. 예를 들어 은행의 '대출' 안내도 막혀 버렸죠. 규칙 하나가 다른 메일을 망가뜨려요.`, mood: 'think', tone: 'warn' };
-    else if (missed > 0) note = { text: `스팸 ${missed}통이 받은편지함으로 들어왔어요. 아래에서 규칙을 하나씩 켜 보세요.`, mood: 'think' };
-    else note = { text: '지금은 완벽해요! 하지만 😈 버튼을 눌러 스패머가 수법을 바꾸면 어떻게 될까요?', mood: 'happy', tone: 'good' };
+    if (tricked && missed > 0) note = { text: '스패머가 수법을 바꿔서 규칙에 없는 새 단어가 빠져나가요. 규칙을 더 켜 보세요. 그러면 정상 메일까지 막히지는 않을까요?', tone: 'warn' };
+    else if (blocked > 0) note = { text: `정상 메일 ${blocked}통이 스팸함에 갇혔어요. 은행의 '대출' 안내처럼, 규칙 하나가 다른 메일까지 막아 버려요.`, tone: 'warn' };
+    else if (missed > 0) note = { text: `스팸 ${missed}통이 받은편지함으로 들어왔어요. 아래에서 규칙을 하나씩 켜 보세요.` };
+    else note = { text: '지금은 모두 맞혀요. "스패머가 수법 바꾸기"를 누르면 어떻게 될까요?', tone: 'good' };
   } else {
-    if (tricked && !retrained && missed > 0) note = { text: '새 수법에는 기계도 처음엔 속아요. 하지만 규칙을 고칠 필요 없이 "새 예시 보여 주기"만 누르면 스스로 고쳐요!', mood: 'think', tone: 'warn' };
-    else if (acc === 1) note = { text: `예시 ${n + (retrained ? TRICK_TRAIN.length : 0)}개만 보고 모두 맞혔어요! 🎉 사람이 쓴 규칙은 0개 — 단서는 기계가 데이터에서 찾았어요.`, mood: 'cheer', tone: 'good' };
-    else note = { text: '예시를 더 많이 보여 줄수록 기계가 찾는 단서가 정확해져요. 슬라이더를 오른쪽으로 밀어 보세요.', mood: 'smile' };
+    if (tricked && !retrained && missed > 0) note = { text: '새 수법에는 기계도 처음엔 속아요. 규칙을 고칠 필요 없이 "새 예시 보여 주기"를 누르면 스스로 고쳐요.', tone: 'warn' };
+    else if (acc === 1) note = { text: `예시 ${n + (retrained ? TRICK_TRAIN.length : 0)}개만 보고 모두 맞혔어요. 사람이 쓴 규칙은 0개이고, 단서는 기계가 데이터에서 찾았어요.`, tone: 'good' };
+    else note = { text: '예시를 더 많이 보여 줄수록 기계가 찾는 단서가 정확해져요. 슬라이더를 오른쪽으로 밀어 보세요.' };
   }
 
   const inbox = results.filter((r) => !r.p);
@@ -157,18 +158,16 @@ export default function RulesVsLearning({ expanded }: VizProps) {
           borderRadius: 10,
           background: 'var(--surface-solid)',
           border: `1.5px solid ${ok ? 'var(--border)' : c.neg}`,
-          boxShadow: ok ? 'none' : `0 0 0 3px ${withAlpha(c.neg, 0.15)}`,
+          boxShadow: ok ? 'none' : `0 0 0 2px ${withAlpha(c.neg, 0.15)}`,
           fontSize: 12.5,
           lineHeight: 1.35,
           transition: 'border-color .3s'
         }}
         title={r.m.spam ? '실제로는 스팸' : '실제로는 정상 메일'}
       >
-        <span aria-hidden="true">{r.m.spam ? '😈' : '🙂'}</span>
+        <Icon name={r.m.spam ? 'ban' : 'mail'} size={14} color={c.text} style={{ flex: 'none' }} />
         <span style={{ flex: 1, minWidth: 0 }}>{r.m.text}</span>
-        <span aria-label={ok ? '맞음' : '틀림'} style={{ fontWeight: 900, color: ok ? c.pos : c.neg }}>
-          {ok ? '✓' : '✗'}
-        </span>
+        <Icon name={ok ? 'check' : 'close'} size={15} color={ok ? c.pos : c.neg} strokeWidth={2.25} title={ok ? '맞음' : '틀림'} style={{ flex: 'none' }} />
       </li>
     );
   };
@@ -181,11 +180,12 @@ export default function RulesVsLearning({ expanded }: VizProps) {
       <div className="vz-pad" style={{ display: 'grid', gap: 12, paddingTop: 4 }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 10 }}>
           {[
-            { title: '📥 받은편지함', items: inbox },
-            { title: '🚫 스팸함', items: spambox }
+            { title: '받은편지함', icon: 'mail' as IconName, items: inbox },
+            { title: '스팸함', icon: 'ban' as IconName, items: spambox }
           ].map((col) => (
             <div key={col.title} style={{ padding: 10, borderRadius: 16, background: 'var(--surface-2)', border: '1px solid var(--border)', minHeight: expanded ? 260 : 150 }}>
               <div className="vz-panel-title" style={{ marginBottom: 8 }}>
+                <Icon name={col.icon} size={14} style={{ verticalAlign: '-2px', marginRight: 6 }} />
                 {col.title} · {col.items.length}통
               </div>
               <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 6 }}>{col.items.map(chip)}</ul>
@@ -224,7 +224,7 @@ export default function RulesVsLearning({ expanded }: VizProps) {
           </div>
         )}
 
-        <Note mood={note.mood} tone={note.tone}>
+        <Note tone={note.tone}>
           {note.text}
         </Note>
       </div>
@@ -233,8 +233,8 @@ export default function RulesVsLearning({ expanded }: VizProps) {
         <Segmented
           label="방법 고르기"
           options={[
-            { value: 'rules', label: '✍️ 규칙 직접 짜기' },
-            { value: 'learn', label: '🤖 예시로 배우기' }
+            { value: 'rules', label: '규칙 직접 짜기' },
+            { value: 'learn', label: '예시로 배우기' }
           ]}
           value={mode}
           onChange={(v) => setMode(v as 'rules' | 'learn')}
@@ -249,11 +249,18 @@ export default function RulesVsLearning({ expanded }: VizProps) {
           <Slider label="보여 준 예시 (메일 + 정답)" value={n} min={2} max={TRAIN.length} step={1} onChange={setN} format={(v) => `${v}개`} />
         )}
         <Button variant={tricked ? 'ghost' : 'danger'} onClick={() => { setTricked((t) => !t); setRetrained(false); }}>
-          {tricked ? '↺ 원래 스팸으로' : '😈 스패머가 수법을 바꿨다!'}
+          {tricked ? (
+            <>
+              <Icon name="reset" size={16} />
+              원래 스팸으로
+            </>
+          ) : (
+            '스패머가 수법 바꾸기'
+          )}
         </Button>
         {mode === 'learn' && tricked && (
           <Button variant="primary" onClick={() => setRetrained(true)} disabled={retrained}>
-            📚 새 예시 보여 주기
+            새 예시 보여 주기
           </Button>
         )}
       </Controls>
@@ -265,24 +272,23 @@ export default function RulesVsLearning({ expanded }: VizProps) {
 function FlowDiagram({ mode, phase, narrow }: { mode: 'rules' | 'learn'; phase: number; narrow: boolean }) {
   const c = useVizColors();
   const rules = mode === 'rules';
-  const inA = rules ? { e: '📜', t: '규칙' } : { e: '✉️', t: '데이터' };
-  const inB = rules ? { e: '✉️', t: '데이터' } : { e: '✅', t: '정답' };
-  const mid = rules ? { e: '⚙️', t: '프로그램' } : { e: '🤖', t: '머신러닝' };
-  const out = rules ? { e: '✅', t: '답' } : { e: '📜', t: '규칙(모델)' };
-  const accent = rules ? c.series[3] : c.series[0];
+  type Item = { icon: IconName; t: string };
+  const inA: Item = rules ? { icon: 'file', t: '규칙' } : { icon: 'mail', t: '데이터' };
+  const inB: Item = rules ? { icon: 'mail', t: '데이터' } : { icon: 'check-square', t: '정답' };
+  const mid: Item = rules ? { icon: 'settings', t: '프로그램' } : { icon: 'bot', t: '머신러닝' };
+  const out: Item = rules ? { icon: 'check-square', t: '답' } : { icon: 'file', t: '규칙(모델)' };
+  const accent = rules ? c.series[1] : c.series[0];
   // geometry: wide (640) or compact phone layout (360)
   const g = narrow
     ? { W: 360, H: 150, inX: 4, inW: 92, inY: [30, 90], midX: 126, midW: 104, outX: 262, outW: 94, bh: 52, emoji: 18, font: 11.5 }
     : { W: 640, H: 150, inX: 10, inW: 110, inY: [30, 92], midX: 254, midW: 132, outX: 516, outW: 116, bh: 56, emoji: 20, font: 12.5 };
   const midY = (g.inY[0] + g.inY[1] + g.bh) / 2 - g.bh / 2;
   const cy = midY + g.bh / 2;
-  const box = (x: number, y: number, w: number, item: { e: string; t: string }, strong = false) => (
+  const box = (x: number, y: number, w: number, item: Item, strong = false) => (
     <g transform={`translate(${x} ${y})`}>
-      <rect width={w} height={g.bh} rx={15} fill={strong ? withAlpha(accent, 0.16) : 'var(--surface-solid)'} stroke={strong ? accent : 'var(--border-strong)'} strokeWidth={strong ? 2.5 : 1.5} />
-      <text x={w / 2} y={g.bh * 0.44} textAnchor="middle" style={{ fontSize: g.emoji }}>
-        {item.e}
-      </text>
-      <text x={w / 2} y={g.bh * 0.82} textAnchor="middle" style={{ fontSize: g.font, fontWeight: 800, fill: 'var(--text)' }}>
+      <rect width={w} height={g.bh} rx={15} fill={strong ? withAlpha(accent, 0.12) : 'var(--surface-solid)'} stroke={strong ? accent : 'var(--border-strong)'} strokeWidth={strong ? 2 : 1.5} />
+      <Icon name={item.icon} x={w / 2 - g.emoji / 2} y={g.bh * 0.44 - g.emoji * 0.85} size={g.emoji} color={strong ? accent : c.text} strokeWidth={1.75} />
+      <text x={w / 2} y={g.bh * 0.82} textAnchor="middle" style={{ fontSize: g.font, fontWeight: 750, fill: 'var(--text)' }}>
         {item.t}
       </text>
     </g>
@@ -312,7 +318,7 @@ function FlowDiagram({ mode, phase, narrow }: { mode: 'rules' | 'learn'; phase: 
         {dot(inR, g.inY[0] + g.bh / 2, g.midX - 4, cy - 3, 0)}
         {dot(inR, g.inY[1] + g.bh / 2, g.midX - 4, cy + 3, 0.5)}
         {box(g.midX, midY, g.midW, mid, true)}
-        <line x1={g.midX + g.midW + 4} y1={cy} x2={arrowEnd} y2={cy} stroke={accent} strokeWidth={2.5} />
+        <line x1={g.midX + g.midW + 4} y1={cy} x2={arrowEnd} y2={cy} stroke={accent} strokeWidth={2} />
         <path d={`M${arrowEnd} ${cy - 7} L${arrowEnd + 12} ${cy} L${arrowEnd} ${cy + 7} Z`} fill={accent} />
         {dot(g.midX + g.midW + 4, cy, arrowEnd, cy, 0.25)}
         {box(g.outX, midY, g.outW, out, !rules)}

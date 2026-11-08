@@ -15,12 +15,12 @@ const PRESETS: { label: string; a: V; b: V }[] = [
   { label: '비슷한 방향', a: [2, 1], b: [1.5, 1.5] }
 ];
 
-function mood(cos: number): { label: string; emoji: string } {
-  if (cos > 0.7) return { label: '아주 닮았어요', emoji: '😍' };
-  if (cos > 0.2) return { label: '조금 닮았어요', emoji: '🙂' };
-  if (cos > -0.2) return { label: '서로 상관없어요', emoji: '😐' };
-  if (cos > -0.7) return { label: '조금 반대예요', emoji: '🙁' };
-  return { label: '정반대예요', emoji: '😠' };
+function likeness(cos: number): string {
+  if (cos > 0.7) return '아주 닮았어요';
+  if (cos > 0.2) return '조금 닮았어요';
+  if (cos > -0.2) return '서로 상관없어요';
+  if (cos > -0.7) return '조금 반대예요';
+  return '정반대예요';
 }
 
 /** Drag two arrows; the dot product, angle and cosine similarity update live. */
@@ -37,7 +37,7 @@ export default function DotProduct({ expanded }: VizProps) {
   const nb = Math.hypot(...b);
   const cos = na > 1e-9 && nb > 1e-9 ? clamp(dot / (na * nb), -1, 1) : 0;
   const ang = (Math.acos(cos) * 180) / Math.PI;
-  const m = mood(cos);
+  const m = likeness(cos);
   // projection of b onto a
   const t = na > 1e-9 ? dot / (na * na) : 0;
   const pb: V = [a[0] * t, a[1] * t];
@@ -123,11 +123,11 @@ export default function DotProduct({ expanded }: VizProps) {
                   )}
                   {proj && na > 1e-9 && nb > 1e-9 && (
                     <g>
-                      <line x1={x(b[0])} y1={y(b[1])} x2={x(pb[0])} y2={y(pb[1])} strokeWidth={1.8} strokeDasharray="4 4" style={{ stroke: 'var(--lemon)' }} />
-                      <line x1={x(0)} y1={y(0)} x2={x(pb[0])} y2={y(pb[1])} strokeWidth={12} strokeLinecap="round" opacity={0.6} style={{ stroke: 'var(--lemon)' }} />
+                      <line x1={x(b[0])} y1={y(b[1])} x2={x(pb[0])} y2={y(pb[1])} stroke={c.series[1]} strokeWidth={1.5} strokeDasharray="4 4" />
+                      <line x1={x(0)} y1={y(0)} x2={x(pb[0])} y2={y(pb[1])} stroke={c.series[1]} strokeWidth={12} strokeLinecap="round" opacity={0.35} />
                     </g>
                   )}
-                  {na > 1e-9 && nb > 1e-9 && <polyline points={arcPts.join(' ')} fill="none" stroke={c.series[4]} strokeWidth={2.5} />}
+                  {na > 1e-9 && nb > 1e-9 && <polyline points={arcPts.join(' ')} fill="none" stroke={c.text} strokeWidth={2} />}
                   {arrow(a, c.series[0], 'a')}
                   {arrow(b, c.series[1], 'b')}
                 </g>
@@ -141,50 +141,45 @@ export default function DotProduct({ expanded }: VizProps) {
         <div style={{ padding: '10px 14px', borderRadius: 14, background: 'var(--surface-2)', border: '1px solid var(--border)', fontSize: 15, fontWeight: 700, textAlign: 'center', lineHeight: 1.8 }}>
           a · b = <span style={{ color: c.series[0] }}>{f1(a[0])}</span>×<span style={{ color: c.series[1] }}>{f1(b[0])}</span> + <span style={{ color: c.series[0] }}>{f1(a[1])}</span>×<span style={{ color: c.series[1] }}>{f1(b[1])}</span> ={' '}
           <strong style={{ fontSize: 20 }}>{fmt(dot, 2)}</strong>
-          <div style={{ fontSize: 12.5, fontWeight: 650, color: 'var(--text-2)' }}>같은 자리 숫자끼리 곱해서 모두 더하면 내적!</div>
+          <div style={{ fontSize: 12.5, fontWeight: 650, color: 'var(--text-2)' }}>같은 자리 숫자끼리 곱해서 모두 더한 값이 내적이에요.</div>
         </div>
 
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 750, color: 'var(--text-3)', marginBottom: 4 }}>
-            <span>😠 정반대 (-1)</span>
-            <span>😐 상관없음 (0)</span>
-            <span>😍 같은 방향 (+1)</span>
+            <span>정반대 (-1)</span>
+            <span>상관없음 (0)</span>
+            <span>같은 방향 (+1)</span>
           </div>
           <div style={{ position: 'relative', height: 16, borderRadius: 99, background: `linear-gradient(90deg, ${c.neg}, var(--surface-3), ${c.pos})` }}>
             <div
               style={{
                 position: 'absolute',
-                top: -7,
-                left: `calc(${((cos + 1) / 2) * 100}% - 15px)`,
-                width: 30,
-                height: 30,
+                top: -3,
+                left: `calc(${((cos + 1) / 2) * 100}% - 11px)`,
+                width: 22,
+                height: 22,
                 borderRadius: '50%',
                 background: 'var(--surface-solid)',
-                border: '2px solid var(--border-strong)',
-                display: 'grid',
-                placeItems: 'center',
-                fontSize: 17,
+                border: '2px solid var(--text)',
                 transition: 'left .2s'
               }}
               aria-hidden="true"
-            >
-              {m.emoji}
-            </div>
+            />
           </div>
         </div>
 
         <div className="vz-stats">
           <Stat label="내적 a·b" value={fmt(dot, 2)} tone="brand" />
           <Stat label="사이 각도" value={`${ang.toFixed(0)}°`} />
-          <Stat label="코사인 유사도" value={fmt(cos, 2)} tone={cos > 0.2 ? 'good' : cos < -0.2 ? 'bad' : undefined} sub={m.label} />
+          <Stat label="코사인 유사도" value={fmt(cos, 2)} tone={cos > 0.2 ? 'good' : cos < -0.2 ? 'bad' : undefined} sub={m} />
         </div>
-        <Note mood={cos > 0.7 ? 'happy' : cos < -0.7 ? 'wow' : 'think'}>
+        <Note>
           {Math.abs(cos) < 0.05
-            ? '직각이면 내적이 0! 두 화살표는 서로 "상관없는" 방향이에요.'
+            ? '직각이면 내적이 0이에요. 두 화살표는 서로 "상관없는" 방향이에요.'
             : cos > 0
               ? '같은 쪽을 가리킬수록 내적이 커져요. 그래서 내적으로 "두 단어의 뜻이 비슷한가"를 잴 수 있어요.'
               : '반대 쪽을 가리키면 내적이 음수가 돼요.'}{' '}
-          노란 막대는 b가 a 방향으로 드리운 "그림자"예요 — 내적 = |a| × 그림자 길이.
+          굵은 반투명 막대는 b가 a 방향으로 드리운 그림자이고, 내적은 |a| × 그림자 길이예요.
         </Note>
       </div>
 
