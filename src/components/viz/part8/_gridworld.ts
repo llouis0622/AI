@@ -7,7 +7,6 @@ export const ACTIONS = [
   [0, 1],
   [-1, 0]
 ] as const; // up, right, down, left
-export const ARROWS = ['↑', '→', '↓', '←'];
 
 export interface World {
   w: number;

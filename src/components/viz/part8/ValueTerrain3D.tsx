@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { VizProps } from '../Viz';
 import { Scene3D, Label3D } from '../core/three';
-import { Button, Controls, Note, PlayBar, Slider, Stat, Toggle } from '../core/ui';
+import { Button, Controls, Icon, Note, PlayBar, Slider, Stat, Toggle } from '../core/ui';
 import { useInterval } from '../core/hooks';
 import { useVizColors, mixHex } from '../core/colors';
 import { fmt, rng } from '../core/math';
@@ -21,6 +21,17 @@ const CONE_ROT: [number, number, number][] = [
   [0, 0, Math.PI / 2]
 ];
 
+/** Relative luminance of a #rrggbb color (0 = black, 1 = white). */
+function luminance(hex: string): number {
+  const m = hex.trim().match(/^#([0-9a-f]{6})$/i);
+  if (!m) return 0;
+  const [r, g, b] = [0, 2, 4].map((i) => {
+    const v = parseInt(m[1].slice(i, i + 2), 16) / 255;
+    return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
 /**
  * Q-learning seen as a landscape: each free cell is a column whose height is its
  * value V(s) = max Q(s, a). Value starts at the gem and spreads backwards one cell
@@ -31,7 +42,7 @@ export default function ValueTerrain3D({ expanded }: VizProps) {
   const dark = c.theme === 'dark';
   const world = useMemo(() => parseWorld(DEFAULT_ROWS), []);
   const Q = useRef(new Float64Array(world.w * world.h * 4));
-  // seed 42 finds the gem by episode 9 and lifts the start by ~52: two ⚡ presses tell the story
+  // seed 42 finds the gem by episode 9 and lifts the start by ~52: two presses of "50판 한 번에" tell the story
   const rand = useRef(rng(42).next);
   const pos = useRef(world.start);
   const ep = useRef({ steps: 0, reward: 0, pendingReset: false });
@@ -139,20 +150,27 @@ export default function ValueTerrain3D({ expanded }: VizProps) {
   const cx = (s: number) => (s % world.w) - (world.w - 1) / 2;
   const cz = (s: number) => Math.floor(s / world.w) - (world.h - 1) / 2;
   const heightOf = (v: number) => Math.max(0.06, Math.min(1.2, Math.abs(v)) * HMAX);
-  const tile = dark ? '#2b3470' : '#f7efe3';
+  // neutral board: tiles and walls are greys taken from the theme; only value is colored
+  const slab = mixHex(c.panel, c.ink, dark ? 0.05 : 0.08);
+  const tile = mixHex(c.panel, c.ink, dark ? 0.13 : 0.03);
+  const wall = mixHex(c.panel, c.ink, dark ? 0.3 : 0.5);
   const colorOf = (v: number) =>
     Math.abs(v) < 1e-6 ? tile : mixHex(tile, v > 0 ? c.pos : c.neg, 0.25 + 0.75 * Math.min(1, Math.abs(v)));
-  const coneColor = dark ? '#f4f1ff' : '#2a2540';
+  // arrowheads switch between a dark and a light ink so they stay readable on any column color
+  const inkDark = dark ? c.bg : c.ink;
+  const inkLight = dark ? c.ink : c.bg;
+  const coneColorOf = (v: number) => (luminance(colorOf(v)) > 0.18 ? inkDark : inkLight);
+  const gemColor = mixHex(c.pos, dark ? c.ink : c.bg, 0.35);
   const boxGeom = useMemo(() => new THREE.BoxGeometry(0.86, 1, 0.86), []);
 
-  let note: { t: ReactNode; mood: 'smile' | 'happy' | 'think' | 'wow' | 'cheer'; tone?: 'good' | 'warn' };
-  if (demo) note = { t: '배운 대로만 움직여요. 늘 주변에서 가장 높은 칸 쪽 화살표를 따라 산을 올라가요.', mood: 'happy' };
-  else if (eps >= 0.8) note = { t: <>모험심(ε)이 너무 크면 배운 길을 거의 쓰지 않아요. 산은 솟아도 로봇은 <strong>엉뚱한 곳</strong>을 헤매요.</>, mood: 'wow', tone: 'warn' };
-  else if (gamma < 0.6 && history.length > 30) note = { t: <>γ가 작으면 산이 <strong>뾰족</strong>해져요. 보석 근처만 높고 조금만 멀어져도 가치가 0에 가까워져서, 출발점에서는 어디로 갈지 잘 몰라요.</>, mood: 'think' };
-  else if (vStart > 0.25) note = { t: <>산이 출발점 🏁까지 이어졌어요! 🎉 이제 로봇은 <strong>더 높은 칸으로 오르기만</strong> 하면 보석에 닿아요. <strong>🏃 배운 대로 가 보기</strong>를 눌러 보세요.</>, mood: 'cheer', tone: 'good' };
-  else if (firstGoalAt !== null) note = { t: <>💎 {firstGoalAt}번째 판에서 보석을 처음 찾았어요! 보석 바로 옆 칸부터 땅이 솟아요. 가치는 보석에서 <strong>한 칸씩 거꾸로</strong> 퍼져 나가요.</>, mood: 'wow', tone: 'good' };
-  else if (history.length > 0 || ep.current.steps > 0) note = { t: '로봇이 이리저리 돌아다니며 배우는 중이에요. 🔥에 빠지면 -1, 💎를 찾으면 +1. 보상을 받을 때마다 바로 앞 칸의 높이가 조금씩 바뀌어요.', mood: 'think' };
-  else note = { t: <>지금은 땅이 평평해요. 로봇이 아직 어느 칸이 좋은지 몰라서 모든 칸의 가치가 0이거든요. <strong>▶ 시작</strong>이나 <strong>⚡ 50판 순식간에</strong>를 눌러 보세요!</>, mood: 'smile' };
+  let note: { t: ReactNode; tone?: 'good' | 'warn' };
+  if (demo) note = { t: '학습한 대로만 움직여요. 주변에서 가장 높은 칸 쪽 화살표를 따라 산을 올라가요.' };
+  else if (eps >= 0.8) note = { t: <>모험심(ε)이 너무 크면 배운 길을 거의 쓰지 않아요. 산은 솟아도 로봇은 <strong>엉뚱한 곳</strong>을 헤매요.</>, tone: 'warn' };
+  else if (gamma < 0.6 && history.length > 30) note = { t: <>γ가 작으면 산이 <strong>뾰족</strong>해져요. 보석 근처만 높고 조금만 멀어져도 가치가 0에 가까워져서, 출발점에서는 어디로 갈지 잘 몰라요.</> };
+  else if (vStart > 0.25) note = { t: <>산이 출발점까지 이어졌어요. 이제 로봇은 <strong>더 높은 칸으로 오르기만</strong> 하면 보석에 닿아요. <strong>학습한 대로 이동</strong>을 눌러 보세요.</>, tone: 'good' };
+  else if (firstGoalAt !== null) note = { t: <>{firstGoalAt}번째 판에서 보석을 처음 찾았어요. 보석 바로 옆 칸부터 땅이 솟고, 가치는 보석에서 <strong>한 칸씩 거꾸로</strong> 퍼져 나가요.</>, tone: 'good' };
+  else if (history.length > 0 || ep.current.steps > 0) note = { t: '로봇이 이리저리 돌아다니며 배우는 중이에요. 함정에 빠지면 -1, 보석을 찾으면 +1을 받고, 그때마다 바로 앞 칸의 높이가 조금씩 바뀌어요.' };
+  else note = { t: <>지금은 땅이 평평해요. 로봇이 아직 어느 칸이 좋은지 몰라서 모든 칸의 가치가 0이에요. <strong>시작</strong>이나 <strong>50판 한 번에</strong>를 눌러 보세요.</> };
 
   const robotCell = pos.current;
   const robotY = (world.cells[robotCell] === '.' ? heightOf(V[robotCell]) : world.cells[robotCell] === 'G' ? HMAX : 0.04) + 0.26;
@@ -162,7 +180,7 @@ export default function ValueTerrain3D({ expanded }: VizProps) {
       <Scene3D height={stageH} camera={[-4.4, 5.8, 6.8]} target={[0.2, 0.8, -0.2]} minDistance={4.5} maxDistance={20}>
         <mesh position={[0, -0.09, 0]}>
           <boxGeometry args={[world.w + 0.4, 0.12, world.h + 0.4]} />
-          <meshStandardMaterial color={dark ? '#1b2150' : '#e9dcc8'} roughness={0.8} />
+          <meshStandardMaterial color={slab} roughness={0.8} />
         </mesh>
 
         {world.cells.map((cell, s) => {
@@ -172,7 +190,7 @@ export default function ValueTerrain3D({ expanded }: VizProps) {
             return (
               <mesh key={s} position={[x, 0.36, z]}>
                 <boxGeometry args={[0.9, 0.72, 0.9]} />
-                <meshStandardMaterial color={dark ? '#3a4380' : '#6d6685'} roughness={0.7} />
+                <meshStandardMaterial color={wall} roughness={0.7} />
               </mesh>
             );
           if (cell === 'F')
@@ -180,9 +198,9 @@ export default function ValueTerrain3D({ expanded }: VizProps) {
               <group key={s}>
                 <mesh position={[x, 0.01, z]}>
                   <boxGeometry args={[0.86, 0.06, 0.86]} />
-                  <meshStandardMaterial color={c.neg} emissive={c.neg} emissiveIntensity={dark ? 0.8 : 0.45} />
+                  <meshStandardMaterial color={c.neg} emissive={c.neg} emissiveIntensity={dark ? 0.2 : 0.08} />
                 </mesh>
-                <Label3D position={[x, 0.55, z]}>🔥 -1</Label3D>
+                <Label3D position={[x, 0.55, z]}>함정 -1</Label3D>
               </group>
             );
           if (cell === 'G')
@@ -190,10 +208,10 @@ export default function ValueTerrain3D({ expanded }: VizProps) {
               <group key={s}>
                 <mesh position={[x, HMAX / 2, z]}>
                   <boxGeometry args={[0.86, HMAX, 0.86]} />
-                  <meshStandardMaterial color={c.pos} emissive={c.pos} emissiveIntensity={dark ? 0.35 : 0.12} roughness={0.4} />
+                  <meshStandardMaterial color={c.pos} emissive={c.pos} emissiveIntensity={dark ? 0.15 : 0.06} roughness={0.4} />
                 </mesh>
-                <Gem position={[x, HMAX + 0.45, z]} />
-                <Label3D position={[x, HMAX + 1.0, z]}>💎 +1</Label3D>
+                <Gem position={[x, HMAX + 0.45, z]} color={gemColor} emissive={dark ? 0.2 : 0.08} />
+                <Label3D position={[x, HMAX + 1.0, z]}>보석 +1</Label3D>
               </group>
             );
           const v = V[s];
@@ -207,13 +225,13 @@ export default function ValueTerrain3D({ expanded }: VizProps) {
               color={colorOf(v)}
               geometry={boxGeom}
               arrow={arrows && known ? argmaxQ(Q.current, s, () => 0) : -1}
-              arrowColor={coneColor}
+              arrowColor={coneColorOf(v)}
             />
           );
         })}
 
-        <Label3D position={[cx(world.start), heightOf(vStart) + 0.75, cz(world.start)]}>🏁 출발</Label3D>
-        <Robot target={[cx(robotCell), robotY, cz(robotCell)]} color={c.series[0]} />
+        <Label3D position={[cx(world.start), heightOf(vStart) + 0.75, cz(world.start)]}>출발</Label3D>
+        <Robot target={[cx(robotCell), robotY, cz(robotCell)]} color={c.ink} />
       </Scene3D>
 
       <div className="vz-pad" style={{ display: 'grid', gap: 12 }}>
@@ -233,16 +251,16 @@ export default function ValueTerrain3D({ expanded }: VizProps) {
           onSpeed={setSpeed}
           extra={
             <>
-              <Button onClick={() => runEpisodes(50)}>⚡ 50판 순식간에</Button>
+              <Button onClick={() => runEpisodes(50)}>
+                <Icon name="fast" size={16} />50판 한 번에
+              </Button>
               <Button onClick={startDemo} disabled={demo}>
-                🏃 배운 대로 가 보기
+                <Icon name="route" size={16} />학습한 대로 이동
               </Button>
             </>
           }
         />
-        <Note mood={note.mood} tone={note.tone}>
-          {note.t}
-        </Note>
+        <Note tone={note.tone}>{note.t}</Note>
         <div className="vz-stats">
           <Stat label="에피소드(판)" value={history.length} />
           <Stat label="최근 20판 성공률" value={`${Math.round(success * 100)}%`} tone={success > 0.7 ? 'good' : undefined} />
@@ -251,8 +269,8 @@ export default function ValueTerrain3D({ expanded }: VizProps) {
       </div>
 
       <Controls>
-        <Slider label="할인율 γ (참을성)" value={gamma} min={0.3} max={0.99} step={0.01} onChange={setGamma} format={(v) => v.toFixed(2)} accent="var(--mint)" />
-        <Slider label="탐색 ε (모험심)" value={eps} min={0} max={1} step={0.05} onChange={setEps} format={(v) => v.toFixed(2)} accent="var(--peach)" />
+        <Slider label="할인율 γ (참을성)" value={gamma} min={0.3} max={0.99} step={0.01} onChange={setGamma} format={(v) => v.toFixed(2)} />
+        <Slider label="탐색 ε (모험심)" value={eps} min={0} max={1} step={0.05} onChange={setEps} format={(v) => v.toFixed(2)} accent="var(--accent-2)" />
         <Toggle label="배운 방향(화살표) 보기" checked={arrows} onChange={setArrows} />
       </Controls>
     </div>
@@ -307,7 +325,7 @@ function Column({
   );
 }
 
-function Gem({ position }: { position: [number, number, number] }) {
+function Gem({ position, color, emissive }: { position: [number, number, number]; color: string; emissive: number }) {
   const ref = useRef<THREE.Mesh>(null);
   useFrame((state) => {
     if (!ref.current) return;
@@ -317,7 +335,7 @@ function Gem({ position }: { position: [number, number, number] }) {
   return (
     <mesh ref={ref} position={position}>
       <octahedronGeometry args={[0.28, 0]} />
-      <meshStandardMaterial color="#5ad1ff" emissive="#2fb6ff" emissiveIntensity={0.6} roughness={0.15} metalness={0.3} />
+      <meshStandardMaterial color={color} emissive={color} emissiveIntensity={emissive} roughness={0.15} metalness={0.3} />
     </mesh>
   );
 }
@@ -337,11 +355,7 @@ function Robot({ target, color }: { target: [number, number, number]; color: str
     <group ref={ref} position={target}>
       <mesh>
         <sphereGeometry args={[0.2, 28, 28]} />
-        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.5} roughness={0.25} />
-      </mesh>
-      <mesh>
-        <sphereGeometry args={[0.36, 20, 20]} />
-        <meshBasicMaterial color={color} transparent opacity={0.16} depthWrite={false} />
+        <meshStandardMaterial color={color} roughness={0.35} />
       </mesh>
     </group>
   );

@@ -1,16 +1,34 @@
 import { useRef, useState, type ReactNode } from 'react';
 import type { VizProps } from '../Viz';
-import { Button, Controls, Note, Segmented, Slider, Stat, Toggle } from '../core/ui';
+import { Button, Controls, Icon, Note, Segmented, Slider, Stat, Toggle } from '../core/ui';
+import type { IconName } from '@/components/ui/Icon';
 import { MiniChart } from '../core/plot';
 import { useInterval, usePrefersReducedMotion } from '../core/hooks';
 import { useVizColors, mixHex } from '../core/colors';
 import { fmt, rng } from '../core/math';
-import { ARROWS, DEFAULT_ROWS, argmaxQ, chooseAction, envStep, isTerminal, maxQ, parseWorld, qUpdate, type Cell, type World } from './_gridworld';
+import { ACTIONS, DEFAULT_ROWS, argmaxQ, chooseAction, envStep, isTerminal, maxQ, parseWorld, qUpdate, type Cell, type World } from './_gridworld';
 
 type Speed = 'slow' | 'normal' | 'fast';
 type Brush = 'none' | '#' | 'F' | 'G' | 'S';
 const MAX_EP_STEPS = 50;
 const CS = 64;
+
+/** The greedy action as a thin arrow (shaft and open head) centred on (cx, cy). */
+function arrowPath(cx: number, cy: number, a: number) {
+  const [dx, dy] = ACTIONS[a];
+  const L = 11;
+  const h = 6.5;
+  const tx = cx + dx * L;
+  const ty = cy + dy * L;
+  return `M${cx - dx * L} ${cy - dy * L}L${tx} ${ty}M${tx - dx * h - dy * h} ${ty - dy * h + dx * h}L${tx} ${ty}L${tx - dx * h + dy * h} ${ty - dy * h - dx * h}`;
+}
+
+const brushLabel = (icon: IconName, text: string) => (
+  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+    <Icon name={icon} size={14} />
+    {text}
+  </span>
+);
 
 export default function GridworldQ({ expanded }: VizProps) {
   const c = useVizColors();
@@ -150,27 +168,28 @@ export default function GridworldQ({ expanded }: VizProps) {
   const ry = Math.floor(pos.current / world.w);
   const animate = !reduce && speed !== 'fast';
   const dark = c.theme === 'dark';
+  const base = c.surface.startsWith('#') ? c.surface : '#ffffff';
 
   const cellFill = (s: number) => {
     const cell = world.cells[s];
-    if (cell === '#') return dark ? '#2a3366' : '#5b5570';
-    if (cell === 'G') return mixHex(c.surface.startsWith('#') ? c.surface : '#ffffff', c.pos, 0.35);
-    if (cell === 'F') return mixHex(c.surface.startsWith('#') ? c.surface : '#ffffff', c.neg, 0.3);
+    if (cell === '#') return mixHex(base, c.ink, dark ? 0.16 : 0.1);
+    if (cell === 'G') return mixHex(base, c.pos, 0.3);
+    if (cell === 'F') return mixHex(base, c.neg, 0.26);
     const v = V[s];
-    const base = c.surface.startsWith('#') ? c.surface : '#ffffff';
     return v >= 0 ? mixHex(base, c.pos, Math.min(1, v) * 0.75) : mixHex(base, c.neg, Math.min(1, -v) * 0.75);
   };
+  const cellStroke = (cell: Cell) => (cell === 'G' ? c.pos : cell === 'F' ? c.neg : 'var(--border)');
 
-  let note: { t: ReactNode; mood: 'smile' | 'happy' | 'think' | 'wow' | 'cheer'; tone?: 'good' | 'warn' | 'bad' };
-  if (brush !== 'none') note = { t: '칸을 눌러 지도를 바꿔 보세요. 지도가 바뀌면 로봇은 처음부터 다시 배워요.', mood: 'smile' };
-  else if (demo) note = { t: '배운 대로만(가치가 가장 큰 화살표를 따라) 움직여요. 탐색 없이!', mood: 'happy' };
-  else if (eps === 0) note = { t: <>탐색을 0으로 하면 <strong>아는 길만</strong> 가요. 처음엔 아는 게 없어서 같은 곳만 맴돌거나, 더 좋은 길을 영영 못 찾을 수 있어요.</>, mood: 'think', tone: 'warn' };
-  else if (eps >= 0.9) note = { t: <>거의 <strong>무작위로만</strong> 움직여요. 배운 걸 써먹지 못하니 보석에 잘 못 가요. 탐색과 활용의 균형이 중요해요!</>, mood: 'wow', tone: 'warn' };
-  else if (gamma < 0.5 && history.length > 30) note = { t: <>γ가 작으면 멀리 있는 보석의 가치가 거의 0이 돼서, 출발점까지 <strong>가치가 잘 퍼지지 않아요</strong>.</>, mood: 'think' };
-  else if (vStart > 0.25) note = { t: <>가치가 보석에서 <strong>한 칸씩 거꾸로</strong> 퍼져 출발점까지 왔어요! 🎉 화살표만 따라가면 보석이에요. <strong>🏃 배운 대로 가 보기</strong>를 눌러 보세요.</>, mood: 'cheer', tone: 'good' };
-  else if (firstGoalAt !== null) note = { t: <>💎 {firstGoalAt}번째 판에서 처음으로 보석을 찾았어요! 이제 <strong>보석 바로 옆 칸</strong>부터 가치(초록색)가 올라가요. 계속 지켜보세요.</>, mood: 'wow', tone: 'good' };
-  else if (history.length > 0 || ep.current.steps > 0) note = { t: '로봇은 아직 아무것도 몰라요. 무작위로 돌아다니며 보상을 찾는 중… 🔥에 빠지면 -1, 💎를 찾으면 +1!', mood: 'think' };
-  else note = { t: <>로봇 🤖이 시행착오로 💎까지 가는 길을 배워요. 정답은 아무도 안 알려 줘요 — <strong>보상만</strong> 있어요. <strong>▶ 시작</strong>을 눌러 보세요.</>, mood: 'smile' };
+  let note: { t: ReactNode; tone?: 'good' | 'warn' | 'bad' };
+  if (brush !== 'none') note = { t: '칸을 눌러 지도를 바꿔 보세요. 지도가 바뀌면 로봇은 처음부터 다시 배워요.' };
+  else if (demo) note = { t: '탐색 없이, 학습한 대로만(가치가 가장 큰 화살표를 따라) 움직여요.' };
+  else if (eps === 0) note = { t: <>탐색을 0으로 하면 <strong>아는 길만</strong> 가요. 처음엔 아는 게 없어서 같은 곳만 맴돌거나, 더 좋은 길을 영영 못 찾을 수 있어요.</>, tone: 'warn' };
+  else if (eps >= 0.9) note = { t: <>거의 <strong>무작위로만</strong> 움직여요. 배운 것을 써먹지 못해서 보석에 잘 닿지 못해요. 탐색과 활용 사이의 균형이 중요해요.</>, tone: 'warn' };
+  else if (gamma < 0.5 && history.length > 30) note = { t: <>γ가 작으면 멀리 있는 보석의 가치가 거의 0이 돼서, 출발점까지 <strong>가치가 잘 퍼지지 않아요</strong>.</> };
+  else if (vStart > 0.25) note = { t: <>가치가 보석에서 <strong>한 칸씩 거꾸로</strong> 퍼져 출발점까지 왔어요. 이제 화살표만 따라가면 보석에 닿아요. <strong>학습한 대로 이동</strong>을 눌러 보세요.</>, tone: 'good' };
+  else if (firstGoalAt !== null) note = { t: <>{firstGoalAt}번째 판에서 처음으로 보석을 찾았어요. 이제 <strong>보석 바로 옆 칸</strong>부터 가치(파란색)가 올라가요.</>, tone: 'good' };
+  else if (history.length > 0 || ep.current.steps > 0) note = { t: '로봇은 아직 아무것도 몰라서 무작위로 돌아다니며 보상을 찾고 있어요. 함정에 빠지면 -1, 보석을 찾으면 +1이에요.' };
+  else note = { t: <>로봇이 시행착오로 보석까지 가는 길을 배워요. 정답은 아무도 알려 주지 않고 <strong>보상</strong>만 있어요. <strong>시작</strong>을 눌러 보세요.</> };
 
   return (
     <div>
@@ -186,54 +205,54 @@ export default function GridworldQ({ expanded }: VizProps) {
             {world.cells.map((cell, s) => {
               const x = (s % world.w) * CS;
               const y = Math.floor(s / world.w) * CS;
+              const mx = x + CS / 2;
+              const my = y + CS / 2;
               const free = cell === '.';
               const v = V[s];
               const known = free && Math.abs(v) > 1e-6;
               const a = known ? argmaxQ(Q.current, s, () => 0) : -1;
               return (
                 <g key={s} onClick={() => paint(s)} style={{ cursor: brush !== 'none' ? 'pointer' : 'default' }}>
-                  <rect x={x + 1.5} y={y + 1.5} width={CS - 3} height={CS - 3} rx={10} fill={cellFill(s)} stroke="var(--border)" style={{ transition: 'fill .3s' }} />
-                  {cell === 'G' && (
-                    <text x={x + CS / 2} y={y + CS / 2 + 10} textAnchor="middle" style={{ fontSize: 28 }}>
-                      💎
-                    </text>
-                  )}
-                  {cell === 'F' && (
-                    <text x={x + CS / 2} y={y + CS / 2 + 10} textAnchor="middle" style={{ fontSize: 26 }}>
-                      🔥
-                    </text>
-                  )}
-                  {cell === '#' && (
-                    <text x={x + CS / 2} y={y + CS / 2 + 9} textAnchor="middle" style={{ fontSize: 22, opacity: 0.85 }}>
-                      🧱
-                    </text>
-                  )}
+                  <rect
+                    x={x + 1.5}
+                    y={y + 1.5}
+                    width={CS - 3}
+                    height={CS - 3}
+                    rx={10}
+                    fill={cellFill(s)}
+                    stroke={cellStroke(cell)}
+                    strokeWidth={cell === 'G' || cell === 'F' ? 1.5 : 1}
+                    style={{ transition: 'fill .3s' }}
+                  />
+                  {cell === 'G' && <Icon name="gem" x={mx - 14} y={my - 14} size={28} color={c.pos} />}
+                  {cell === 'F' && <Icon name="flame" x={mx - 13} y={my - 13} size={26} color={c.neg} />}
+                  {cell === '#' && <Icon name="brick" x={mx - 12} y={my - 12} size={24} color={c.text} />}
                   {known && (
-                    <text x={x + CS / 2} y={y + CS / 2 + (showValues ? 2 : 9)} textAnchor="middle" style={{ fontSize: 24, fontWeight: 900, fill: v >= 0 ? (dark ? '#d8fff2' : '#1d6e57') : dark ? '#ffd0d9' : '#9b2335', opacity: 0.35 + 0.65 * Math.min(1, Math.abs(v) * 2) }}>
-                      {ARROWS[a]}
-                    </text>
+                    <path
+                      d={arrowPath(mx, my - (showValues ? 6 : 0), a)}
+                      fill="none"
+                      stroke={c.ink}
+                      strokeWidth={2.25}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      opacity={0.35 + 0.65 * Math.min(1, Math.abs(v) * 2)}
+                    />
                   )}
                   {showValues && free && (
-                    <text x={x + CS / 2} y={y + CS - 8} textAnchor="middle" style={{ fontSize: 11, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>
+                    <text x={mx} y={y + CS - 8} textAnchor="middle" style={{ fontSize: 11, fontWeight: 700, fontVariantNumeric: 'tabular-nums', fill: c.ink }}>
                       {fmt(v, 2)}
                     </text>
                   )}
-                  {s === world.start && (
-                    <text x={x + 9} y={y + 17} style={{ fontSize: 12 }}>
-                      🏁
-                    </text>
-                  )}
+                  {s === world.start && <Icon name="flag" x={x + 6} y={y + 6} size={13} color={c.text} />}
                 </g>
               );
             })}
             {ep.current.trail.slice(-24).map((s, i, arr) => (
-              <circle key={`t${i}`} cx={(s % world.w) * CS + CS / 2} cy={Math.floor(s / world.w) * CS + CS / 2} r={4} fill={c.series[0]} opacity={0.15 + (0.5 * i) / arr.length} />
+              <circle key={`t${i}`} cx={(s % world.w) * CS + CS / 2} cy={Math.floor(s / world.w) * CS + CS / 2} r={3.5} fill={c.ink} opacity={0.12 + (0.45 * i) / arr.length} />
             ))}
             <g style={{ transform: `translate(${rx * CS + CS / 2}px, ${ry * CS + CS / 2}px)`, transition: animate ? 'transform .13s ease-out' : undefined }}>
-              <circle r={21} fill={c.series[0]} opacity={0.18} />
-              <text y={10} textAnchor="middle" style={{ fontSize: 28 }}>
-                🤖
-              </text>
+              <circle r={19} fill={c.surface} stroke={c.ink} strokeWidth={1.75} />
+              <Icon name="bot" x={-11} y={-11} size={22} color={c.ink} />
             </g>
           </svg>
 
@@ -250,24 +269,25 @@ export default function GridworldQ({ expanded }: VizProps) {
             </div>
           </div>
         </div>
-        <Note mood={note.mood} tone={note.tone}>
-          {note.t}
-        </Note>
+        <Note tone={note.tone}>{note.t}</Note>
       </div>
 
       <Controls>
         <Button variant="primary" onClick={() => { setDemo(false); setPlaying((p) => !p); }}>
-          {playing ? '❚❚ 멈춤' : '▶ 시작'}
+          <Icon name={playing ? 'pause' : 'play'} size={16} />
+          {playing ? '멈춤' : '시작'}
         </Button>
         <Button onClick={() => { const r: { r: number; steps: number }[] = []; stepOnce(false, r); commit(r); }} disabled={playing || demo}>
-          한 걸음 ⟶
+          <Icon name="step" size={16} />한 걸음
         </Button>
-        <Button onClick={() => runEpisodes(50)}>⚡ 50판 순식간에</Button>
+        <Button onClick={() => runEpisodes(50)}>
+          <Icon name="fast" size={16} />50판 한 번에
+        </Button>
         <Button onClick={startDemo} disabled={demo}>
-          🏃 배운 대로 가 보기
+          <Icon name="route" size={16} />학습한 대로 이동
         </Button>
         <Button variant="ghost" onClick={() => { setPlaying(false); resetLearning(); }}>
-          ↺ 기억 지우기
+          <Icon name="reset" size={16} />기억 지우기
         </Button>
         <Segmented
           label="속도"
@@ -279,18 +299,18 @@ export default function GridworldQ({ expanded }: VizProps) {
           value={speed}
           onChange={(v) => setSpeed(v as Speed)}
         />
-        <Slider label="탐색 ε (모험심)" value={eps} min={0} max={1} step={0.05} onChange={setEps} format={(v) => v.toFixed(2)} accent="var(--peach)" />
-        <Slider label="할인율 γ (참을성)" value={gamma} min={0.1} max={0.99} step={0.01} onChange={setGamma} format={(v) => v.toFixed(2)} accent="var(--mint)" />
+        <Slider label="탐색 ε (모험심)" value={eps} min={0} max={1} step={0.05} onChange={setEps} format={(v) => v.toFixed(2)} accent="var(--accent-2)" />
+        <Slider label="할인율 γ (참을성)" value={gamma} min={0.1} max={0.99} step={0.01} onChange={setGamma} format={(v) => v.toFixed(2)} />
         <Slider label="학습률 α" value={alpha} min={0.05} max={1} step={0.05} onChange={setAlpha} format={(v) => v.toFixed(2)} />
         <Toggle label="가치 숫자 보기" checked={showValues} onChange={setShowValues} />
         <Segmented
           label="지도 고치기"
           options={[
             { value: 'none', label: '보기' },
-            { value: '#', label: '🧱 벽' },
-            { value: 'F', label: '🔥 함정' },
-            { value: 'G', label: '💎 보석' },
-            { value: 'S', label: '🏁 출발' }
+            { value: '#', label: brushLabel('brick', '벽') },
+            { value: 'F', label: brushLabel('flame', '함정') },
+            { value: 'G', label: brushLabel('gem', '보석') },
+            { value: 'S', label: brushLabel('flag', '출발') }
           ]}
           value={brush}
           onChange={(v) => setBrush(v as Brush)}
