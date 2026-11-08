@@ -15,10 +15,10 @@ const X_DOMAIN: [number, number] = [-3, 9];
 const Y_MAX = 30;
 
 const PRESETS = [
-  { value: 0.05, label: '🐢 아주 작게' },
-  { value: 0.3, label: '👍 적당히' },
-  { value: 0.85, label: '↔️ 크게' },
-  { value: 1.05, label: '🚀 너무 크게' }
+  { value: 0.05, label: '아주 작게' },
+  { value: 0.3, label: '적당히' },
+  { value: 0.85, label: '크게' },
+  { value: 1.05, label: '너무 크게' }
 ];
 
 /** One-dimensional valley: watch the step size (learning rate) decide slow / smooth / zigzag / divergence. */
@@ -67,12 +67,12 @@ export default function LearningRate1D({ expanded }: VizProps) {
   const curve = linspace(X_DOMAIN[0], X_DOMAIN[1], 120).map((x) => [x, loss(x)] as [number, number]);
   const losses = path.map(loss);
 
-  let note: { text: string; mood: 'smile' | 'happy' | 'wow' | 'think' | 'cheer'; tone?: 'good' | 'bad' | 'warn' };
-  if (diverged) note = { text: '발산! 🚀 보폭이 너무 커서 골짜기를 건너뛸 때마다 반대편 벽의 더 높은 곳에 떨어졌어요. 오차가 오히려 폭발해요.', mood: 'wow', tone: 'bad' };
-  else if (converged) note = { text: `바닥 도착! 🎉 ${path.length - 1}걸음 걸렸어요. 다른 학습률로도 몇 걸음 걸리는지 비교해 보세요.`, mood: 'cheer', tone: 'good' };
-  else if (lr > 0.5 && path.length > 2) note = { text: '지그재그! ↔️ 보폭이 커서 바닥을 지나쳐 반대편으로 갔다가 돌아와요. 그래도 점점 바닥에 가까워지고 있어요.', mood: 'think', tone: 'warn' };
-  else if (lr < 0.1 && path.length > 6) note = { text: '보폭이 너무 작아서 거북이처럼 느려요 🐢 — 발산은 안 하지만, 바닥까지 한참 걸려요.', mood: 'think' };
-  else note = { text: '공은 발밑의 기울기(초록 선)만 보고, 내리막 쪽으로 "학습률 × 기울기"만큼 점프해요.', mood: 'smile' };
+  let note: { text: string; tone?: 'good' | 'bad' | 'warn' };
+  if (diverged) note = { text: '발산했어요. 보폭이 너무 커서 골짜기를 건너뛸 때마다 반대편 벽의 더 높은 곳에 떨어지고, 오차가 오히려 커져요.', tone: 'bad' };
+  else if (converged) note = { text: `${path.length - 1}걸음 만에 바닥에 도착했어요. 다른 학습률로도 몇 걸음 걸리는지 비교해 보세요.`, tone: 'good' };
+  else if (lr > 0.5 && path.length > 2) note = { text: '보폭이 커서 바닥을 지나쳐 반대편으로 갔다가 돌아오는 지그재그가 생겨요. 그래도 점점 바닥에 가까워지고 있어요.', tone: 'warn' };
+  else if (lr < 0.1 && path.length > 6) note = { text: '보폭이 너무 작아서 느려요. 발산하지는 않지만 바닥까지 한참 걸려요.' };
+  else note = { text: '공은 발밑의 기울기(접선)만 보고, 내리막 쪽으로 "학습률 × 기울기"만큼 점프해요.' };
 
   return (
     <div>
@@ -101,26 +101,26 @@ export default function LearningRate1D({ expanded }: VizProps) {
                       key={i}
                       d={`M${x(w0)},${y(clampY(loss(w0)))} Q${x((w0 + w1) / 2)},${y(clampY(cy * 1.0))} ${x(w1)},${y(clampY(loss(w1)))}`}
                       fill="none"
-                      stroke={c.series[2]}
-                      strokeWidth={2}
+                      stroke={c.series[1]}
+                      strokeWidth={1.5}
                       strokeDasharray="5 4"
-                      opacity={0.85}
+                      opacity={0.7}
                     />
                   );
                 })}
                 {path.slice(0, -1).map((pw, i) => (
-                  <circle key={i} cx={x(pw)} cy={y(clampY(loss(pw)))} r={4} fill={c.series[2]} />
+                  <circle key={i} cx={x(pw)} cy={y(clampY(loss(pw)))} r={4} fill={c.series[1]} opacity={0.7} />
                 ))}
                 {/* tangent at current point */}
                 {showTangent && !diverged && prog >= 1 && (
                   <g>
-                    <line x1={x(w - 1.2)} x2={x(w + 1.2)} y1={y(loss(w) - slope(w) * 1.2)} y2={y(loss(w) + slope(w) * 1.2)} stroke={c.series[1]} strokeWidth={3} strokeLinecap="round" />
+                    <line x1={x(w - 1.2)} x2={x(w + 1.2)} y1={y(loss(w) - slope(w) * 1.2)} y2={y(loss(w) + slope(w) * 1.2)} stroke={c.ink} strokeWidth={2.5} strokeLinecap="round" />
                     {Math.abs(slope(w)) > 0.02 && (
                       <g>
-                        <line x1={x(w)} x2={x(w - lr * slope(w))} y1={y(0) - 12} y2={y(0) - 12} stroke={c.series[3]} strokeWidth={3} />
+                        <line x1={x(w)} x2={x(w - lr * slope(w))} y1={y(0) - 12} y2={y(0) - 12} stroke={c.series[1]} strokeWidth={2.5} />
                         <path
                           d={`M${x(w - lr * slope(w))},${y(0) - 12} l${slope(w) > 0 ? 9 : -9},-6 l0,12 Z`}
-                          fill={c.series[3]}
+                          fill={c.series[1]}
                         />
                       </g>
                     )}
@@ -128,14 +128,14 @@ export default function LearningRate1D({ expanded }: VizProps) {
                 )}
                 <line x1={x(W_STAR)} x2={x(W_STAR)} y1={y(0)} y2={y(L0)} stroke={c.pos} strokeWidth={2} strokeDasharray="3 3" />
               </g>
-              <circle cx={x(Math.max(X_DOMAIN[0], Math.min(X_DOMAIN[1], ax)))} cy={y(clampY(ay))} r={11} fill={c.series[4]} stroke={c.surface} strokeWidth={3} />
+              <circle cx={x(Math.max(X_DOMAIN[0], Math.min(X_DOMAIN[1], ax)))} cy={y(clampY(ay))} r={11} fill={c.series[1]} stroke={c.surface} strokeWidth={3} />
               {showTangent && !diverged && prog >= 1 && Math.abs(slope(w)) > 0.02 && (
-                <text x={x(w - (lr * slope(w)) / 2)} y={y(0) - 22} textAnchor="middle" style={{ fontSize: 12, fontWeight: 800, fill: c.series[3] }}>
+                <text x={x(w - (lr * slope(w)) / 2)} y={y(0) - 22} textAnchor="middle" style={{ fontSize: 12, fontWeight: 750, fill: c.series[1] }}>
                   한 걸음 = 학습률 × 기울기
                 </text>
               )}
               <text x={x(W_STAR) + 6} y={y(0) - 6} textAnchor="start" style={{ fontSize: 11.5, fontWeight: 800, fill: c.pos }}>
-                🏁 바닥
+                바닥
               </text>
             </g>
           )}
@@ -153,18 +153,18 @@ export default function LearningRate1D({ expanded }: VizProps) {
           speed={speed}
           onSpeed={setSpeed}
         />
-        <Note mood={note.mood} tone={note.tone}>
+        <Note tone={note.tone}>
           {note.text}
         </Note>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, alignItems: 'start' }}>
           <div className="vz-stats">
             <Stat label="걸음 수" value={path.length - 1} />
-            <Stat label="오차" value={diverged ? '폭발!' : fmt(loss(w), 2)} tone={diverged ? 'bad' : converged ? 'good' : 'brand'} />
+            <Stat label="오차" value={diverged ? '발산' : fmt(loss(w), 2)} tone={diverged ? 'bad' : converged ? 'good' : 'brand'} />
             <Stat label="기울기" value={diverged ? '—' : fmt(slope(w), 2)} />
           </div>
           <div>
             <div className="vz-panel-title">걸음마다 오차</div>
-            <MiniChart series={[losses.map((v) => Math.min(v, 60))]} colors={[c.series[2]]} height={120} xLabel="걸음" />
+            <MiniChart series={[losses.map((v) => Math.min(v, 60))]} colors={[c.series[0]]} height={120} xLabel="걸음" />
           </div>
         </div>
       </div>

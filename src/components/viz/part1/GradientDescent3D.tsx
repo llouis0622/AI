@@ -3,7 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { VizProps } from '../Viz';
 import { Scene3D, Surface, Contours, Ball, Arrow3D, Label3D, DomainAxes, Line, makeMapper } from '../core/three';
-import { Controls, Segmented, Slider, Stat, Note, PlayBar, Toggle, Button } from '../core/ui';
+import { Controls, Segmented, Slider, Stat, Note, PlayBar, Toggle, Button, Icon } from '../core/ui';
 import { MiniChart, Plot, linePath } from '../core/plot';
 import { useInterval } from '../core/hooks';
 import { useVizColors } from '../core/colors';
@@ -146,16 +146,16 @@ export default function GradientDescent3D({ expanded }: VizProps) {
   const slope = (w * s) / 10;
   const intercept = b - 2 * w * s;
 
-  let note: { text: string; mood: 'smile' | 'happy' | 'wow' | 'think' | 'cheer'; tone?: 'good' | 'bad' | 'warn' };
-  if (diverged) note = { text: '발산했어요! 🚀 보폭(학습률)이 너무 커서 공이 골짜기를 건너뛸 때마다 더 높이 튀어 올랐어요. 학습률을 줄이고 ↺ 처음으로를 눌러 보세요.', mood: 'wow', tone: 'bad' };
-  else if (converged) note = { text: `골짜기 바닥 도착! 🎉 ${path.length - 1}걸음 만에 오차가 ${fmt(L, 3)}까지 줄었어요. 이게 바로 "학습"이에요.`, mood: 'cheer', tone: 'good' };
-  else if (zigzag) note = { text: '지그재그! 보폭이 커서 골짜기 양쪽 벽을 왔다 갔다 해요. 그래도 조금씩 바닥으로 가고 있어요.', mood: 'think', tone: 'warn' };
-  else if (path.length > 60 && lr < 0.05) note = { text: '보폭이 너무 작아서 한참 걸려요… 🐢 학습률을 키우면 더 빨라져요.', mood: 'think' };
-  else if (path.length === 1) note = { text: '지형 위 아무 곳이나 클릭해서 공을 놓거나, ▶ 시작을 눌러 보세요. 화살표는 "발밑에서 가장 가파른 내리막"이에요.', mood: 'smile' };
-  else note = { text: '공은 발밑의 경사(화살표)만 보고, 그 방향으로 학습률만큼 한 걸음씩 내려가요.', mood: 'happy' };
+  let note: { text: string; tone?: 'good' | 'bad' | 'warn' };
+  if (diverged) note = { text: '발산했어요. 보폭(학습률)이 너무 커서 공이 골짜기를 건너뛸 때마다 더 높이 튀어 올랐어요. 학습률을 줄이고 "처음으로"를 눌러 보세요.', tone: 'bad' };
+  else if (converged) note = { text: `골짜기 바닥에 도착했어요. ${path.length - 1}걸음 만에 오차가 ${fmt(L, 3)}까지 줄었고, 이 과정이 "학습"이에요.`, tone: 'good' };
+  else if (zigzag) note = { text: '보폭이 커서 골짜기 양쪽 벽을 지그재그로 오가요. 그래도 조금씩 바닥으로 가고 있어요.', tone: 'warn' };
+  else if (path.length > 60 && lr < 0.05) note = { text: '보폭이 너무 작아서 한참 걸려요. 학습률을 키우면 더 빨라져요.' };
+  else if (path.length === 1) note = { text: '지형 위 아무 곳이나 클릭해 공을 놓거나 "시작"을 눌러 보세요. 화살표는 발밑에서 가장 가파른 내리막 방향이에요.' };
+  else note = { text: '공은 발밑의 경사(화살표)만 보고, 그 방향으로 학습률만큼 한 걸음씩 내려가요.' };
 
   if (shape === 'valley' && path.length === 1) {
-    note = { text: '길쭉한 골짜기에서는 같은 학습률도 위험할 수 있어요. "적당히"로 시작해 보고, 왜 그런지 생각해 보세요 (힌트: 11장).', mood: 'think', tone: 'warn' };
+    note = { text: '길쭉한 골짜기에서는 같은 학습률도 위험할 수 있어요. "적당히"로 시작해 보고, 왜 그런지 생각해 보세요(힌트: 11장).', tone: 'warn' };
   }
 
   return (
@@ -164,22 +164,25 @@ export default function GradientDescent3D({ expanded }: VizProps) {
         <Scene3D height={stageH} camera={[8.5, 8.2, 11]} target={[0, 1.2, 0]} maxDistance={26}>
           <CameraRig top={topView} />
           <Surface fn={f} mapper={mapper} maxH={maxH} onPick={(u, v) => reset([u, v])} />
-          <Contours fn={f} mapper={mapper} levels={levels} color={c.theme === 'dark' ? '#7fe9ff' : '#7c6cf6'} floorY={0.01} opacity={0.45} />
-          <DomainAxes mapper={mapper} uLabel="w (기울기)" vLabel="b (절편)" hLabel="오차(손실)" hMax={maxH * 1.04} color={c.theme === 'dark' ? '#b4c3ff' : '#5b5570'} />
-          {scenePts.length > 1 && <Line points={scenePts} color={c.series[2]} lineWidth={3.5} />}
-          {floorPts.length > 1 && <Line points={floorPts} color={c.series[2]} lineWidth={2} dashed dashSize={0.15} gapSize={0.1} transparent opacity={0.7} />}
+          <Contours fn={f} mapper={mapper} levels={levels} color={c.text} floorY={0.01} opacity={0.4} />
+          <DomainAxes mapper={mapper} uLabel="w (기울기)" vLabel="b (절편)" hLabel="오차(손실)" hMax={maxH * 1.04} color={c.text} />
+          {scenePts.length > 1 && <Line points={scenePts} color={c.series[1]} lineWidth={3} />}
+          {floorPts.length > 1 && <Line points={floorPts} color={c.series[1]} lineWidth={2} dashed dashSize={0.15} gapSize={0.1} transparent opacity={0.6} />}
           {scenePts.slice(0, -1).map((p, i) => (
             <mesh key={i} position={p}>
               <sphereGeometry args={[0.07, 12, 12]} />
-              <meshBasicMaterial color={c.series[2]} />
+              <meshBasicMaterial color={c.series[1]} />
             </mesh>
           ))}
-          <AnimatedBall target={ballPos} color={c.series[0]} />
-          {arrow && <Arrow3D from={arrow.from} to={arrow.to} color={c.series[1]} width={4} head={0.3} />}
+          <AnimatedBall target={ballPos} color={c.series[1]} />
+          {arrow && <Arrow3D from={arrow.from} to={arrow.to} color={c.ink} width={3} head={0.3} />}
           {showMin && (
             <group>
-              <Line points={[mapper.toScene(wStar, B_STAR, 0), mapper.toScene(wStar, B_STAR, Lstar + 6)]} color={c.pos} lineWidth={2} />
-              <Label3D position={mapper.toScene(wStar, B_STAR, Lstar + 7)}>🏁 가장 낮은 곳</Label3D>
+              <Line points={[mapper.toScene(wStar, B_STAR, 0), mapper.toScene(wStar, B_STAR, Lstar + 6)]} color={c.ink} lineWidth={2} />
+              <Label3D position={mapper.toScene(wStar, B_STAR, Lstar + 7)}>
+                <Icon name="flag" size={13} style={{ verticalAlign: '-2px', marginRight: 4 }} />
+                가장 낮은 곳
+              </Label3D>
             </group>
           )}
         </Scene3D>
@@ -197,7 +200,7 @@ export default function GradientDescent3D({ expanded }: VizProps) {
           speed={speed}
           onSpeed={setSpeed}
         />
-        <Note mood={note.mood} tone={note.tone}>
+        <Note tone={note.tone}>
           {note.text}
         </Note>
         <div className="vz-stats">
@@ -228,7 +231,7 @@ export default function GradientDescent3D({ expanded }: VizProps) {
           </div>
           <div>
             <div className="vz-panel-title">걸음마다 오차가 어떻게 변했나</div>
-            <MiniChart series={[losses.map((v) => Math.min(v, 60))]} colors={[c.series[2]]} height={170} xLabel="걸음" />
+            <MiniChart series={[losses.map((v) => Math.min(v, 60))]} colors={[c.series[0]]} height={170} xLabel="걸음" />
           </div>
         </div>
       </div>
@@ -248,7 +251,7 @@ export default function GradientDescent3D({ expanded }: VizProps) {
         <Toggle label="위에서 보기" checked={topView} onChange={setTopView} />
         <Toggle label="정답 위치 보기" checked={showMin} onChange={setShowMin} />
         <Button size="sm" variant="ghost" onClick={() => reset([wStar + (Math.random() * 2 - 1) * 3.6, B_STAR + (Math.random() * 2 - 1) * 3.6])}>
-          🎲 무작위 출발
+          무작위 출발
         </Button>
       </Controls>
     </div>
@@ -267,7 +270,7 @@ function AnimatedBall({ target, color }: { target: [number, number, number]; col
   });
   return (
     <group ref={ref} position={target}>
-      <Ball position={[0, 0, 0]} color={color} radius={0.24} />
+      <Ball position={[0, 0, 0]} color={color} radius={0.24} glow={false} />
     </group>
   );
 }

@@ -1,18 +1,19 @@
 import { useRef, useState } from 'react';
 import type { VizProps } from '../Viz';
-import { Button, Controls, Legend, Note, Toggle } from '../core/ui';
+import { Button, Controls, Icon, Legend, Note, Toggle } from '../core/ui';
+import type { IconName } from '@/components/ui/Icon';
 import { useElementSize, useInView, usePrefersReducedMotion, useRafLoop } from '../core/hooks';
 import { useVizColors, withAlpha } from '../core/colors';
 
 type Tool = 'vec' | 'prob' | 'diff';
 type NodeId = 'data' | 'model' | 'loss' | 'grad' | 'update';
 
-const NODES: { id: NodeId; emoji: string; title: string; sub: string; tools: Tool[]; where: string; text: string }[] = [
-  { id: 'data', emoji: '📦', title: '데이터', sub: '벡터·행렬', tools: ['vec'], where: '이 장 1절', text: '세상의 모든 것을 숫자 묶음(벡터)으로 바꿔요. 집 한 채 = (평수, 방 개수, 역까지 거리, 층). 여러 채를 쌓으면 행렬이 돼요.' },
-  { id: 'model', emoji: '🧮', title: '모델', sub: '행렬 곱 → 확률', tools: ['vec', 'prob'], where: '이 장 1절·3절', text: '행렬 곱(내적을 한꺼번에)으로 점수를 계산하고, 그 점수를 확률로 바꿔 답해요. 예: "고양이 85%, 개 12%".' },
-  { id: 'loss', emoji: '📉', title: '손실', sub: '최대가능도로 채점', tools: ['prob'], where: '이 장 3절', text: '정답에 얼마나 높은 확률을 줬는지로 채점해요. 이 채점법은 아무렇게나 정한 게 아니라 "최대가능도" 원리에서 나와요.' },
-  { id: 'grad', emoji: '🔍', title: '기울기', sub: '연쇄법칙으로 민감도', tools: ['diff'], where: '이 장 2절', text: '파라미터를 살짝 바꾸면 손실이 얼마나 변하는지(민감도)를 전부 계산해요. 층이 여러 겹이어도 연쇄법칙(곱셈)으로 척척!' },
-  { id: 'update', emoji: '👣', title: '갱신', sub: '기울기 반대로 한 걸음', tools: ['diff'], where: '2장', text: '기울기의 반대 방향으로 학습률만큼 파라미터를 옮겨요. 그리고 다시 모델로 — 이렇게 한 바퀴 돌 때마다 조금씩 똑똑해져요.' }
+const NODES: { id: NodeId; icon: IconName; title: string; sub: string; tools: Tool[]; where: string; text: string }[] = [
+  { id: 'data', icon: 'box', title: '데이터', sub: '벡터·행렬', tools: ['vec'], where: '이 장 1절', text: '세상의 모든 것을 숫자 묶음(벡터)으로 바꿔요. 집 한 채 = (평수, 방 개수, 역까지 거리, 층). 여러 채를 쌓으면 행렬이 돼요.' },
+  { id: 'model', icon: 'sigma', title: '모델', sub: '행렬 곱 → 확률', tools: ['vec', 'prob'], where: '이 장 1절·3절', text: '행렬 곱(내적을 한꺼번에)으로 점수를 계산하고, 그 점수를 확률로 바꿔 답해요. 예: "고양이 85%, 개 12%".' },
+  { id: 'loss', icon: 'trend-down', title: '손실', sub: '최대가능도로 채점', tools: ['prob'], where: '이 장 3절', text: '정답에 얼마나 높은 확률을 줬는지로 채점해요. 이 채점법은 아무렇게나 정한 게 아니라 "최대가능도" 원리에서 나와요.' },
+  { id: 'grad', icon: 'search', title: '기울기', sub: '연쇄법칙으로 민감도', tools: ['diff'], where: '이 장 2절', text: '파라미터를 살짝 바꾸면 손실이 얼마나 변하는지(민감도)를 전부 계산해요. 층이 여러 겹이어도 연쇄법칙(곱셈)으로 구할 수 있어요.' },
+  { id: 'update', icon: 'footprints', title: '갱신', sub: '기울기 반대로 한 걸음', tools: ['diff'], where: '2장', text: '기울기의 반대 방향으로 학습률만큼 파라미터를 옮기고 다시 모델로 돌아가요. 한 바퀴 돌 때마다 모델이 조금씩 나아져요.' }
 ];
 
 const LOOP: NodeId[] = ['model', 'loss', 'grad', 'update'];
@@ -111,7 +112,7 @@ export default function LearningPipeline({ expanded }: VizProps) {
             edge('update', 'model', 'e4')
           )}
           <text x={narrow ? 330 : 375} y={narrow ? 290 : 146} textAnchor="middle" style={{ fontSize: 12.5, fontWeight: 850, fill: 'var(--text-2)' }}>
-            🔁 {laps}바퀴
+            {laps}바퀴
           </text>
           {NODES.map((n) => {
             const [x, y] = pos[n.id];
@@ -134,13 +135,11 @@ export default function LearningPipeline({ expanded }: VizProps) {
                   rx={16}
                   fill={active ? withAlpha(stroke, 0.22) : 'var(--surface-solid)'}
                   stroke={stroke}
-                  strokeWidth={sel === n.id ? 3.5 : 2}
-                  style={{ transition: 'fill .25s', filter: active && c.theme === 'dark' ? `drop-shadow(0 0 8px ${stroke})` : undefined }}
+                  strokeWidth={sel === n.id ? 3 : 1.5}
+                  style={{ transition: 'fill .25s' }}
                 />
                 {tools && n.tools.length > 1 && <rect x={NW - 30} y={8} width={20} height={6} rx={3} fill={toolColor[n.tools[1]]} />}
-                <text x={18} y={39} style={{ fontSize: 24 }}>
-                  {n.emoji}
-                </text>
+                <Icon name={n.icon} x={16} y={20} size={24} color={c.text} strokeWidth={1.75} />
                 <text x={54} y={28} style={{ fontSize: 15, fontWeight: 850, fill: 'var(--text)' }}>
                   {n.title}
                 </text>
@@ -150,7 +149,7 @@ export default function LearningPipeline({ expanded }: VizProps) {
               </g>
             );
           })}
-          <circle cx={px} cy={py} r={9} stroke={c.surface} strokeWidth={3} style={{ fill: 'var(--lemon)', filter: c.theme === 'dark' ? 'drop-shadow(0 0 8px var(--lemon))' : undefined }} />
+          <circle cx={px} cy={py} r={9} fill={c.ink} stroke={c.surface} strokeWidth={3} />
         </svg>
       </div>
 
@@ -158,7 +157,8 @@ export default function LearningPipeline({ expanded }: VizProps) {
         <div style={{ padding: '12px 14px', borderRadius: 16, background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', marginBottom: 4 }}>
             <strong style={{ fontSize: 16 }}>
-              {node.emoji} {node.title}
+              <Icon name={node.icon} size={17} style={{ verticalAlign: '-3px', marginRight: 6 }} />
+              {node.title}
             </strong>
             {node.tools.map((t) => (
               <span key={t} style={{ fontSize: 11.5, fontWeight: 800, padding: '1px 8px', borderRadius: 99, background: withAlpha(toolColor[t], 0.18), color: 'var(--text)' }}>
@@ -181,20 +181,21 @@ export default function LearningPipeline({ expanded }: VizProps) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 750 }}>
           <span style={{ flex: 'none', color: 'var(--text-2)' }}>손실</span>
           <span style={{ flex: 1, height: 12, borderRadius: 99, background: 'var(--surface-3)', overflow: 'hidden' }}>
-            <span style={{ display: 'block', height: '100%', width: `${Math.min(100, (lossVal / 2.6) * 100)}%`, borderRadius: 99, background: lossVal < 0.4 ? c.pos : c.series[2], transition: 'width .6s' }} />
+            <span style={{ display: 'block', height: '100%', width: `${Math.min(100, (lossVal / 2.6) * 100)}%`, borderRadius: 99, background: lossVal < 0.4 ? c.pos : c.series[1], transition: 'width .6s' }} />
           </span>
           <span style={{ flex: 'none', minWidth: 44, textAlign: 'right' }}>{lossVal.toFixed(2)}</span>
         </div>
-        <Note mood={laps >= 5 ? 'cheer' : 'smile'} tone={laps >= 5 ? 'good' : undefined}>
+        <Note tone={laps >= 5 ? 'good' : undefined}>
           {laps >= 5
-            ? `벌써 ${laps}바퀴! 바퀴를 돌 때마다 손실이 줄어요. 세 가지 수학 도구가 이 루프 곳곳에 꽂혀 있다는 것, 기억해 두세요.`
-            : '노란 공이 루프를 도는 게 "학습 한 번"이에요. 상자를 누르면 그 단계에서 쓰는 수학이 나와요.'}
+            ? `${laps}바퀴를 돌았어요. 바퀴를 돌 때마다 손실이 줄고, 세 가지 수학 도구가 이 루프 곳곳에 쓰여요.`
+            : '공이 루프를 한 바퀴 도는 것이 "학습 한 번"이에요. 상자를 누르면 그 단계에서 쓰는 수학이 나와요.'}
         </Note>
       </div>
 
       <Controls>
         <Button variant="primary" onClick={() => setPlaying((p) => !p)}>
-          {playing ? '❚❚ 멈춤' : '▶ 돌리기'}
+          <Icon name={playing ? 'pause' : 'play'} size={16} />
+          {playing ? '멈춤' : '돌리기'}
         </Button>
         <Button
           onClick={() => {
@@ -202,10 +203,12 @@ export default function LearningPipeline({ expanded }: VizProps) {
             advance(Math.floor(phaseRef.current) + 1);
           }}
         >
-          다음 단계 ⟶
+          <Icon name="step" size={16} />
+          다음 단계
         </Button>
         <Button variant="ghost" onClick={() => { setLaps(0); phaseRef.current = 0; setPhase(0); }}>
-          ↺ 처음으로
+          <Icon name="reset" size={16} />
+          처음으로
         </Button>
         <Toggle label="어떤 수학이 쓰이나 색칠하기" checked={tools} onChange={setTools} />
       </Controls>
