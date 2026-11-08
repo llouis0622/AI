@@ -45,8 +45,7 @@ const drawerNav = [
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/svg+xml" href={url('/favicon.svg')} />
-    <meta name="theme-color" content="#fff9f1" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#050816" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#161616" />
     <meta property="og:type" content="website" />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
@@ -59,12 +58,10 @@ const drawerNav = [
     <noscript><style>[data-reveal]{opacity:1!important;transform:none!important}</style></noscript>
     <script is:inline>
       (function () {
-        var t;
-        try { t = localStorage.getItem('aiology:theme'); } catch (e) {}
-        if (t !== 'light' && t !== 'dark') {
-          t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        }
+        var t = 'dark';
+        try { if (localStorage.getItem('aiology:theme') === 'light') t = 'light'; } catch (e) {}
         document.documentElement.setAttribute('data-theme', t);
+        if (t === 'light') document.querySelector('meta[name="theme-color"]').setAttribute('content', '#fbfaf7');
       })();
     </script>
   </head>

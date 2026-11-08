@@ -1,0 +1,64 @@
+---
+/**
+ * Side note inside a chapter. Usage in MDX:
+ *   import Callout from '@/components/content/Callout.astro';
+ *   <Callout title="Hz(헤르츠)란">1초에 몇 번 떨리는지를 세는 단위다.</Callout>
+ */
+import Icon from '@/components/layout/Icon.astro';
+
+interface Props {
+  title?: string;
+  /** note: 보충 설명, warn: 주의할 점 */
+  kind?: 'note' | 'warn';
+}
+const { title, kind = 'note' } = Astro.props;
+---
+<aside class:list={['callout', `callout-${kind}`]}>
+  <Icon name={kind === 'warn' ? 'warn' : 'info'} size={18} class="callout-icon" />
+  <div class="callout-body">
+    {title && <strong class="callout-title">{title}</strong>}
+    <slot />
+  </div>
+</aside>
+
+<style>
+  .callout {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 12px;
+    margin: 1.6em 0;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    font-size: 0.95em;
+  }
+
+  .callout-warn {
+    border-left-color: var(--accent-2);
+  }
+
+  .callout :global(.callout-icon) {
+    margin-top: 3px;
+    color: var(--accent);
+  }
+
+  .callout-warn :global(.callout-icon) {
+    color: var(--accent-2);
+  }
+
+  .callout-title {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: 650;
+  }
+
+  .callout-body :global(p) {
+    margin: 0;
+  }
+
+  .callout-body :global(p + p) {
+    margin-top: 0.6em;
+  }
+</style>

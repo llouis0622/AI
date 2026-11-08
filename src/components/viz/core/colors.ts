@@ -21,24 +21,25 @@ export interface VizColors {
   surface: string;
 }
 
+// Server render and first paint use the default (dark) theme.
 const FALLBACK: VizColors = {
-  theme: 'light',
-  bg: '#fffdf9',
-  panel: '#fff8ef',
-  grid: 'rgba(42,37,64,.07)',
-  axis: 'rgba(42,37,64,.42)',
-  text: '#57516c',
-  ink: '#2a2540',
-  series: ['#7c6cf6', '#2fbf98', '#ff8a65', '#3f9ff0', '#e7a90f', '#f5679b'],
-  pos: '#2fbf98',
-  neg: '#f2626b',
-  low: '#9ee6cf',
-  mid: '#b9c8ff',
-  high: '#ffb3a1',
-  brand: '#7c6cf6',
-  brand2: '#2fbf98',
-  border: '#efe3d3',
-  surface: '#ffffff'
+  theme: 'dark',
+  bg: '#1b1b1b',
+  panel: '#222222',
+  grid: 'rgba(255,255,255,.06)',
+  axis: 'rgba(255,255,255,.36)',
+  text: '#b5b3ae',
+  ink: '#ecebe8',
+  series: ['#86a8f5', '#e8a85a', '#6cc2b4', '#e48c9f', '#b6a0ee', '#bdb58a'],
+  pos: '#86a8f5',
+  neg: '#e8a85a',
+  low: '#24324c',
+  mid: '#4f6eae',
+  high: '#a3bcf8',
+  brand: '#86a8f5',
+  brand2: '#e8a85a',
+  border: '#2c2c2c',
+  surface: '#1f1f1f'
 };
 
 export function readVizColors(): VizColors {
@@ -46,7 +47,7 @@ export function readVizColors(): VizColors {
   const cs = getComputedStyle(document.documentElement);
   const v = (name: string, fb: string) => cs.getPropertyValue(name).trim() || fb;
   return {
-    theme: document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light',
+    theme: document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark',
     bg: v('--viz-bg', FALLBACK.bg),
     panel: v('--viz-panel', FALLBACK.panel),
     grid: v('--viz-grid', FALLBACK.grid),

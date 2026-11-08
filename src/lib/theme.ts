@@ -1,12 +1,14 @@
 export type Theme = 'light' | 'dark';
 const KEY = 'aiology:theme';
 
+/** Dark is the default; light is only used when chosen. */
 export function currentTheme(): Theme {
-  return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
 }
 
 export function setTheme(theme: Theme) {
   document.documentElement.setAttribute('data-theme', theme);
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'light' ? '#fbfaf7' : '#161616');
   try {
     localStorage.setItem(KEY, theme);
   } catch {
