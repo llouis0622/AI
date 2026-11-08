@@ -75,8 +75,7 @@ export function Box({
   fs = 16,
   subFs = 12.5,
   dim = false,
-  ring: ringProp = false,
-  glow = false,
+  ring = false,
   dashed = false,
   c
 }: {
@@ -92,12 +91,9 @@ export function Box({
   subFs?: number;
   dim?: boolean;
   ring?: boolean;
-  /** @deprecated Temporary alias of `ring`, removed once labs 06–10 are updated. */
-  glow?: boolean;
   dashed?: boolean;
   c: VizColors;
 }) {
-  const ring = ringProp || glow;
   const s = 0.82 + 0.18 * t;
   const dark = c.theme === 'dark';
   return (
@@ -512,13 +508,4 @@ export function Glyph({
   strokeWidth?: number;
 }) {
   return <Icon name={name} x={x - size / 2} y={y - size / 2} size={size} strokeWidth={strokeWidth} style={{ color }} />;
-}
-
-/** @deprecated Temporary: removed once labs 06–10 use Glyph. */
-export function Emoji({ x, y, children, size = 26, className }: { x: number; y: number; children: ReactNode; size?: number; className?: string }) {
-  return (
-    <text x={x} y={y} textAnchor="middle" className={className} style={{ fontSize: size }}>
-      {children}
-    </text>
-  );
 }
