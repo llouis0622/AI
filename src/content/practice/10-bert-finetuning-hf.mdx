@@ -2,30 +2,22 @@
 title: "Hugging Face로 BERT 파인튜닝"
 lab: 10
 track: "C. NLP와 LLM"
-builds: "Hugging Face 생태계(`transformers`, `datasets`, `evaluate`)로 한국어 감성 분류기를 파인튜닝한다. NLP 실무의 표준 워크플로우 — 데이터 로드부터 학습, 평가, 추론 파이프라인, 모델 저장까지."
+builds: "Hugging Face 생태계(`transformers`, `datasets`, `evaluate`)로 한국어 감성 분류기를 파인튜닝한다. 데이터 로드부터 학습, 평가, 추론 파이프라인, 모델 저장까지 NLP 실무의 표준 워크플로우를 따른다."
 chapters: [18]
 summary:
-  - icon: "🎬"
-    title: "리뷰 20만 개"
-    text: "네이버 영화 리뷰(NSMC)를 **긍정/부정**으로 나누는 감성 분류기를 만들어요."
-    visual: "float"
-  - icon: "✂️"
-    title: "토크나이즈 + 동적 패딩"
-    text: "모델 전용 토크나이저로 자르고, 배치마다 **그 배치의 최대 길이**까지만 채워요."
-    visual: "slide"
-  - icon: "🧠"
-    title: "BERT + 새 머리"
-    text: "사전학습된 BERT 위에 **[CLS] → 2칸 분류 헤드**만 새로 붙여요. 몸통은 이미 언어를 알아요."
-    visual: "orbit"
-  - icon: "🐢"
-    title: "작은 학습률로 살살"
-    text: "학습률 **2e-5**와 웜업으로 조심스럽게. 너무 크면 사전학습 지식이 무너져요."
-    visual: "grow"
+  - title: "리뷰 20만 개"
+    text: "네이버 영화 리뷰(NSMC)를 긍정/부정으로 나누는 감성 분류기를 만들어요."
+  - title: "토크나이즈 + 동적 패딩"
+    text: "모델 전용 토크나이저로 자르고, 배치마다 그 배치의 최대 길이까지만 채워요."
+  - title: "BERT + 새 머리"
+    text: "사전학습된 BERT 위에 [CLS] → 2칸 분류 헤드만 새로 붙여요. 몸통은 이미 언어를 알아요."
+  - title: "작은 학습률로 살살"
+    text: "학습률 2e-5와 웜업으로 조심스럽게 학습해요. 너무 크면 사전학습 지식이 무너져요."
 ---
 
 import Viz from '@/components/viz/Viz.tsx';
 
-**만드는 것**: Hugging Face 생태계(`transformers`, `datasets`, `evaluate`)로 한국어 감성 분류기를 파인튜닝한다. NLP 실무의 표준 워크플로우 — 데이터 로드부터 학습, 평가, 추론 파이프라인, 모델 저장까지.
+**만드는 것**: Hugging Face 생태계(`transformers`, `datasets`, `evaluate`)로 한국어 감성 분류기를 파인튜닝한다. 데이터 로드부터 학습, 평가, 추론 파이프라인, 모델 저장까지 NLP 실무의 표준 워크플로우를 따른다.
 
 **선행 지식**: [BERT 계열](/book/18-transformer), [03. 전이학습](/practice/03-transfer-learning)의 개념이 텍스트로 그대로 이어진다.
 
@@ -123,7 +115,7 @@ if __name__ == "__main__":
 
 ## 추론 파이프라인
 
-학습된 모델은 세 가지 방식으로 쓴다. 프로토타입은 pipeline, 서비스는 직접 배치 추론.
+학습된 모델은 세 가지 방식으로 쓴다. 프로토타입에는 pipeline을, 서비스에는 직접 배치 추론을 쓴다.
 
 ```python
 from transformers import pipeline
@@ -148,21 +140,21 @@ print(probs)
 
 ## 워크플로우의 결정들
 
-**동적 패딩.** 데이터셋 전체를 max_length로 패딩하면 짧은 문장 배치에서 계산 낭비가 크다. `DataCollatorWithPadding`은 배치마다 그 배치의 최장 길이로만 패딩한다 — 학습이 눈에 띄게 빨라진다. 길이가 비슷한 샘플끼리 배치를 묶으면(`group_by_length=True`) 더 빨라진다.
+**동적 패딩.** 데이터셋 전체를 max_length로 패딩하면 짧은 문장 배치에서 계산 낭비가 크다. `DataCollatorWithPadding`은 배치마다 그 배치의 최장 길이로만 패딩해서 학습이 눈에 띄게 빨라진다. 길이가 비슷한 샘플끼리 배치를 묶으면(`group_by_length=True`) 더 빨라진다.
 
-**learning rate 2e-5.** 사전학습 지식을 보존하면서 적응시키는 범위다. 1e-3처럼 크게 잡으면 파국적 망각으로 성능이 무너진다 — [03. 전이학습](/practice/03-transfer-learning)의 "백본은 작게"와 같은 원리다.
+**learning rate 2e-5.** 사전학습 지식을 보존하면서 모델을 적응시키는 범위다. 1e-3처럼 크게 잡으면 파국적 망각으로 성능이 무너진다. [03. 전이학습](/practice/03-transfer-learning)에서 본 "백본은 작게"와 같은 원리다.
 
-**`load_best_model_at_end`.** 마지막 스텝이 최고 성능이 아닐 수 있다. 검증 지표 기준 최고 체크포인트를 자동 복원한다.
+**`load_best_model_at_end`.** 마지막 스텝이 최고 성능이 아닐 수 있다. 검증 지표가 가장 좋았던 체크포인트를 자동으로 복원한다.
 
-**한국어 모델 선택.** klue/bert-base 외에 klue/roberta-base(대체로 더 강함), 문장 임베딩이 목적이면 BGE-m3·KoSimCSE 계열을 본다. 후보는 [Hugging Face Hub](https://huggingface.co/models?language=ko)에서 다운로드 수와 최신성을 함께 본다.
+**한국어 모델 선택.** klue/bert-base 외에 klue/roberta-base(대체로 더 강함)가 있고, 문장 임베딩이 목적이면 BGE-m3·KoSimCSE 계열을 살펴본다. 후보를 고를 때는 [Hugging Face Hub](https://huggingface.co/models?language=ko)에서 다운로드 수와 최신성을 함께 확인한다.
 
 ## 확장 과제
 
-1. **Trainer 없이 직접 루프** — 같은 학습을 순수 PyTorch 루프(+`get_linear_schedule_with_warmup`)로 재현하라. Trainer가 해 주던 일(그래디언트 누적, 혼합 정밀도, 체크포인트)이 무엇인지 명확해진다.
-2. **토큰 분류로 확장** — `AutoModelForTokenClassification`으로 KLUE-NER(개체명 인식)을 파인튜닝하라. 레이블 정렬(서브워드 ↔ 단어)이 핵심 난관이다.
-3. **오분류 분석** — 검증 셋에서 confidence가 높은데 틀린 샘플 30개를 뽑아 보라. 레이블 노이즈인가, 진짜 어려운 문장인가? ([평가의 기본기](/book/08-evaluation))
-4. **경량화** — distilbert 계열로 바꿔 정확도 하락 대비 속도 향상을 측정하라.
+1. Trainer 없이 직접 루프: 같은 학습을 순수 PyTorch 루프(+`get_linear_schedule_with_warmup`)로 재현하라. Trainer가 대신 해 주던 일(그래디언트 누적, 혼합 정밀도, 체크포인트)이 분명히 보인다.
+2. 토큰 분류로 확장: `AutoModelForTokenClassification`으로 KLUE-NER(개체명 인식)을 파인튜닝하라. 서브워드와 단어 사이의 레이블 정렬이 가장 까다롭다.
+3. 오분류 분석: 검증 셋에서 confidence가 높은데 틀린 샘플 30개를 뽑아 보라. 레이블 노이즈인가, 진짜 어려운 문장인가? ([평가의 기본기](/book/08-evaluation))
+4. 경량화: distilbert 계열로 바꿔 정확도 하락 대비 속도 향상을 측정하라.
 
 ## 다음
 
-인코더 분류를 넘어, 생성형 LLM을 내 데이터로 조정한다 → [11. LoRA로 LLM 파인튜닝](/practice/11-lora-finetuning)
+인코더 분류 다음으로, 생성형 LLM을 내 데이터로 조정한다 → [11. LoRA로 LLM 파인튜닝](/practice/11-lora-finetuning)
