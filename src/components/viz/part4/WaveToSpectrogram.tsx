@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent as RPointerEvent, type ReactNode } from 'react';
 import type { VizProps } from '../Viz';
-import { Button, Controls, Note, Segmented, Toggle } from '../core/ui';
+import { Button, Controls, Icon, Note, Segmented, Toggle } from '../core/ui';
 import { useCanvas, useElementSize, useRafLoop } from '../core/hooks';
-import { mixHex, useVizColors, withAlpha, type VizColors } from '../core/colors';
+import { useVizColors, withAlpha, type VizColors } from '../core/colors';
 import { clamp, rng } from '../core/math';
 import { frameSpectrum, hzToMel, melToHz, stft } from './_fft';
 import { hexToRgb } from './_draw';
@@ -14,9 +14,9 @@ const DUR = 2;
 const LEN = SR * DUR;
 /** Analysis window lengths (samples at 8 kHz). The book uses 25 ms; longer windows split close notes better. */
 const WINDOWS: { n: number; label: string; tip: string }[] = [
-  { n: 256, label: '짧게 32ms', tip: '짧은 창: "언제"는 또렷하지만 음높이는 흐릿해요. 화음의 세 줄이 뭉개지죠?' },
-  { n: 512, label: '보통 64ms', tip: '중간 창: 시간과 음높이를 적당히 함께 보는 균형점이에요.' },
-  { n: 2048, label: '길게 256ms', tip: '긴 창: 음높이는 아주 또렷하지만 "언제"가 흐려져요. 박수가 옆으로 번지죠?' }
+  { n: 256, label: '짧게 32ms', tip: '짧은 창은 "언제"가 또렷하지만 음높이가 흐릿해요. 화음의 세 줄이 뭉개져요.' },
+  { n: 512, label: '보통 64ms', tip: '중간 창은 시간과 음높이를 적당히 함께 보는 균형점이에요.' },
+  { n: 2048, label: '길게 256ms', tip: '긴 창은 음높이가 아주 또렷하지만 "언제"가 흐려져요. 박수가 옆으로 번져요.' }
 ];
 const HOP = 80;
 const FMAX = 4000;
@@ -27,12 +27,12 @@ const FONT = 'Pretendard Variable, Pretendard, system-ui, sans-serif';
 
 type Key = 'do' | 'sol' | 'chord' | 'whistle' | 'vowel' | 'clap';
 const PRESETS: { key: Key; label: string }[] = [
-  { key: 'do', label: '🎹 도' },
-  { key: 'sol', label: '🎹 솔' },
-  { key: 'chord', label: '🎶 도·미·솔 화음' },
-  { key: 'whistle', label: '😗 휘파람' },
-  { key: 'vowel', label: '🗣️ 아·이·우' },
-  { key: 'clap', label: '👏 박수' }
+  { key: 'do', label: '도' },
+  { key: 'sol', label: '솔' },
+  { key: 'chord', label: '도·미·솔 화음' },
+  { key: 'whistle', label: '휘파람' },
+  { key: 'vowel', label: '아·이·우' },
+  { key: 'clap', label: '박수' }
 ];
 
 /** Vowel formants (F1, F2) in Hz — rough adult values. */
@@ -118,8 +118,9 @@ function noteName(f: number) {
 const rowFreq = (r: number, mel: boolean) => (mel ? melToHz((r / ROWS) * hzToMel(FMAX)) : (r / ROWS) * FMAX);
 const freqFrac = (f: number, mel: boolean) => (mel ? hzToMel(f) / hzToMel(FMAX) : f / FMAX);
 
+/** Quiet → loud on the theme's sequential blue ramp (background → low → mid → high). */
 function makeLut(c: VizColors): [number, number, number][] {
-  const stops = [c.bg, mixHex(c.bg, c.series[0], 0.45), c.series[0], c.series[5], c.series[4]].map(hexToRgb);
+  const stops = [c.bg, c.low, c.mid, c.high].map(hexToRgb);
   const lut: [number, number, number][] = [];
   for (let i = 0; i < 256; i++) {
     const x = (i / 255) * (stops.length - 1);
@@ -274,7 +275,7 @@ export default function WaveToSpectrogram({ expanded }: VizProps) {
   const startMic = async () => {
     setMicMsg(null);
     if (!navigator.mediaDevices?.getUserMedia) {
-      setMicMsg('이 브라우저(또는 http 주소)에서는 마이크를 쓸 수 없어요. 대신 위의 소리 예시로 충분히 실험할 수 있어요!');
+      setMicMsg('이 브라우저(또는 http 주소)에서는 마이크를 쓸 수 없어요. 위의 소리 예시로도 충분히 실험할 수 있어요.');
       return;
     }
     let stream: MediaStream;
@@ -388,14 +389,14 @@ export default function WaveToSpectrogram({ expanded }: VizProps) {
   const [waveCv] = useCanvas(
     (ctx, w, h) => {
       const mid = h / 2;
-      ctx.fillStyle = withAlpha(c.series[3], 0.06);
+      ctx.fillStyle = withAlpha(c.series[0], 0.06);
       ctx.fillRect(ML, 0, w - ML - MR, h);
       ctx.strokeStyle = c.grid;
       ctx.beginPath();
       ctx.moveTo(ML, mid);
       ctx.lineTo(w - MR, mid);
       ctx.stroke();
-      ctx.strokeStyle = c.series[3];
+      ctx.strokeStyle = c.series[0];
       ctx.lineWidth = 1;
       ctx.beginPath();
       const pw = w - ML - MR;
@@ -408,9 +409,9 @@ export default function WaveToSpectrogram({ expanded }: VizProps) {
       // 30 ms zoom window marker
       const zx0 = tx(clamp(t - 0.015, 0, DUR), w);
       const zx1 = tx(clamp(t + 0.015, 0, DUR), w);
-      ctx.fillStyle = withAlpha(c.series[2], 0.25);
+      ctx.fillStyle = withAlpha(c.series[1], 0.25);
       ctx.fillRect(zx0, 0, Math.max(2, zx1 - zx0), h);
-      ctx.strokeStyle = c.series[2];
+      ctx.strokeStyle = c.series[1];
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(tx(t, w), 0);
@@ -424,14 +425,14 @@ export default function WaveToSpectrogram({ expanded }: VizProps) {
   const [zoomCv] = useCanvas(
     (ctx, w, h) => {
       const mid = h / 2;
-      ctx.fillStyle = withAlpha(c.series[2], 0.07);
+      ctx.fillStyle = withAlpha(c.series[1], 0.07);
       ctx.fillRect(0, 0, w, h);
       ctx.strokeStyle = c.grid;
       ctx.beginPath();
       ctx.moveTo(0, mid);
       ctx.lineTo(w, mid);
       ctx.stroke();
-      ctx.strokeStyle = c.series[2];
+      ctx.strokeStyle = c.series[1];
       ctx.lineWidth = 2;
       ctx.beginPath();
       if (live && liveRef.current) {
@@ -473,7 +474,7 @@ export default function WaveToSpectrogram({ expanded }: VizProps) {
         const f = ((k + 0.5) / n) * FMAX;
         const v = live && L ? liveLevel(at(L.freq, f, liveBin)) : level(at(spectrum, f, binHz));
         const bh = v * ph;
-        ctx.fillStyle = `hsl(${(k / n) * 280}, 85%, ${c.theme === 'dark' ? 60 : 55}%)`;
+        ctx.fillStyle = c.series[0];
         ctx.fillRect(ML + (k / n) * pw, 6 + ph - bh, pw / n + 0.6, bh);
       }
       ctx.strokeStyle = c.axis;
@@ -538,14 +539,16 @@ export default function WaveToSpectrogram({ expanded }: VizProps) {
       } else {
         for (const s of [0, 0.5, 1, 1.5, 2]) label(ctx, `${s}초`, clamp(tx(s, w), ML + 10, w - MR - 10), h - 5, 'center');
         // vowel labels
-        if (key === 'vowel') for (const vw of VOWELS) label(ctx, vw.name, tx((vw.t0 + vw.t1) / 2, w), 20, 'center', '#ffffff', 900);
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
+        if (key === 'vowel') for (const vw of VOWELS) label(ctx, vw.name, tx((vw.t0 + vw.t1) / 2, w), 20, 'center', c.ink, 900);
+        // playhead: dashed accent over a background-colored casing, legible on quiet and loud areas
+        ctx.strokeStyle = c.bg;
+        ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.moveTo(tx(t, w), 4);
         ctx.lineTo(tx(t, w), 4 + ph);
         ctx.stroke();
-        ctx.strokeStyle = c.series[2];
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = c.series[1];
         ctx.setLineDash([4, 3]);
         ctx.beginPath();
         ctx.moveTo(tx(t, w), 4);
@@ -582,15 +585,15 @@ export default function WaveToSpectrogram({ expanded }: VizProps) {
     }
   };
 
-  const notes: Record<Key, { text: ReactNode; mood: 'smile' | 'happy' | 'think' | 'wow' | 'cheer' }> = {
-    do: { text: <>"도" 한 음인데 줄이 여러 개예요! 맨 아래 262Hz(기본음) 위로 2배·3배… 배음이 쌓여 있어요. 배음의 세기 비율이 악기마다 다른 "음색"이에요.</>, mood: 'wow' },
-    sol: { text: <>"솔"(392Hz)은 "도"보다 높아서 줄 전체가 위로 올라가요. 높은 음 = 빠른 떨림 = 큰 주파수!</>, mood: 'happy' },
-    chord: { text: <>도·미·솔을 동시에! 파형만 보면 복잡한 꼬불꼬불인데, 프리즘과 스펙트로그램에선 세 음이 깔끔하게 나뉘어요. 이게 푸리에 변환의 힘이에요.</>, mood: 'cheer' },
-    whistle: { text: <>음이 올라갔다 내려오면 줄이 언덕 모양이 돼요. 시간에 따라 바뀌는 주파수를 한 장에 — 그래서 "소리의 악보"예요.</>, mood: 'happy' },
-    vowel: { text: <>같은 높이(140Hz)로 말해도 아·이·우는 밝은 띠(포먼트)의 위치가 달라요. 음성 인식 모델은 바로 이 무늬를 "읽어요".</>, mood: 'think' },
-    clap: { text: <>짝! 소리는 모든 주파수가 한꺼번에 터져서 세로 줄이 생겨요. 줄무늬 방향만 봐도 소리 종류가 보이죠? 이 그림을 CNN에 그대로 넣을 수 있어요.</>, mood: 'wow' }
+  const notes: Record<Key, { text: ReactNode }> = {
+    do: { text: <>"도" 한 음인데 줄이 여러 개예요. 맨 아래 262Hz(기본음) 위로 2배, 3배 … 배음이 쌓여 있어요. 배음의 세기 비율이 악기마다 다른 "음색"이에요.</> },
+    sol: { text: <>"솔"(392Hz)은 "도"보다 높아서 줄 전체가 위로 올라가요. 높은 음일수록 빠르게 떨리고, 주파수가 커요.</> },
+    chord: { text: <>도, 미, 솔을 동시에 냈어요. 파형만 보면 복잡하지만, 프리즘과 스펙트로그램에서는 세 음이 깔끔하게 나뉘어요. 푸리에 변환이 하는 일이에요.</> },
+    whistle: { text: <>음이 올라갔다 내려오면 줄이 언덕 모양이 돼요. 시간에 따라 바뀌는 주파수를 한 장에 담아서 "소리의 악보"라고 불러요.</> },
+    vowel: { text: <>같은 높이(140Hz)로 말해도 아, 이, 우는 밝은 띠(포먼트)의 위치가 달라요. 음성 인식 모델은 이 무늬를 읽어요.</> },
+    clap: { text: <>박수 소리는 모든 주파수가 한꺼번에 터져서 세로 줄이 생겨요. 줄무늬 방향만 봐도 소리 종류를 알 수 있어서, 이 그림을 CNN에 그대로 넣을 수 있어요.</> }
   };
-  const note = live ? { text: <>🎤 말하거나 노래하거나 휘파람을 불어 보세요! 오른쪽 끝이 "지금"이고, 왼쪽으로 흘러가요.</>, mood: 'cheer' as const } : notes[key];
+  const note = live ? { text: <>말하거나 노래하거나 휘파람을 불어 보세요. 오른쪽 끝이 "지금"이고, 왼쪽으로 흘러가요.</> } : notes[key];
 
   const panelTitle = (s: string) => (
     <div className="vz-panel-title" style={{ marginBottom: 4 }}>
@@ -604,28 +607,28 @@ export default function WaveToSpectrogram({ expanded }: VizProps) {
         {!live && (
           <div style={{ display: 'grid', gridTemplateColumns: narrow ? '1fr' : 'minmax(0, 1fr) 34%', gap: 10 }}>
             <div>
-              {panelTitle('① 파형 — 공기가 떨리는 모양 (2초)')}
+              {panelTitle('1. 파형: 공기가 떨리는 모양 (2초)')}
               <canvas ref={waveCv} className="vz-canvas" style={{ height: H_WAVE, cursor: 'ew-resize' }} role="img" aria-label="소리의 파형. 눌러서 재생 위치를 옮길 수 있어요" {...scrubHandlers} onPointerCancel={() => (scrub.current = null)} />
             </div>
             <div>
-              {panelTitle('🔍 주황 칸 확대')}
+              {panelTitle('표시한 30ms 확대')}
               <canvas ref={zoomCv} className="vz-canvas" style={{ height: H_WAVE, borderRadius: 10, touchAction: 'pan-y' }} role="img" aria-label="30밀리초 확대 파형" />
             </div>
           </div>
         )}
         {live && (
           <div>
-            {panelTitle('① 파형 — 마이크로 들어온 떨림')}
+            {panelTitle('1. 파형: 마이크로 들어온 떨림')}
             <canvas ref={zoomCv} className="vz-canvas" style={{ height: H_WAVE, borderRadius: 10, touchAction: 'pan-y' }} role="img" aria-label="마이크 실시간 파형" />
           </div>
         )}
         <div>
-          {panelTitle(live ? '② 프리즘 — 지금 들리는 소리의 주파수' : `② 프리즘 — ${t.toFixed(2)}초 순간의 주파수 (푸리에 변환)`)}
+          {panelTitle(live ? '2. 프리즘: 지금 들리는 소리의 주파수' : `2. 프리즘: ${t.toFixed(2)}초 순간의 주파수 (푸리에 변환)`)}
           <canvas ref={prismCv} className="vz-canvas" style={{ height: H_PRISM, touchAction: 'pan-y' }} role="img" aria-label="재생 위치에서의 주파수 막대그래프" />
-          {!live && quiet && <div style={{ fontSize: 12, color: 'var(--text-3)' }}>지금 위치는 조용해요 — 파형이나 스펙트로그램을 눌러 소리가 있는 곳으로 옮겨 보세요.</div>}
+          {!live && quiet && <div style={{ fontSize: 12, color: 'var(--text-3)' }}>지금 위치는 조용해요. 파형이나 스펙트로그램을 눌러 소리가 있는 곳으로 옮겨 보세요.</div>}
         </div>
         <div>
-          {panelTitle('③ 스펙트로그램 — 프리즘을 시간 순서로 이어 붙인 "소리의 악보"')}
+          {panelTitle('3. 스펙트로그램: 프리즘을 시간 순서로 이어 붙인 "소리의 악보"')}
           <canvas ref={specCv} className="vz-canvas" style={{ height: H_SPEC, cursor: live ? 'default' : 'ew-resize' }} role="img" aria-label="스펙트로그램: 가로는 시간, 세로는 주파수, 밝기는 세기" {...scrubHandlers} onPointerCancel={() => (scrub.current = null)} />
           {!live && (
             <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 4 }}>
@@ -636,20 +639,20 @@ export default function WaveToSpectrogram({ expanded }: VizProps) {
         <div className="vz-playbar">
           {!live && (
             <Button variant="primary" onClick={() => (playing ? pause() : play(t))}>
-              {playing ? '❚❚ 멈춤' : '▶ 소리 듣기'}
+              <Icon name={playing ? 'pause' : 'play'} size={16} />
+              {playing ? '멈춤' : '소리 듣기'}
             </Button>
           )}
           <Button variant={live ? 'danger' : 'ghost'} onClick={() => (live ? stopMic() : void startMic())}>
-            {live ? '■ 마이크 끄기' : '🎤 내 목소리로 해보기'}
+            <Icon name={live ? 'square' : 'mic'} size={16} />
+            {live ? '마이크 끄기' : '내 목소리로 해 보기'}
           </Button>
           <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{live ? '소리는 이 기기 밖으로 나가지 않아요.' : '파형이나 스펙트로그램을 눌러 시간을 옮길 수 있어요.'}</span>
         </div>
         {micMsg && (
-          <Note mood="think" tone="warn">
-            {micMsg}
-          </Note>
+          <Note tone="warn">{micMsg}</Note>
         )}
-        <Note mood={note.mood}>{note.text}</Note>
+        <Note>{note.text}</Note>
       </div>
       <Controls>
         {!live && <Segmented label="소리 고르기" options={PRESETS.map((p) => ({ value: p.key, label: p.label }))} value={key} onChange={setKey} />}
